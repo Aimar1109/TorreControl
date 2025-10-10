@@ -1,6 +1,6 @@
 package domain;
 
-public class Aeropuerto {
+public class Aereopuerto {
 	
 	// ATRIBUTOS
 	private String codigo;
@@ -8,7 +8,7 @@ public class Aeropuerto {
 	private String ciudad;
 	
 	// CONSTRUCTOR
-	public Aeropuerto(String codigo, String nombre, String ciudad) {
+	public Aereopuerto(String codigo, String nombre, String ciudad) {
 		super();
 		this.codigo = codigo;
 		this.nombre = nombre;

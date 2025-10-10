@@ -6,8 +6,8 @@ public class Vuelo {
 	
 	// ATRIBUTOS
 	private int codigo;
-	private Aeropuerto origen;
-	private Aeropuerto destino;
+	private Aereopuerto origen;
+	private Aereopuerto destino;
 	private Pista pista;
 	private PuertaEmbarque puerta;
 	private boolean estado;
@@ -19,7 +19,7 @@ public class Vuelo {
 	private int delayed;
 	
 	// CONSTRUCTOR	
-	public Vuelo(int codigo, Aeropuerto origen, Aeropuerto destino, Pista pista, PuertaEmbarque puerta, boolean estado,
+	public Vuelo(int codigo, Aereopuerto origen, Aereopuerto destino, Pista pista, PuertaEmbarque puerta, boolean estado,
 			int duracion, Avion avion, boolean emergencia, ArrayList<String> pasajeros, ArrayList<String> tripulacion,
 			int delayed) {
 		super();
@@ -44,16 +44,16 @@ public class Vuelo {
 	public void setcodigo(int codigo) {
 		this.codigo = codigo;
 	}
-	public Aeropuerto getOrigen() {
+	public Aereopuerto getOrigen() {
 		return origen;
 	}
-	public void setOrigen(Aeropuerto origen) {
+	public void setOrigen(Aereopuerto origen) {
 		this.origen = origen;
 	}
-	public Aeropuerto getDestino() {
+	public Aereopuerto getDestino() {
 		return destino;
 	}
-	public void setDestino(Aeropuerto destino) {
+	public void setDestino(Aereopuerto destino) {
 		this.destino = destino;
 	}
 	public Pista getPista() {
