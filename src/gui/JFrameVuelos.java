@@ -60,58 +60,46 @@ public class JFrameVuelos extends JPanel {
 		JPanel panelCentral = new JPanel(new GridLayout(1, 2, 5, 5));
 		panelCentral.setBorder(new EmptyBorder(10, 30, 30, 30));
 		
-		// LLEGADAS
-		JPanel mainLlegadas = new JPanel(new BorderLayout());
+		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", llegadas, true);
+		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", salidas, false);
+        
+		// MAIN
+        panelCentral.add(mainLlegadas);
+        panelCentral.add(mainSalidas);
+        
+        
+        mainVuelos.add(panelCentral, BorderLayout.CENTER);
+		add(mainVuelos);		
+	}
+	
+	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada) {
 		
-		// titulo llegadas
-		JLabel tituLlegadas = new JLabel("Llegadas", SwingConstants.CENTER);
-		tituLlegadas.setFont(new Font("Arial", Font.BOLD, 24));
+		//Panel
+		JPanel mainPanel = new JPanel(new BorderLayout());
+	     
+        // Titulo 
+        JLabel tituT = new JLabel(titulo, SwingConstants.CENTER);
+        tituT.setFont(new Font("Arial", Font.BOLD, 24));
         
-        mainLlegadas.add(tituLlegadas, BorderLayout.NORTH);
-        
-        // tabla llegadas
-        String[] columnasLlegadas = {"Vuelo", "Origen", "Hora", "Delayed"};
-        
-        DefaultTableModel modeloLlegadas = new DefaultTableModel(columnasLlegadas, 0);
-        JTable tablaLlegadas = new JTable(modeloLlegadas);
-        tablaLlegadas.setFillsViewportHeight(true);
-        tablaLlegadas.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        for(Vuelo v: llegadas) {
-        	modeloLlegadas.addRow(new Object[] {
-        			v.getCodigo(),
-        			v.getOrigen().getCiudad(),
-        			v.getFechaHoraProgramada().format(formatter),
-        			v.getDelayed()
-        	});
-        }
-		
-        JScrollPane scrollLlegadas = new JScrollPane(tablaLlegadas);
-        scrollLlegadas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollLlegadas.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        
-        mainLlegadas.add(scrollLlegadas, BorderLayout.CENTER);
-		
-        // SALIDAS
-        JPanel mainSalidas = new JPanel(new BorderLayout());
-     
-        // titulo Salidas
-        JLabel tituSalidas = new JLabel("Salidas", SwingConstants.CENTER);
-        tituSalidas.setFont(new Font("Arial", Font.BOLD, 24));
-        
-        mainSalidas.add(tituSalidas, BorderLayout.NORTH);
+        mainPanel.add(tituT, BorderLayout.NORTH);
            
-        // tabla Salidas
-        String[] columnasSalidas = {"Vuelo", "Destino", "Hora", "Delayed"};
+        // Tabla
+        String ae;
+        if (esLlegada) {
+        	ae = "Origen";
+        } else {
+        	ae = "Destino";
+        }
+        String[] columnas = {"Vuelo", ae, "Hora", "Delayed"};
          
-        DefaultTableModel modeloSalidas = new DefaultTableModel(columnasSalidas, 0);
-        JTable tablaSalidas = new JTable(modeloSalidas);
-        tablaSalidas.setFillsViewportHeight(true);
-		tablaSalidas.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
+        JTable tabla = new JTable(modelo);
+        tabla.setFillsViewportHeight(true);
+		tabla.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         
-        for(Vuelo v: salidas) {
-        	modeloSalidas.addRow(new Object[] {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        for(Vuelo v: vuelos) {
+        	modelo.addRow(new Object[] {
         			v.getCodigo(),
         			v.getDestino().getCiudad(),
         			v.getFechaHoraProgramada().format(formatter),
@@ -119,22 +107,15 @@ public class JFrameVuelos extends JPanel {
         	});
         }
      		
-        JScrollPane scrollSalidas = new JScrollPane(tablaSalidas);
+        JScrollPane scrollSalidas = new JScrollPane(tabla);
         scrollSalidas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollSalidas.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         
-        mainSalidas.add(scrollSalidas, BorderLayout.CENTER);
+        mainPanel.add(scrollSalidas, BorderLayout.CENTER);
         
         Dimension dim = this.getSize();
-        tablaLlegadas.setPreferredScrollableViewportSize(new Dimension(dim.width-50, dim.height));
-        tablaSalidas.setPreferredScrollableViewportSize(new Dimension(dim.width-50, dim.height));
+        tabla.setPreferredScrollableViewportSize(new Dimension(dim.width-50, dim.height));
         
-		// main
-        panelCentral.add(mainLlegadas);
-        panelCentral.add(mainSalidas);
-        
-        
-        mainVuelos.add(panelCentral, BorderLayout.CENTER);
-		add(mainVuelos);		
+		return mainPanel;
 	}
 }
