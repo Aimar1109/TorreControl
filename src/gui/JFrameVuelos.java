@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import javax.swing.JLabel;
@@ -12,6 +13,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableModel;
 
 import domain.Vuelo;
 
@@ -26,13 +28,23 @@ public class JFrameVuelos extends JPanel {
 		// Datos necesarios
 		this.vuelos = vuelos;
 		
+		ArrayList<Vuelo> llegadas = new ArrayList<Vuelo>();
+		ArrayList<Vuelo> salidas = new ArrayList<Vuelo>();
+		for (Vuelo v: this.vuelos) {
+			if (v.getOrigen().getCiudad().equals("Bilbo")) {
+				salidas.add(v);
+			} else {
+				llegadas.add(v);
+			}
+		}
+		
 		// Creacion del main panel
 		JPanel mainVuelos = new JPanel(new BorderLayout());
 		
 		
 		// Panel Superior
 		JPanel panelSuperior = new JPanel();
-		panelSuperior.setBackground(new Color(240, 240, 240));
+		panelSuperior.setBackground(new Color(245, 245, 220));
 		panelSuperior.setOpaque(true);
 		JLabel titu = new JLabel("Vuelos", SwingConstants.CENTER);
         titu.setFont(new Font("Arial", Font.BOLD, 24));
@@ -43,29 +55,75 @@ public class JFrameVuelos extends JPanel {
 		// Panel Central
 		JPanel panelCentral = new JPanel(new GridLayout(1, 2, 5, 5));
 		
-		// Prueba manual
-		String[] columnas = {"ID", "Vuelo", "Origen", "Destino", "Estado"};
-        Object[][] datos = {
-            {1, "IB123", "Madrid", "Bilbao", "En vuelo"},
-            {2, "VY456", "Barcelona", "Sevilla", "Aterrizado"},
-            {3, "UX789", "Bilbao", "Londres", "Retrasado"}
-        };
-
-        // Crear la tabla
-        JTable tabla = new JTable(datos, columnas);
-        JTable tabla1 = new JTable(datos, columnas);
-
-        // Añadirla dentro de un JScrollPane para permitir scroll
-        JScrollPane scroll = new JScrollPane(tabla);
-        JScrollPane scroll1 = new JScrollPane(tabla1);
-
-        // Añadir el scroll al panel
-        panelCentral.add(scroll);
-        panelCentral.add(scroll1);
+		// LLEGADAS
+		JPanel mainLlegadas = new JPanel(new BorderLayout());
+		
+		// titulo llegadas
+		JLabel tituLlegadas = new JLabel("Llegadas", SwingConstants.CENTER);
+		tituLlegadas.setFont(new Font("Arial", Font.BOLD, 24));
+        
+        mainLlegadas.add(tituLlegadas, BorderLayout.NORTH);
+        
+        // tabla llegadas
+        String[] columnasLlegadas = {"Vuelo", "Origen", "Hora", "Delayed"};
+        
+        DefaultTableModel modeloLlegadas = new DefaultTableModel(columnasLlegadas, 0);
+        JTable tablaLlegadas = new JTable(modeloLlegadas);
+        tablaLlegadas.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        for(Vuelo v: llegadas) {
+        	modeloLlegadas.addRow(new Object[] {
+        			v.getCodigo(),
+        			v.getOrigen().getCiudad(),
+        			v.getFechaHoraProgramada().format(formatter),
+        			v.getDelayed()
+        	});
+        }
+		
+        JScrollPane scrollLlegadas = new JScrollPane(tablaLlegadas);
+        scrollLlegadas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollLlegadas.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        
+        mainLlegadas.add(scrollLlegadas, BorderLayout.CENTER);
+		
+        // SALIDAS
+        JPanel mainSalidas = new JPanel(new BorderLayout());
+     
+        // titulo Salidas
+        JLabel tituSalidas = new JLabel("Salidas", SwingConstants.CENTER);
+        tituSalidas.setFont(new Font("Arial", Font.BOLD, 24));
+        
+        mainSalidas.add(tituSalidas, BorderLayout.NORTH);
+           
+        // tabla Salidas
+        String[] columnasSalidas = {"Vuelo", "Origen", "Hora", "Delayed"};
+         
+        DefaultTableModel modeloSalidas = new DefaultTableModel(columnasSalidas, 0);
+        JTable tablaSalidas = new JTable(modeloSalidas);
+        tablaSalidas.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+             
+        for(Vuelo v: salidas) {
+        	modeloSalidas.addRow(new Object[] {
+        			v.getCodigo(),
+        			v.getDestino().getCiudad(),
+        			v.getFechaHoraProgramada().format(formatter),
+        			v.getDelayed()
+        	});
+        }
+     		
+        JScrollPane scrollSalidas = new JScrollPane(tablaSalidas);
+        scrollSalidas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollSalidas.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+             
+        mainSalidas.add(scrollSalidas, BorderLayout.CENTER);
+        
+		// main
+        panelCentral.add(mainLlegadas);
+        panelCentral.add(mainSalidas);
+        
         
         mainVuelos.add(panelCentral, BorderLayout.CENTER);
-		
-		
 		add(mainVuelos);		
 	}
 }

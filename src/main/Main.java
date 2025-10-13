@@ -25,14 +25,16 @@ public class Main {
 		ArrayList<String> pasa = new ArrayList<String>();
 		ArrayList<String> tripu = new ArrayList<String>();
 		Aereopuerto ae = new Aereopuerto("BIO", "Aer Bio", "Bilbo");
+		Aereopuerto ae1 = new Aereopuerto("MAD", "Aer Mad", "Madrid");
 		
 		LocalDateTime ahora = LocalDateTime.now();
 		
-		Vuelo v1 = new Vuelo(1,  ae, ae, pis, pue, false, ahora.plusHours(1), 1, av, false, pasa, tripu, 0);
-		Vuelo v2 = new Vuelo(2,  ae, ae, pis, pue, false, ahora.plusHours(2), 1, av, false, pasa, tripu, 0);
-		
-		vuelos.add(v1);
-		vuelos.add(v2);
+		for(int i = 0; i<100; i++) {
+			Vuelo v1 = new Vuelo(1,  ae, ae1, pis, pue, false, ahora.plusHours(i), 1, av, false, pasa, tripu, 0);
+			Vuelo v2 = new Vuelo(1,  ae1, ae, pis, pue, false, ahora.plusHours(i), 1, av, false, pasa, tripu, 0);
+			vuelos.add(v1);
+			vuelos.add(v2);
+		}
 		
 	
 		

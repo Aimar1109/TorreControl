@@ -39,5 +39,12 @@ public class Aereopuerto {
 	public void setCiudad(String ciudad) {
 		this.ciudad = ciudad;
 	}
-
+	
+	
+	//toString
+	@Override
+	public String toString() {
+		return codigo;
+	}
+	
 }
