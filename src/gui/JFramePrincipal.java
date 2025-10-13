@@ -29,7 +29,7 @@ public class JFramePrincipal extends JFrame {
 		// CONFIGURACION DE LA VENTANA
 		this.add(mainPanel);
 		
-		this.setTitle("Torr de Control");		
+		this.setTitle("Torre de Control");		
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
 		this.setSize(800, 600);
