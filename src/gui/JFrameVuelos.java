@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.time.format.DateTimeFormatter;
@@ -13,6 +14,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import domain.Vuelo;
@@ -24,6 +26,8 @@ public class JFrameVuelos extends JPanel {
 	private ArrayList<Vuelo> vuelos;
 	
 	public JFrameVuelos(ArrayList<Vuelo> vuelos) {
+		
+		setLayout(new BorderLayout());
 		
 		// Datos necesarios
 		this.vuelos = vuelos;
@@ -54,6 +58,7 @@ public class JFrameVuelos extends JPanel {
 		
 		// Panel Central
 		JPanel panelCentral = new JPanel(new GridLayout(1, 2, 5, 5));
+		panelCentral.setBorder(new EmptyBorder(10, 30, 30, 30));
 		
 		// LLEGADAS
 		JPanel mainLlegadas = new JPanel(new BorderLayout());
@@ -69,6 +74,7 @@ public class JFrameVuelos extends JPanel {
         
         DefaultTableModel modeloLlegadas = new DefaultTableModel(columnasLlegadas, 0);
         JTable tablaLlegadas = new JTable(modeloLlegadas);
+        tablaLlegadas.setFillsViewportHeight(true);
         tablaLlegadas.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -97,12 +103,13 @@ public class JFrameVuelos extends JPanel {
         mainSalidas.add(tituSalidas, BorderLayout.NORTH);
            
         // tabla Salidas
-        String[] columnasSalidas = {"Vuelo", "Origen", "Hora", "Delayed"};
+        String[] columnasSalidas = {"Vuelo", "Destino", "Hora", "Delayed"};
          
         DefaultTableModel modeloSalidas = new DefaultTableModel(columnasSalidas, 0);
         JTable tablaSalidas = new JTable(modeloSalidas);
-        tablaSalidas.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-             
+        tablaSalidas.setFillsViewportHeight(true);
+		tablaSalidas.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        
         for(Vuelo v: salidas) {
         	modeloSalidas.addRow(new Object[] {
         			v.getCodigo(),
@@ -115,8 +122,12 @@ public class JFrameVuelos extends JPanel {
         JScrollPane scrollSalidas = new JScrollPane(tablaSalidas);
         scrollSalidas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollSalidas.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-             
+        
         mainSalidas.add(scrollSalidas, BorderLayout.CENTER);
+        
+        Dimension dim = this.getSize();
+        tablaLlegadas.setPreferredScrollableViewportSize(new Dimension(dim.width-50, dim.height));
+        tablaSalidas.setPreferredScrollableViewportSize(new Dimension(dim.width-50, dim.height));
         
 		// main
         panelCentral.add(mainLlegadas);
