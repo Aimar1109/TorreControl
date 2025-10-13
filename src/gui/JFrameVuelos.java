@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
@@ -16,6 +17,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 
 import domain.Vuelo;
 
@@ -50,7 +52,7 @@ public class JFrameVuelos extends JPanel {
 		JPanel panelSuperior = new JPanel();
 		panelSuperior.setBackground(new Color(245, 245, 220));
 		panelSuperior.setOpaque(true);
-		JLabel titu = new JLabel("Vuelos", SwingConstants.CENTER);
+		JLabel titu = new JLabel("VUELOS", SwingConstants.CENTER);
         titu.setFont(new Font("Arial", Font.BOLD, 24));
 		panelSuperior.add(titu);
 		
@@ -60,6 +62,7 @@ public class JFrameVuelos extends JPanel {
 		JPanel panelCentral = new JPanel(new GridLayout(1, 2, 5, 5));
 		panelCentral.setBorder(new EmptyBorder(10, 30, 30, 30));
 		
+		// crear tablas
 		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", llegadas, true);
 		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", salidas, false);
         
@@ -73,6 +76,45 @@ public class JFrameVuelos extends JPanel {
 	}
 	
 	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada) {
+		// Funcion para crear tabla de Vuelos tanto llegadas como salidas
+		
+		// Formater para que solo aparezca la hora
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+		
+		// cellRenderer para los Titulos
+		TableCellRenderer headerRenderer = (table, value, isSelected, hasFocus, row, column) -> {
+			JLabel result = new JLabel(value.toString());			
+			result.setHorizontalAlignment(JLabel.CENTER);
+			
+			switch (value.toString()) {
+				case "ORIGEN":
+				case "DESTINO":
+					result.setHorizontalAlignment(JLabel.LEFT);
+			}
+			
+			result.setBackground(table.getBackground());
+			result.setForeground(table.getForeground());
+			
+			result.setOpaque(true);
+			
+			result.setFont(new Font("Arial", Font.BOLD, 14));
+			
+			return result;
+		};
+		
+		// cellRenderer para las Tablas
+		TableCellRenderer cellRenderer = (table, value, isSelected, hasFocus, row, column) -> {
+			JLabel result = new JLabel(value.toString());
+			
+			if (column == 0 || column == 2 || column == 3) {
+				result.setHorizontalAlignment(JLabel.CENTER);
+			}
+			
+			result.setFont(new Font("Arial", Font.PLAIN, 12));
+			
+			return result;
+		};	
+		
 		
 		//Panel
 		JPanel mainPanel = new JPanel(new BorderLayout());
@@ -86,35 +128,56 @@ public class JFrameVuelos extends JPanel {
         // Tabla
         String ae;
         if (esLlegada) {
-        	ae = "Origen";
+        	ae = "ORIGEN";
         } else {
-        	ae = "Destino";
+        	ae = "DESTINO";
         }
-        String[] columnas = {"Vuelo", ae, "Hora", "Delayed"};
+        String[] columnas = {"VUELO", ae, "HORA", "RETRASO"};
          
         DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
         JTable tabla = new JTable(modelo);
         tabla.setFillsViewportHeight(true);
 		tabla.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
         for(Vuelo v: vuelos) {
+        	String ciudad = esLlegada ? v.getOrigen().getCiudad() : v.getDestino().getCiudad();
         	modelo.addRow(new Object[] {
         			v.getCodigo(),
-        			v.getDestino().getCiudad(),
+        			ciudad,
         			v.getFechaHoraProgramada().format(formatter),
         			v.getDelayed()
         	});
         }
-     		
+     	
+        // Crear scroll si es necesario
         JScrollPane scrollSalidas = new JScrollPane(tabla);
         scrollSalidas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollSalidas.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         
+        // Añadiendo la tabla con scroll al main Panel
         mainPanel.add(scrollSalidas, BorderLayout.CENTER);
         
+        // Haciendo que las tablas se ajusten al tamaño de la ventana
         Dimension dim = this.getSize();
         tabla.setPreferredScrollableViewportSize(new Dimension(dim.width-50, dim.height));
+        
+        // No permitir que se ajusten los tamaños ni orden de las columnas
+        tabla.getTableHeader().setReorderingAllowed(false);
+        tabla.getTableHeader().setResizingAllowed(false);
+        
+        // Añadiendo los renderer a las tablas
+        tabla.getTableHeader().setDefaultRenderer(headerRenderer);
+        tabla.setDefaultRenderer(Object.class, cellRenderer);
+        
+        // Configurando tamaños
+        tabla.getTableHeader().setPreferredSize(new Dimension(0, 30)); // 30 píxeles de alto
+        
+        tabla.setRowHeight(25);
+        
+        tabla.getColumnModel().getColumn(0).setPreferredWidth(80);  // VUELO
+        tabla.getColumnModel().getColumn(1).setPreferredWidth(150); // ORIGEN/DESTINO
+        tabla.getColumnModel().getColumn(2).setPreferredWidth(80);  // HORA
+        tabla.getColumnModel().getColumn(3).setPreferredWidth(100); // RETRASO
         
 		return mainPanel;
 	}
