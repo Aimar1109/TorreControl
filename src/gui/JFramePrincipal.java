@@ -24,6 +24,10 @@ public class JFramePrincipal extends JFrame {
 		menuPanel.add(new Button("4"));
 		
 		mainPanel.add(menuPanel, BorderLayout.NORTH);
+
+		//Panel Mapa
+		MapPanel mapa = new MapPanel();
+		mainPanel.add(mapa, BorderLayout.CENTER);
 		
 		
 		// CONFIGURACION DE LA VENTANA
