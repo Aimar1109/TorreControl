@@ -3,5 +3,10 @@
 .project
 .settings/
 
+# Configuración de IntelliJs
+.idea/
+*.iml
+out/
+
 # Código compilado
 bin/
