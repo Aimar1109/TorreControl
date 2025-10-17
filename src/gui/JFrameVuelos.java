@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -51,12 +52,26 @@ public class JFrameVuelos extends JPanel {
 		
 		
 		// Panel Superior
-		JPanel panelSuperior = new JPanel();
-		panelSuperior.setBackground(new Color(245, 245, 220));
-		panelSuperior.setOpaque(true);
+		JPanel panelSuperior = new JPanel(new BorderLayout());
+		
+		// Titulo VUELOS
 		JLabel titu = new JLabel("VUELOS", SwingConstants.CENTER);
         titu.setFont(new Font("Arial", Font.BOLD, 24));
-		panelSuperior.add(titu);
+        
+        panelSuperior.add(titu, BorderLayout.CENTER);
+        
+        // Reloj - A la izquierda
+        JLabel relojLabel = new JLabel("12:34 AM");
+        relojLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        relojLabel.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0)); // margen a la izquierda
+        
+        panelSuperior.add(relojLabel, BorderLayout.WEST);
+        
+        // Reloj - timer
+
+		// Ajustar tamaño preferido
+		int anchoVentana = mainVuelos.getWidth();
+		panelSuperior.setPreferredSize(new Dimension(anchoVentana - 50, 40));
 		
 		mainVuelos.add(panelSuperior, BorderLayout.NORTH);
 		
@@ -156,7 +171,7 @@ public class JFrameVuelos extends JPanel {
         }
         
         // Tamaño minimo de las columnas
-        int anchoMinimoTotal = 60 + 100 + 60 + 70; // = 290px
+        int anchoMinimoTotal = 80 + 80 + 80 + 80; // = 290px
         tabla.setPreferredScrollableViewportSize(new Dimension(anchoMinimoTotal, 0));
      	
         // Crear scroll si es necesario
