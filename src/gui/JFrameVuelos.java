@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -137,7 +139,7 @@ public class JFrameVuelos extends JPanel {
         DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
         JTable tabla = new JTable(modelo);
         tabla.setFillsViewportHeight(true);
-		tabla.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+		
         
         for(Vuelo v: vuelos) {
         	String ciudad = esLlegada ? v.getOrigen().getCiudad() : v.getDestino().getCiudad();
@@ -148,14 +150,38 @@ public class JFrameVuelos extends JPanel {
         			v.getDelayed()
         	});
         }
+        
+        for (int i=0; i<tabla.getColumnCount(); i++) {
+        	tabla.getColumnModel().getColumn(i).setMinWidth(80);
+        }
+        
+        // Tamaño minimo de las columnas
+        int anchoMinimoTotal = 60 + 100 + 60 + 70; // = 290px
+        tabla.setPreferredScrollableViewportSize(new Dimension(anchoMinimoTotal, 0));
      	
         // Crear scroll si es necesario
-        JScrollPane scrollSalidas = new JScrollPane(tabla);
-        scrollSalidas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollSalidas.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        JScrollPane scrollTabla = new JScrollPane(tabla);
+        scrollTabla.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollTabla.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        
+        // Ponerle un component listener a la tabla para que salga el scroll cuando la tabla no entre
+        scrollTabla.addComponentListener(new ComponentAdapter() {
+        	
+        	@Override
+        	public void componentResized(ComponentEvent e) {
+        		int anchoDisponible = scrollTabla.getViewport().getWidth();
+        		if (anchoDisponible >= anchoMinimoTotal) {
+                    // Hay suficiente espacio: las columnas se expanden
+                    tabla.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+                } else {
+                    // No hay espacio: mantener tamaños y mostrar scroll
+                    tabla.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+                }
+        	}
+        });
         
         // Añadiendo la tabla con scroll al main Panel
-        mainPanel.add(scrollSalidas, BorderLayout.CENTER);
+        mainPanel.add(scrollTabla, BorderLayout.CENTER);
         
         // Haciendo que las tablas se ajusten al tamaño de la ventana
         Dimension dim = this.getSize();
