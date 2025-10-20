@@ -9,6 +9,8 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -108,6 +110,8 @@ public class JPanelVuelos extends JPanel {
 	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada) {
 		// Funcion para crear tabla de Vuelos tanto llegadas como salidas
 		
+		
+		
 		// Formater para que solo aparezca la hora
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 		
@@ -168,9 +172,36 @@ public class JPanelVuelos extends JPanel {
         Image lupaImg = lupaIcon.getImage().getScaledInstance(15, 15, Image.SCALE_SMOOTH);
         Image plusImg = plusIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
         
-        // Image Labels
+        // Lupa Label
         JLabel lupaLabel = new JLabel(new ImageIcon(lupaImg));
+        // Añadiendo un mouse listener para filtrar
+        lupaLabel.addMouseListener(new MouseAdapter() {
+        	
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		if (esLlegada) {
+        			System.out.println("Click en la lupa Llegada");
+        		} else {
+        			System.out.println("Click en la lupa Salida");
+        		}
+        		
+        	}
+        });
+        
+        // Plus Label
         JLabel plusLabel = new JLabel(new ImageIcon(plusImg));
+        // Añadiendo un mouse listener para Crear Vuelos
+        plusLabel.addMouseListener(new MouseAdapter() {
+        	
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		if (esLlegada) {
+        			System.out.println("Click en la plus Llegada");
+        		} else {
+        			System.out.println("Click en la plus Salida");
+        		}
+        	}
+        });
         
         panelDerecha.add(lupaLabel);
         panelDerecha.add(plusLabel);
