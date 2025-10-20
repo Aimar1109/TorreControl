@@ -31,7 +31,7 @@ public class JFramePrincipal extends JFrame {
 		mainPanel.add(menuPanel, BorderLayout.NORTH);
 		
 		// PANEL CENTRAL VUELOS
-		JFrameVuelos jfvuelos = new JFrameVuelos(vuelos);
+		JPanelVuelos jfvuelos = new JPanelVuelos(vuelos);
 		mainPanel.add(jfvuelos, BorderLayout.CENTER);
 		
 		

@@ -24,13 +24,13 @@ import javax.swing.table.TableCellRenderer;
 
 import domain.Vuelo;
 
-public class JFrameVuelos extends JPanel {
+public class JPanelVuelos extends JPanel {
 	
 	private static final long serialVersionUID = 1L;
 	
 	private ArrayList<Vuelo> vuelos;
 	
-	public JFrameVuelos(ArrayList<Vuelo> vuelos) {
+	public JPanelVuelos(ArrayList<Vuelo> vuelos) {
 		
 		setLayout(new BorderLayout());
 		
@@ -147,7 +147,7 @@ public class JFrameVuelos extends JPanel {
 		JPanel mainPanel = new JPanel(new BorderLayout());
 	     
         // Titulo 
-        JLabel tituT = new JLabel(titulo, SwingConstants.CENTER);
+        JLabel tituT = new JLabel(titulo, SwingConstants.LEFT);
         tituT.setFont(new Font("Arial", Font.BOLD, 24));
         
         mainPanel.add(tituT, BorderLayout.NORTH);
