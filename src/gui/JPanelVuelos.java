@@ -3,8 +3,10 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.time.LocalDateTime;
@@ -12,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -143,14 +146,38 @@ public class JPanelVuelos extends JPanel {
 		};	
 		
 		
-		//Panel
+		//Panel de la tabla
 		JPanel mainPanel = new JPanel(new BorderLayout());
 	     
-        // Titulo 
+        // Panel superior de la tabla
+		JPanel tablaPSuperior = new JPanel(new BorderLayout());
+		
+		// Titulo Parte Izquierda
         JLabel tituT = new JLabel(titulo, SwingConstants.LEFT);
         tituT.setFont(new Font("Arial", Font.BOLD, 24));
+        tituT.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         
-        mainPanel.add(tituT, BorderLayout.NORTH);
+        tablaPSuperior.add(tituT, BorderLayout.WEST);
+        
+        // Imagenes Parte Derecha
+        JPanel panelDerecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
+        
+        // cargar imagenes
+        ImageIcon lupaIcon = new ImageIcon("resources\\img\\lupa.png");
+        ImageIcon plusIcon = new ImageIcon("resources\\img\\plus.png");
+        Image lupaImg = lupaIcon.getImage().getScaledInstance(15, 15, Image.SCALE_SMOOTH);
+        Image plusImg = plusIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        
+        // Image Labels
+        JLabel lupaLabel = new JLabel(new ImageIcon(lupaImg));
+        JLabel plusLabel = new JLabel(new ImageIcon(plusImg));
+        
+        panelDerecha.add(lupaLabel);
+        panelDerecha.add(plusLabel);
+        
+        tablaPSuperior.add(panelDerecha, BorderLayout.EAST);
+        
+        mainPanel.add(tablaPSuperior, BorderLayout.NORTH);
            
         // Tabla
         String ae;
