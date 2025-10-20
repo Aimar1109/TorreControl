@@ -61,11 +61,21 @@ public class JFrameVuelos extends JPanel {
         panelSuperior.add(titu, BorderLayout.CENTER);
         
         // Reloj - A la izquierda
+        int widthLados = 100;
         JLabel relojLabel = new JLabel("12:34 AM");
+        relojLabel.setPreferredSize(new Dimension(widthLados, 0));
         relojLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         relojLabel.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0)); // margen a la izquierda
         
         panelSuperior.add(relojLabel, BorderLayout.WEST);
+        
+        // Derecha vacio para vuelos centrado
+        JLabel vacioD = new JLabel("");
+        vacioD.setPreferredSize(new Dimension(widthLados, 0));
+        vacioD.setFont(new Font("Arial", Font.PLAIN, 16));
+        vacioD.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 15)); // margen a la izquierda
+        
+        panelSuperior.add(vacioD, BorderLayout.EAST);
         
         // Reloj - timer
 
