@@ -17,7 +17,10 @@ import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -195,11 +198,7 @@ public class JPanelVuelos extends JPanel {
         	
         	@Override
         	public void mouseClicked(MouseEvent e) {
-        		if (esLlegada) {
-        			System.out.println("Click en la plus Llegada");
-        		} else {
-        			System.out.println("Click en la plus Salida");
-        		}
+        		abrirDialogoNuevoVuelo(esLlegada);
         	}
         });
         
@@ -289,5 +288,119 @@ public class JPanelVuelos extends JPanel {
         tabla.getColumnModel().getColumn(3).setPreferredWidth(100); // RETRASO
         
 		return mainPanel;
+	}
+	
+	private void abrirDialogoNuevoVuelo(boolean esLlegada) {
+	    // Crear el diálogo
+	    JDialog dialog = new JDialog();
+	    dialog.setTitle(esLlegada ? "Nuevo Vuelo - Llegada" : "Nuevo Vuelo - Salida");
+	    dialog.setModal(true); // Bloquea la ventana principal hasta que se cierre
+	    dialog.setSize(400, 400);
+	    dialog.setLocationRelativeTo(this); // Centrar en la ventana principal
+	    
+	    // Panel principal del diálogo
+	    JPanel panelFormulario = new JPanel(new BorderLayout(10, 10));
+	    panelFormulario.setBorder(new EmptyBorder(20, 20, 20, 20));
+	    
+	    // Panel de campos del formulario
+	    JPanel panelCampos = new JPanel(new GridLayout(6, 2, 10, 10));
+	    
+	    // Código del vuelo
+	    panelCampos.add(new JLabel("Código:"));
+	    JTextField txtCodigo = new JTextField();
+	    panelCampos.add(txtCodigo);
+	    
+	    // Origen
+	    panelCampos.add(new JLabel("Origen:"));
+	    JTextField txtOrigen = new JTextField();
+	    if (esLlegada) {
+	        txtOrigen.setEnabled(true);
+	    } else {
+	        txtOrigen.setText("Bilbo");
+	        txtOrigen.setEnabled(false); // Bloqueado si es salida
+	    }
+	    panelCampos.add(txtOrigen);
+	    
+	    // Destino
+	    panelCampos.add(new JLabel("Destino:"));
+	    JTextField txtDestino = new JTextField();
+	    if (!esLlegada) {
+	        txtDestino.setEnabled(true);
+	    } else {
+	        txtDestino.setText("Bilbo");
+	        txtDestino.setEnabled(false); // Bloqueado si es llegada
+	    }
+	    panelCampos.add(txtDestino);
+	    
+	    // Fecha y Hora
+	    panelCampos.add(new JLabel("Fecha (dd/MM/yyyy):"));
+	    JTextField txtFecha = new JTextField();
+	    panelCampos.add(txtFecha);
+	    
+	    panelCampos.add(new JLabel("Hora (HH:mm):"));
+	    JTextField txtHora = new JTextField();
+	    panelCampos.add(txtHora);
+	    
+	    // Retraso
+	    panelCampos.add(new JLabel("Retraso (min):"));
+	    JTextField txtRetraso = new JTextField("0");
+	    panelCampos.add(txtRetraso);
+	    
+	    panelFormulario.add(panelCampos, BorderLayout.CENTER);
+	    
+	    // Panel de botones
+	    JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+	    
+	    JButton btnGuardar = new JButton("Guardar");
+	    btnGuardar.setPreferredSize(new Dimension(100, 30));
+	    btnGuardar.addActionListener(ev -> {
+	        // Validar y guardar
+	        if (validarFormulario(txtCodigo, txtOrigen, txtDestino, txtFecha, txtHora, txtRetraso)) {
+	            guardarVuelo(txtCodigo.getText(), txtOrigen.getText(), txtDestino.getText(),
+	                        txtFecha.getText(), txtHora.getText(), txtRetraso.getText(), esLlegada);
+	            dialog.dispose(); // Cerrar el diálogo
+	        } else {
+	            JOptionPane.showMessageDialog(dialog, 
+	                "Por favor, completa todos los campos correctamente", 
+	                "Error", 
+	                JOptionPane.ERROR_MESSAGE);
+	        }
+	    });
+	    
+	    JButton btnCancelar = new JButton("Cancelar");
+	    btnCancelar.setPreferredSize(new Dimension(100, 30));
+	    btnCancelar.addActionListener(ev -> dialog.dispose());
+	    
+	    panelBotones.add(btnCancelar);
+	    panelBotones.add(btnGuardar);
+	    
+	    panelFormulario.add(panelBotones, BorderLayout.SOUTH);
+	    
+	    dialog.add(panelFormulario);
+	    dialog.setVisible(true); // Mostrar el diálogo
+	}
+
+	private boolean validarFormulario(JTextField... campos) {
+	    for (JTextField campo : campos) {
+	        if (campo.isEnabled() && campo.getText().trim().isEmpty()) {
+	            return false;
+	        }
+	    }
+	    return true;
+	}
+
+	private void guardarVuelo(String codigo, String origen, String destino, 
+	                         String fecha, String hora, String retraso, boolean esLlegada) {
+	    // Aquí implementas la lógica para crear y guardar el vuelo
+	    System.out.println("Guardando vuelo:");
+	    System.out.println("Código: " + codigo);
+	    System.out.println("Origen: " + origen);
+	    System.out.println("Destino: " + destino);
+	    System.out.println("Fecha: " + fecha);
+	    System.out.println("Hora: " + hora);
+	    System.out.println("Retraso: " + retraso);
+	    
+	    // TODO: Crear objeto Vuelo y añadirlo a la lista
+	    // TODO: Actualizar la tabla
 	}
 }
