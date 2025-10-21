@@ -11,9 +11,13 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -23,8 +27,10 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
@@ -333,13 +339,29 @@ public class JPanelVuelos extends JPanel {
 	    panelCampos.add(txtDestino);
 	    
 	    // Fecha y Hora
-	    panelCampos.add(new JLabel("Fecha (dd/MM/yyyy):"));
-	    JTextField txtFecha = new JTextField();
-	    panelCampos.add(txtFecha);
 	    
-	    panelCampos.add(new JLabel("Hora (HH:mm):"));
-	    JTextField txtHora = new JTextField();
-	    panelCampos.add(txtHora);
+	    //Fecha
+	    panelCampos.add(new JLabel("Fecha:"));
+	    
+	    // Crear spinner de fecha
+        JSpinner spinnerFecha = new JSpinner(new SpinnerDateModel());
+        
+        // Configurar el formato de fecha
+        JSpinner.DateEditor editorFecha = new JSpinner.DateEditor(spinnerFecha, "dd/MM/yyyy");
+        spinnerFecha.setEditor(editorFecha);
+        panelCampos.add(spinnerFecha);
+	    
+	    
+        // Hora
+	    panelCampos.add(new JLabel("Hora:"));
+	    
+	    // Spinner Hora
+	    JSpinner spinnerHora = new JSpinner(new SpinnerDateModel());
+        
+        // Configurar el formato de hora
+        JSpinner.DateEditor editorHora = new JSpinner.DateEditor(spinnerHora, "HH:mm");
+        spinnerHora.setEditor(editorHora);
+        panelCampos.add(spinnerHora);
 	    
 	    // Retraso
 	    panelCampos.add(new JLabel("Retraso (min):"));
@@ -355,9 +377,14 @@ public class JPanelVuelos extends JPanel {
 	    btnGuardar.setPreferredSize(new Dimension(100, 30));
 	    btnGuardar.addActionListener(ev -> {
 	        // Validar y guardar
-	        if (validarFormulario(txtCodigo, txtOrigen, txtDestino, txtFecha, txtHora, txtRetraso)) {
-	            guardarVuelo(txtCodigo.getText(), txtOrigen.getText(), txtDestino.getText(),
-	                        txtFecha.getText(), txtHora.getText(), txtRetraso.getText(), esLlegada);
+	        if (validarFormulario()) {	        	
+	        	LocalDate localDate = ((((Date) spinnerFecha.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalDate();
+	        	LocalTime localHora = ((((Date) spinnerHora.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalTime();
+	        	
+	        	LocalDateTime fechaHora = LocalDateTime.of(localDate, localHora);
+	        	
+	        	System.out.println(fechaHora);
+	        	
 	            dialog.dispose(); // Cerrar el diálogo
 	        } else {
 	            JOptionPane.showMessageDialog(dialog, 
@@ -380,12 +407,7 @@ public class JPanelVuelos extends JPanel {
 	    dialog.setVisible(true); // Mostrar el diálogo
 	}
 
-	private boolean validarFormulario(JTextField... campos) {
-	    for (JTextField campo : campos) {
-	        if (campo.isEnabled() && campo.getText().trim().isEmpty()) {
-	            return false;
-	        }
-	    }
+	private boolean validarFormulario() {
 	    return true;
 	}
 
