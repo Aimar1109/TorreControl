@@ -135,7 +135,7 @@ public class JPanelSalesman extends JPanel {
         // JSplitPane para dividir izquierda/derecha de forma redimensionable
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panelIzquierdo, panelDerecho);
         splitPane.setDividerLocation(400); // Posición inicial del divisor (400px para la izquierda)
-        splitPane.setResizeWeight(0.45); // 45% del espacio extra va a la izquierda, 55% a la derecha
+        splitPane.setResizeWeight(0.5);
         splitPane.setOneTouchExpandable(true); // Botones para expandir/colapsar rápidamente
         
         panelCentral.add(splitPane, BorderLayout.CENTER);
@@ -155,13 +155,13 @@ public class JPanelSalesman extends JPanel {
         
         // Tamaños de columnas tabla vuelos
         tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(80);   // Código
-        tablaVuelos.getColumnModel().getColumn(1).setPreferredWidth(120);  // Origen
-        tablaVuelos.getColumnModel().getColumn(2).setPreferredWidth(120);  // Destino
-        tablaVuelos.getColumnModel().getColumn(3).setPreferredWidth(100);  // Duración
+        tablaVuelos.getColumnModel().getColumn(1).setPreferredWidth(80);  // Origen
+        tablaVuelos.getColumnModel().getColumn(2).setPreferredWidth(80);  // Destino
+        tablaVuelos.getColumnModel().getColumn(3).setPreferredWidth(80);  // Duración
         tablaVuelos.getColumnModel().getColumn(4).setPreferredWidth(80);   // Delayed
         
         // Tamaño mínimo total de columnas tabla vuelos
-        int anchoMinimoVuelos = 80 + 120 + 120 + 100 + 80; // = 500px
+        int anchoMinimoVuelos = 390; // = 400px
         tablaVuelos.setPreferredScrollableViewportSize(new Dimension(anchoMinimoVuelos, 0));
         
         // Listener para redimensionamiento tabla vuelos
@@ -186,12 +186,12 @@ public class JPanelSalesman extends JPanel {
         tablaPasajerosTripulacion.getTableHeader().setResizingAllowed(false);
         
         // Tamaños de columnas tabla pasajeros
-        tablaPasajerosTripulacion.getColumnModel().getColumn(0).setPreferredWidth(50);   // ID
-        tablaPasajerosTripulacion.getColumnModel().getColumn(1).setPreferredWidth(200);  // Nombre
-        tablaPasajerosTripulacion.getColumnModel().getColumn(2).setPreferredWidth(80);   // Asiento
+        tablaPasajerosTripulacion.getColumnModel().getColumn(0).setPreferredWidth(60);   // ID
+        tablaPasajerosTripulacion.getColumnModel().getColumn(1).setPreferredWidth(180);  // Nombre
+        tablaPasajerosTripulacion.getColumnModel().getColumn(2).setPreferredWidth(90);   // Asiento
         
         // Tamaño mínimo total de columnas tabla pasajeros
-        int anchoMinimoPasajeros = 50 + 200 + 80; // = 330px
+        int anchoMinimoPasajeros = 330; // = 330px
         tablaPasajerosTripulacion.setPreferredScrollableViewportSize(new Dimension(anchoMinimoPasajeros, 0));
         
         // Listener para redimensionamiento tabla pasajeros
@@ -217,10 +217,10 @@ public class JPanelSalesman extends JPanel {
         
         // Tamaños de columnas tabla info
         tablaInfoVuelo.getColumnModel().getColumn(0).setPreferredWidth(120);  // Campo
-        tablaInfoVuelo.getColumnModel().getColumn(1).setPreferredWidth(250);  // Valor
+        tablaInfoVuelo.getColumnModel().getColumn(1).setPreferredWidth(220);  // Valor
         
         // Tamaño mínimo total de columnas tabla info
-        int anchoMinimoInfo = 120 + 250; // = 370px
+        int anchoMinimoInfo = 330; // = 370px
         tablaInfoVuelo.setPreferredScrollableViewportSize(new Dimension(anchoMinimoInfo, 0));
         
         // Listener para redimensionamiento tabla info
