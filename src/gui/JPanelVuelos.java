@@ -122,7 +122,8 @@ public class JPanelVuelos extends JPanel {
 		
 		
 		// Formater para que solo aparezca la hora
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+		DateTimeFormatter formatterFecha = DateTimeFormatter.ofPattern("dd:MM:yyyy");
+		DateTimeFormatter formatterHora = DateTimeFormatter.ofPattern("HH:mm");
 		
 		// cellRenderer para los Titulos
 		TableCellRenderer headerRenderer = (table, value, isSelected, hasFocus, row, column) -> {
@@ -222,7 +223,7 @@ public class JPanelVuelos extends JPanel {
         } else {
         	ae = "DESTINO";
         }
-        String[] columnas = {"VUELO", ae, "HORA", "RETRASO"};
+        String[] columnas = {"VUELO", ae, "FECHA", "HORA", "RETRASO"};
          
         DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
         JTable tabla = new JTable(modelo);
@@ -234,7 +235,8 @@ public class JPanelVuelos extends JPanel {
         	modelo.addRow(new Object[] {
         			v.getCodigo(),
         			ciudad,
-        			v.getFechaHoraProgramada().format(formatter),
+        			v.getFechaHoraProgramada().format(formatterFecha),
+        			v.getFechaHoraProgramada().format(formatterHora),
         			v.getDelayed()
         	});
         }

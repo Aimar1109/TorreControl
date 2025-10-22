@@ -41,7 +41,7 @@ public class JFramePrincipal extends JFrame {
 		this.setTitle("Torr de Control");		
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-		this.setSize(800, 600);
+		this.setSize(1000, 800);
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);	
 	}
