@@ -246,7 +246,7 @@ public class JPanelVuelos extends JPanel {
         }
         
         // Tamaño minimo de las columnas
-        int anchoMinimoTotal = 80 + 80 + 80 + 80; // = 290px
+        int anchoMinimoTotal = 80*tabla.getModel().getColumnCount();
         tabla.setPreferredScrollableViewportSize(new Dimension(anchoMinimoTotal, 0));
      	
         // Crear scroll si es necesario
