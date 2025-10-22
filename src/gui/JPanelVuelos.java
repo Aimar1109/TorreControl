@@ -22,6 +22,7 @@ import java.util.Date;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -33,6 +34,8 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
@@ -120,7 +123,6 @@ public class JPanelVuelos extends JPanel {
 		// Funcion para crear tabla de Vuelos tanto llegadas como salidas
 		
 		
-		
 		// Formater para que solo aparezca la hora
 		DateTimeFormatter formatterFecha = DateTimeFormatter.ofPattern("dd:MM:yyyy");
 		DateTimeFormatter formatterHora = DateTimeFormatter.ofPattern("HH:mm");
@@ -166,63 +168,60 @@ public class JPanelVuelos extends JPanel {
         // Panel superior de la tabla
 		JPanel tablaPSuperior = new JPanel(new BorderLayout());
 		
+		// JPanel para titulos y imagenes parte de arriba
+		JPanel panelSdeTPS = new JPanel(new BorderLayout());
+		
 		// Titulo Parte Izquierda
         JLabel tituT = new JLabel(titulo, SwingConstants.LEFT);
         tituT.setFont(new Font("Arial", Font.BOLD, 24));
         tituT.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         
-        tablaPSuperior.add(tituT, BorderLayout.WEST);
+        panelSdeTPS.add(tituT, BorderLayout.WEST);
         
-        // Imagenes Parte Derecha
-        JPanel panelDerecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
+        // PANEL DE FILTROS (inicialmente oculto)
+        JPanel panelFiltros = new JPanel(new GridLayout(1, 4, 10, 10));
+        panelFiltros.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panelFiltros.setVisible(false);
         
-        // cargar imagenes
-        ImageIcon lupaIcon = new ImageIcon("resources\\img\\lupa.png");
-        ImageIcon plusIcon = new ImageIcon("resources\\img\\plus.png");
-        Image lupaImg = lupaIcon.getImage().getScaledInstance(15, 15, Image.SCALE_SMOOTH);
-        Image plusImg = plusIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        // Campos filtro
         
-        // Lupa Label
-        JLabel lupaLabel = new JLabel(new ImageIcon(lupaImg));
-        // Añadiendo un mouse listener para filtrar
-        lupaLabel.addMouseListener(new MouseAdapter() {
-        	
-        	@Override
-        	public void mouseClicked(MouseEvent e) {
-        		if (esLlegada) {
-        			System.out.println("Click en la lupa Llegada");
-        		} else {
-        			System.out.println("Click en la lupa Salida");
-        		}
-        		
-        	}
+        // Filtro vuelo
+        JTextField txtFiltroVuelo = new JTextField();
+        txtFiltroVuelo.setBorder(BorderFactory.createTitledBorder("VUELO"));
+        panelFiltros.add(txtFiltroVuelo);
+        
+        // Filtro para Destino/Origen
+        JTextField txtFiltroDO = new JTextField(); // Luego sera JCombobox
+        String tituloFDO = esLlegada ? "ORIGEN": "DESTINO";
+        txtFiltroDO.setBorder(BorderFactory.createTitledBorder(tituloFDO));
+        panelFiltros.add(txtFiltroDO);
+        
+        // Filtro Fecha
+        JCheckBox chkFiltroFecha = new JCheckBox("Fecha");
+        JSpinner spinnerFiltroFecha = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor editorFiltroFecha = new JSpinner.DateEditor(spinnerFiltroFecha, "dd/MM/yyyy");
+        spinnerFiltroFecha.setEditor(editorFiltroFecha);
+        spinnerFiltroFecha.setEnabled(false);
+        
+        chkFiltroFecha.addActionListener(e -> {
+        	spinnerFiltroFecha.setEnabled(chkFiltroFecha.isSelected());
         });
+        panelFiltros.add(chkFiltroFecha);
         
-        // Plus Label
-        JLabel plusLabel = new JLabel(new ImageIcon(plusImg));
-        // Añadiendo un mouse listener para Crear Vuelos
-        plusLabel.addMouseListener(new MouseAdapter() {
-        	
-        	@Override
-        	public void mouseClicked(MouseEvent e) {
-        		abrirDialogoNuevoVuelo(esLlegada);
-        	}
+        // Filtro Hora
+        JCheckBox chkFiltroHora = new JCheckBox("Hora");
+        JSpinner spinnerFiltroHora = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor editorFiltroHora = new JSpinner.DateEditor(spinnerFiltroHora, "dd/MM/yyyy");
+        spinnerFiltroHora.setEditor(editorFiltroHora);
+        spinnerFiltroHora.setEnabled(false);
+        
+        chkFiltroHora.addActionListener(e -> {
+        	spinnerFiltroFecha.setEnabled(chkFiltroHora.isSelected());
         });
+        panelFiltros.add(chkFiltroHora);
         
-        panelDerecha.add(lupaLabel);
-        panelDerecha.add(plusLabel);
-        
-        tablaPSuperior.add(panelDerecha, BorderLayout.EAST);
-        
-        mainPanel.add(tablaPSuperior, BorderLayout.NORTH);
-           
         // Tabla
-        String ae;
-        if (esLlegada) {
-        	ae = "ORIGEN";
-        } else {
-        	ae = "DESTINO";
-        }
+        String ae = esLlegada ? "ORIGEN": "DESTINO";
         String[] columnas = {"VUELO", ae, "FECHA", "HORA", "RETRASO"};
          
         DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
@@ -269,6 +268,115 @@ public class JPanelVuelos extends JPanel {
                 }
         	}
         });
+        
+        // Imagenes Parte Derecha
+        JPanel panelDerecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
+        
+        // cargar imagenes
+        ImageIcon lupaIcon = new ImageIcon("resources\\img\\lupa.png");
+        ImageIcon plusIcon = new ImageIcon("resources\\img\\plus.png");
+        Image lupaImg = lupaIcon.getImage().getScaledInstance(15, 15, Image.SCALE_SMOOTH);
+        Image plusImg = plusIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        
+        // Metdo para filtrar la tabla
+        Runnable aplicarFiltros = () -> {
+        	int filtroVuelo = txtFiltroVuelo.getText().isEmpty() ? 0: Integer.parseInt(txtFiltroVuelo.getText().toLowerCase().trim());
+        	LocalDateTime filtroFechaHora = creadorLDTdeSpinner(spinnerFiltroFecha, spinnerFiltroHora);
+        	String filtroDO = txtFiltroDO.getText().toLowerCase().trim();
+        	
+        	// Limpiar la tabla
+        	modelo.setRowCount(0);
+        	
+        	// Filtrar y agregar filar
+        	for(Vuelo v: vuelos) {
+        		String ciudad = (esLlegada ? v.getOrigen().getCiudad() : v.getDestino().getCiudad()).toLowerCase();
+        		int codigo = v.getCodigo();
+        		LocalDateTime fechaHora = v.getFechaHoraProgramada();
+        		
+        		boolean coincide = true;
+        		if (filtroVuelo != 0 && codigo != filtroVuelo) {
+        			coincide = false;
+        		}
+        		if (!filtroDO.isEmpty() && !ciudad.contains(filtroDO)) {
+        			coincide = false;
+        		}
+        		if (chkFiltroFecha.isEnabled() && !fechaHora.equals(filtroFechaHora)) {
+        			coincide = false;
+        		}
+        		
+        		if (coincide) {
+        			modelo.addRow(new Object[] {
+                			v.getCodigo(),
+                			ciudad,
+                			v.getFechaHoraProgramada().format(formatterFecha),
+                			v.getFechaHoraProgramada().format(formatterHora),
+                			v.getDelayed()
+                	});
+        		}
+        		
+        	}
+        };
+        
+        txtFiltroVuelo.addActionListener(e -> aplicarFiltros.run());
+        txtFiltroDO.addActionListener(e -> aplicarFiltros.run());
+        chkFiltroFecha.addActionListener(e -> aplicarFiltros.run());
+        chkFiltroHora.addActionListener(e -> aplicarFiltros.run());
+        
+        DocumentListener filtroListener = new DocumentListener() {
+        	public void changedUpdate(DocumentEvent e) {aplicarFiltros.run();}
+        	public void removeUpdate(DocumentEvent e) {aplicarFiltros.run();}
+        	public void insertUpdate(DocumentEvent e) {aplicarFiltros.run();}
+        	
+        };
+        
+        txtFiltroVuelo.getDocument().addDocumentListener(filtroListener);
+        txtFiltroDO.getDocument().addDocumentListener(filtroListener);
+        
+        // Lupa Label
+        JLabel lupaLabel = new JLabel(new ImageIcon(lupaImg));
+        // Añadiendo un mouse listener para filtrar
+        lupaLabel.addMouseListener(new MouseAdapter() {
+        	
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		// Alternar visibilidad del panel de filtros
+                panelFiltros.setVisible(!panelFiltros.isVisible());
+                
+                // Si se oculta, limpiar filtros y restaurar tabla
+                if (!panelFiltros.isVisible()) {
+                    txtFiltroVuelo.setText("");
+                    txtFiltroDO.setText("");
+                    chkFiltroFecha.setEnabled(false);
+                    chkFiltroHora.setEnabled(false);
+                    aplicarFiltros.run();
+                }
+                
+                mainPanel.revalidate();
+                mainPanel.repaint();
+        	}
+        });
+        
+        // Plus Label
+        JLabel plusLabel = new JLabel(new ImageIcon(plusImg));
+        // Añadiendo un mouse listener para Crear Vuelos
+        plusLabel.addMouseListener(new MouseAdapter() {
+        	
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		abrirDialogoNuevoVuelo(esLlegada);
+        	}
+        });
+        
+        panelDerecha.add(lupaLabel);
+        panelDerecha.add(plusLabel);
+        
+        panelSdeTPS.add(panelDerecha, BorderLayout.EAST);
+        
+        tablaPSuperior.add(panelSdeTPS, BorderLayout.NORTH);
+        tablaPSuperior.add(panelFiltros, BorderLayout.SOUTH);
+        
+        mainPanel.add(tablaPSuperior, BorderLayout.NORTH);	
+        
         
         // Añadiendo la tabla con scroll al main Panel
         mainPanel.add(scrollTabla, BorderLayout.CENTER);
@@ -379,11 +487,8 @@ public class JPanelVuelos extends JPanel {
 	    btnGuardar.setPreferredSize(new Dimension(100, 30));
 	    btnGuardar.addActionListener(ev -> {
 	        // Validar y guardar
-	        if (validarFormulario()) {	        	
-	        	LocalDate localDate = ((((Date) spinnerFecha.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalDate();
-	        	LocalTime localHora = ((((Date) spinnerHora.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalTime();
-	        	
-	        	LocalDateTime fechaHora = LocalDateTime.of(localDate, localHora);
+	        if (validarFormulario()) {
+	        	LocalDateTime fechaHora = creadorLDTdeSpinner(spinnerFecha, spinnerHora);
 	        	
 	        	System.out.println(fechaHora);
 	        	
@@ -426,5 +531,14 @@ public class JPanelVuelos extends JPanel {
 	    
 	    // TODO: Crear objeto Vuelo y añadirlo a la lista
 	    // TODO: Actualizar la tabla
+	}
+	
+	private LocalDateTime creadorLDTdeSpinner(JSpinner sFecha, JSpinner sHora) {
+		// Funcion para crear un Local Date Time apartir dos spinners de fecha y de hora
+		LocalDate localDate = ((((Date) sFecha.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalDate();
+    	LocalTime localHora = ((((Date) sHora.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalTime();
+    	LocalDateTime fechaHora = LocalDateTime.of(localDate, localHora);
+    	
+    	return fechaHora;		
 	}
 }
