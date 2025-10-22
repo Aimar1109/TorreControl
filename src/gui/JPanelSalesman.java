@@ -3,7 +3,6 @@ package gui;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.JScrollPane;
@@ -22,8 +21,6 @@ import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 
 import domain.Vuelo;
-
-//	JPanelSalesman - initComponents(),initTables(),attachListeners()
 
 public class JPanelSalesman extends JPanel {
 
@@ -55,8 +52,7 @@ public class JPanelSalesman extends JPanel {
         initComponents();
         initTables();
         attachListeners();
-        
-        // refreshVuelos() se añadirá en un commit posterior cuando queramos rellenar modeloVuelos desde la lista 'vuelos'.
+        cargarVuelosReales();
     }
     
     // Crea y organiza los paneles y componentes visuales.
@@ -300,22 +296,109 @@ public class JPanelSalesman extends JPanel {
         tablaInfoVuelo.setDefaultRenderer(Object.class, cellRenderer);
         tablaInfoVuelo.getTableHeader().setPreferredSize(new Dimension(0, 30));
         tablaInfoVuelo.setRowHeight(25);
-
-        // -----------------
-        // FILAS DE PRUEBA
-        modeloVuelos.addRow(new Object[]{1001, "Bilbao", "Madrid", "2h 15m", 0});
-        modeloVuelos.addRow(new Object[]{1002, "Bilbao", "Barcelona", "1h 50m", 15});
-
-        modeloPasajeros.addRow(new Object[]{1, "Juan Pérez", "12A"});
-        modeloPasajeros.addRow(new Object[]{2, "Ana López", "12B"});
-
-        modeloInfoVuelo.addRow(new Object[]{"Piloto", "Carlos Ruiz"});
-        modeloInfoVuelo.addRow(new Object[]{"Puerta", "A12"});
     }
 
     // Lugar para enganchar listeners
     private void attachListeners() {
-        // TODO: Añadir listeners aquí
+        // Listener para selección de vuelo
+        tablaVuelos.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int filaSeleccionada = tablaVuelos.getSelectedRow();
+                if (filaSeleccionada >= 0) {
+                    Vuelo vueloSeleccionado = vuelos.get(filaSeleccionada);
+                    cargarInfoVuelo(vueloSeleccionado);
+                    cargarPasajerosTripulacion(vueloSeleccionado);
+                }
+            }
+        });
+        
+        // Listener para cambiar entre Pasajeros y Tripulación
+        comboOpciones.addActionListener(e -> {
+            int filaSeleccionada = tablaVuelos.getSelectedRow();
+            if (filaSeleccionada >= 0) {
+                Vuelo vueloSeleccionado = vuelos.get(filaSeleccionada);
+                cargarPasajerosTripulacion(vueloSeleccionado);
+            }
+        });
     }
     
-}
+    // Carga los vuelos reales en la tabla
+    private void cargarVuelosReales() {
+        // Limpiar tabla
+        modeloVuelos.setRowCount(0);
+        
+        // Cargar vuelos reales
+        for (Vuelo vuelo : vuelos) {
+            String origen = vuelo.getOrigen().getCiudad();
+            String destino = vuelo.getDestino().getCiudad();
+            String duracion = formatearDuracion(vuelo.getDuracion());
+            
+            modeloVuelos.addRow(new Object[]{
+                vuelo.getcodigo(),
+                origen,
+                destino,
+                duracion,
+                vuelo.getDelayed()
+            });
+        }
+    }
+    
+    // Formatea la duración de minutos a formato "Xh Ym"
+    private String formatearDuracion(int minutos) {
+        int horas = minutos / 60;
+        int mins = minutos % 60;
+        return horas + "h " + mins + "m";
+    }
+    
+    // Carga la información detallada del vuelo seleccionado
+    private void cargarInfoVuelo(Vuelo vuelo) {
+        modeloInfoVuelo.setRowCount(0);
+        
+        modeloInfoVuelo.addRow(new Object[]{"Código", vuelo.getcodigo()});
+        modeloInfoVuelo.addRow(new Object[]{"Origen", vuelo.getOrigen().getCiudad()});
+        modeloInfoVuelo.addRow(new Object[]{"Aeropuerto Origen", vuelo.getOrigen().getNombre()});
+        modeloInfoVuelo.addRow(new Object[]{"Código Origen", vuelo.getOrigen().getCodigo()});
+        modeloInfoVuelo.addRow(new Object[]{"Destino", vuelo.getDestino().getCiudad()});
+        modeloInfoVuelo.addRow(new Object[]{"Aeropuerto Destino", vuelo.getDestino().getNombre()});
+        modeloInfoVuelo.addRow(new Object[]{"Código Destino", vuelo.getDestino().getCodigo()});
+        modeloInfoVuelo.addRow(new Object[]{"Duración", formatearDuracion(vuelo.getDuracion())});
+        modeloInfoVuelo.addRow(new Object[]{"Retraso", vuelo.getDelayed() > 0 ? vuelo.getDelayed() + " min" : "Sin retraso"});
+        modeloInfoVuelo.addRow(new Object[]{"Estado", vuelo.isEstado() ? "Activo" : "Cancelado"});
+        modeloInfoVuelo.addRow(new Object[]{"Emergencia", vuelo.isEmergencia() ? "SÍ" : "NO"});
+        modeloInfoVuelo.addRow(new Object[]{"Modelo Avión", vuelo.getAvion().getModelo()});
+        modeloInfoVuelo.addRow(new Object[]{"Matrícula", vuelo.getAvion().getMatricula()});
+        modeloInfoVuelo.addRow(new Object[]{"Capacidad Avión", vuelo.getAvion().getCapacidad() + " pasajeros"});
+        modeloInfoVuelo.addRow(new Object[]{"Total Pasajeros", vuelo.getPasajeros().size()});
+        modeloInfoVuelo.addRow(new Object[]{"Total Tripulación", vuelo.getTripulacion().size()});
+    }
+    
+    // Carga los pasajeros o tripulación según el combo seleccionado
+    private void cargarPasajerosTripulacion(Vuelo vuelo) {
+        modeloPasajeros.setRowCount(0);
+        
+        String seleccion = (String) comboOpciones.getSelectedItem();
+        
+        if ("Pasajeros".equals(seleccion)) {
+            ArrayList<String> pasajeros = vuelo.getPasajeros();
+            for (int i = 0; i < pasajeros.size(); i++) {
+                String asiento = generarAsiento(i);
+                modeloPasajeros.addRow(new Object[]{i + 1, pasajeros.get(i), asiento});
+            }
+        } else {
+            ArrayList<String> tripulacion = vuelo.getTripulacion();
+            String[] roles = {"Piloto", "Copiloto", "Jefe Cabina", "Auxiliar", "Auxiliar", "Auxiliar", "Auxiliar", "Auxiliar"};
+            for (int i = 0; i < tripulacion.size(); i++) {
+                String rol = i < roles.length ? roles[i] : "Auxiliar";
+                modeloPasajeros.addRow(new Object[]{i + 1, tripulacion.get(i), rol});
+            }
+        }
+    }
+    
+    // Genera un asiento aleatorio (ej: 12A, 15C)
+    private String generarAsiento(int index) {
+        char[] letras = {'A', 'B', 'C', 'D', 'E', 'F'};
+        int fila = (index / 6) + 1;
+        char columna = letras[index % 6];
+        return fila + "" + columna;
+    }
+ }
