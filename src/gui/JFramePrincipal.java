@@ -89,7 +89,11 @@ public class JFramePrincipal extends JFrame {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(titulo));
 
-		JList lista = new JList<>();
+		Vuelo[] arrayVuelos = vuelos.toArray(new Vuelo[0]);
+
+		JList lista = new JList<>(arrayVuelos);
+		lista.setCellRenderer(new VueloListRenderer());
+		lista.setFixedCellHeight(60);
 		JScrollPane scrollAviones = new JScrollPane(lista);
 		panel.add(scrollAviones, BorderLayout.CENTER);
 
