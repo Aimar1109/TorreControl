@@ -90,10 +90,10 @@ public class JPanelSalesman extends JPanel {
         panelBotones.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
         // Crear botones toggle
-        btnPasajeros = new javax.swing.JToggleButton("Pasajeros");
-        btnTripulacion = new javax.swing.JToggleButton("Tripulación");
-        btnInfoVuelo = new javax.swing.JToggleButton("Info Vuelo");
-        btnSeatmap = new javax.swing.JToggleButton("Seatmap");
+        btnPasajeros = new JToggleButton("Pasajeros");
+        btnTripulacion = new JToggleButton("Tripulación");
+        btnInfoVuelo = new JToggleButton("Info Vuelo");
+        btnSeatmap = new JToggleButton("Seatmap");
         
         // Estilo de los botones
         estilizarBotonToggle(btnPasajeros);
@@ -102,7 +102,7 @@ public class JPanelSalesman extends JPanel {
         estilizarBotonToggle(btnSeatmap);
         
         // Agrupar botones (solo uno puede estar seleccionado)
-        buttonGroup = new javax.swing.ButtonGroup();
+        buttonGroup = new ButtonGroup();
         buttonGroup.add(btnPasajeros);
         buttonGroup.add(btnTripulacion);
         buttonGroup.add(btnInfoVuelo);
@@ -148,7 +148,7 @@ public class JPanelSalesman extends JPanel {
         // -----------------
         // JSplitPane para dividir izquierda/derecha
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panelIzquierdo, panelDerecho);
-        splitPane.setDividerLocation(400);
+        splitPane.setDividerLocation(575);
         splitPane.setResizeWeight(0.5);
         splitPane.setOneTouchExpandable(true);
         
@@ -158,7 +158,7 @@ public class JPanelSalesman extends JPanel {
         // -----------------
         // PANEL INFERIOR: Progress Bar / Threads / Timeline de vuelos
         panelInferior = new JPanel(new BorderLayout());
-        panelInferior.setPreferredSize(new Dimension(0, 80));
+        panelInferior.setPreferredSize(new Dimension(0, 250));
         panelInferior.setBackground(new Color(245, 245, 245));
         panelInferior.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(2, 0, 0, 0, new Color(180, 180, 180)),
@@ -184,7 +184,7 @@ public class JPanelSalesman extends JPanel {
     }
     
     // Estiliza los botones toggle para que parezcan pestañas modernas
-    private void estilizarBotonToggle(javax.swing.JToggleButton boton) {
+    private void estilizarBotonToggle(JToggleButton boton) {
         boton.setFont(new Font("Arial", Font.BOLD, 12));
         boton.setFocusPainted(false);
         boton.setBorderPainted(true);
@@ -216,13 +216,13 @@ public class JPanelSalesman extends JPanel {
         tablaVuelos.getTableHeader().setReorderingAllowed(false);
         tablaVuelos.getTableHeader().setResizingAllowed(false);
         
-        tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(80);
-        tablaVuelos.getColumnModel().getColumn(1).setPreferredWidth(80);
-        tablaVuelos.getColumnModel().getColumn(2).setPreferredWidth(80);
-        tablaVuelos.getColumnModel().getColumn(3).setPreferredWidth(80);
-        tablaVuelos.getColumnModel().getColumn(4).setPreferredWidth(80);
+        tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(120);
+        tablaVuelos.getColumnModel().getColumn(1).setPreferredWidth(120);
+        tablaVuelos.getColumnModel().getColumn(2).setPreferredWidth(120);
+        tablaVuelos.getColumnModel().getColumn(3).setPreferredWidth(120);
+        tablaVuelos.getColumnModel().getColumn(4).setPreferredWidth(120);
         
-        int anchoMinimoVuelos = 390;
+        int anchoMinimoVuelos = 500;
         tablaVuelos.setPreferredScrollableViewportSize(new Dimension(anchoMinimoVuelos, 0));
         
         scrollVuelos.addComponentListener(new ComponentAdapter() {
@@ -244,7 +244,7 @@ public class JPanelSalesman extends JPanel {
         tablaDinamica.getTableHeader().setReorderingAllowed(false);
         tablaDinamica.getTableHeader().setResizingAllowed(false);
         
-        int anchoMinimoDinamico = 330;
+        int anchoMinimoDinamico = 500;
         tablaDinamica.setPreferredScrollableViewportSize(new Dimension(anchoMinimoDinamico, 0));
         
         scrollDinamico.addComponentListener(new ComponentAdapter() {

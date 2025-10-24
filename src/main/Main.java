@@ -13,7 +13,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		// Generar vuelos de ejemplo
-		ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(15);
+		ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(16);
 		
 		// Lanzar interfaz con los vuelos
 		SwingUtilities.invokeLater(() -> new JFramePrincipal(vuelosEjemplo));
