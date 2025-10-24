@@ -3,8 +3,9 @@ package gui;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.BorderFactory;
-import javax.swing.JComboBox;
+import javax.swing.ButtonGroup;
 import javax.swing.JTable;
+import javax.swing.JToggleButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.border.EmptyBorder;
@@ -30,34 +31,35 @@ public class JPanelSalesman extends JPanel {
     
     // Componentes visuales
     private JTable tablaVuelos;
-    private JTable tablaPasajerosTripulacion;
-    private JTable tablaInfoVuelo;
-    private JComboBox<String> comboOpciones;
+    private JTable tablaDinamica; // Tabla que cambia entre Pasajeros/Tripulación/Info
+    private JToggleButton btnPasajeros;
+    private JToggleButton btnTripulacion;
+    private JToggleButton btnInfoVuelo;
+    private JToggleButton btnSeatmap;
+    private ButtonGroup buttonGroup;
+    private JPanel panelDinamico; // Panel que cambia entre tabla y seatmap
+    private JPanel panelSeatmap; // Panel del seatmap
+    private JScrollPane scrollDinamico;
+    private JPanel panelInferior; // Panel para progress bar y threads
     
     // Modelos
     private DefaultTableModel modeloVuelos;
-    private DefaultTableModel modeloPasajeros;
-    private DefaultTableModel modeloInfoVuelo;
+    private DefaultTableModel modeloDinamico;
     
-    // ScrollPanes para gestionar el redimensionamiento
+    // ScrollPanes
     private JScrollPane scrollVuelos;
-    private JScrollPane scrollPasajeros;
-    private JScrollPane scrollInfo;
 
     public JPanelSalesman(ArrayList<Vuelo> vuelos) {
         this.vuelos = vuelos;
         setLayout(new BorderLayout());
         
-        // Construcción modular del panel
         initComponents();
         initTables();
         attachListeners();
         cargarVuelosReales();
     }
     
-    // Crea y organiza los paneles y componentes visuales.
     private void initComponents() {
-        // -----------------
         // Panel superior con título
         JPanel panelSuperior = new JPanel();
         JLabel lblTitulo = new JLabel("Panel Salesman");
@@ -67,79 +69,144 @@ public class JPanelSalesman extends JPanel {
         
         // Panel central con margen
         JPanel panelCentral = new JPanel(new BorderLayout());
-        panelCentral.setBorder(new EmptyBorder(5, 15, 10, 10));
+        panelCentral.setBorder(new EmptyBorder(5, 15, 5, 10));
         
         // -----------------
-        // Panel izquierdo: tabla de vuelos 
+        // PANEL IZQUIERDO: Tabla de vuelos (SIN espacio extra abajo)
         JPanel panelIzquierdo = new JPanel(new BorderLayout());
-        
-        // Creación de tabla (modelo asignado en initTables)
         tablaVuelos = new JTable();
-        
-        // Configurar scroll con políticas
         scrollVuelos = new JScrollPane(tablaVuelos);
         scrollVuelos.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollVuelos.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        
         panelIzquierdo.add(scrollVuelos, BorderLayout.CENTER);
         
         // -----------------
-        // Panel derecho dividido en dos filas iguales
-        JPanel panelDerecho = new JPanel(new GridLayout(2, 1, 5, 5)); // 2 filas, 1 columna, 5px de separación
+        // PANEL DERECHO: Botones Toggle + Panel Dinámico
+        JPanel panelDerecho = new JPanel(new BorderLayout());
         panelDerecho.setBorder(new EmptyBorder(0, 5, 0, 5));
 
-        // Arriba: combo + tabla pasajeros/tripulación
-        JPanel panelArriba = new JPanel(new BorderLayout());
-        comboOpciones = new JComboBox<>(new String[] {"Pasajeros", "Tripulación"});
-        comboOpciones.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
-            JLabel lbl = new JLabel(value.toString());
-            lbl.setHorizontalAlignment(JLabel.CENTER);
-            if (isSelected) {
-                lbl.setBackground(list.getSelectionBackground());
-                lbl.setForeground(list.getSelectionForeground());
-            } else {
-                lbl.setBackground(list.getBackground());
-                lbl.setForeground(list.getForeground());
-            }
-            lbl.setOpaque(true);
-            return lbl;
-        });
-        panelArriba.add(comboOpciones, BorderLayout.NORTH);
-
-        tablaPasajerosTripulacion = new JTable();
+        // Panel con botones toggle
+        JPanel panelBotones = new JPanel(new GridLayout(1, 4, 0, 0));
+        panelBotones.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
-        // Configurar scroll con políticas
-        scrollPasajeros = new JScrollPane(tablaPasajerosTripulacion);
-        scrollPasajeros.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPasajeros.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        // Crear botones toggle
+        btnPasajeros = new javax.swing.JToggleButton("Pasajeros");
+        btnTripulacion = new javax.swing.JToggleButton("Tripulación");
+        btnInfoVuelo = new javax.swing.JToggleButton("Info Vuelo");
+        btnSeatmap = new javax.swing.JToggleButton("Seatmap");
         
-        panelArriba.add(scrollPasajeros, BorderLayout.CENTER);
-
-        // Abajo: tabla info vuelo
-        tablaInfoVuelo = new JTable();
+        // Estilo de los botones
+        estilizarBotonToggle(btnPasajeros);
+        estilizarBotonToggle(btnTripulacion);
+        estilizarBotonToggle(btnInfoVuelo);
+        estilizarBotonToggle(btnSeatmap);
         
-        // Configurar scroll con políticas
-        scrollInfo = new JScrollPane(tablaInfoVuelo);
-        scrollInfo.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollInfo.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        // Agrupar botones (solo uno puede estar seleccionado)
+        buttonGroup = new javax.swing.ButtonGroup();
+        buttonGroup.add(btnPasajeros);
+        buttonGroup.add(btnTripulacion);
+        buttonGroup.add(btnInfoVuelo);
+        buttonGroup.add(btnSeatmap);
+        
+        // Seleccionar Pasajeros por defecto
+        btnPasajeros.setSelected(true);
+        
+        // Añadir botones al panel
+        panelBotones.add(btnPasajeros);
+        panelBotones.add(btnTripulacion);
+        panelBotones.add(btnInfoVuelo);
+        panelBotones.add(btnSeatmap);
+        
+        panelDerecho.add(panelBotones, BorderLayout.NORTH);
 
-        // Añadimos los dos paneles al panel derecho
-        panelDerecho.add(panelArriba);
-        panelDerecho.add(scrollInfo);
+        // Panel dinámico que cambia entre tabla y seatmap
+        panelDinamico = new JPanel(new BorderLayout());
+        
+        // Tabla dinámica
+        tablaDinamica = new JTable();
+        scrollDinamico = new JScrollPane(tablaDinamica);
+        scrollDinamico.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollDinamico.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        
+        // Panel seatmap
+        panelSeatmap = new JPanel(new BorderLayout());
+        panelSeatmap.setBackground(Color.WHITE);
+        panelSeatmap.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(180, 180, 180), 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        JLabel lblSeatmap = new JLabel("Espacio para Seatmap", JLabel.CENTER);
+        lblSeatmap.setFont(new Font("Arial", Font.ITALIC, 16));
+        lblSeatmap.setForeground(Color.GRAY);
+        panelSeatmap.add(lblSeatmap, BorderLayout.CENTER);
+        
+        // Inicialmente mostrar tabla
+        panelDinamico.add(scrollDinamico, BorderLayout.CENTER);
+        
+        panelDerecho.add(panelDinamico, BorderLayout.CENTER);
         
         // -----------------
-        // JSplitPane para dividir izquierda/derecha de forma redimensionable
+        // JSplitPane para dividir izquierda/derecha
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panelIzquierdo, panelDerecho);
-        splitPane.setDividerLocation(400); // Posición inicial del divisor (400px para la izquierda)
+        splitPane.setDividerLocation(400);
         splitPane.setResizeWeight(0.5);
-        splitPane.setOneTouchExpandable(true); // Botones para expandir/colapsar rápidamente
+        splitPane.setOneTouchExpandable(true);
         
         panelCentral.add(splitPane, BorderLayout.CENTER);
-        
         add(panelCentral, BorderLayout.CENTER);
+        
+        // -----------------
+        // PANEL INFERIOR: Progress Bar / Threads / Timeline de vuelos
+        panelInferior = new JPanel(new BorderLayout());
+        panelInferior.setPreferredSize(new Dimension(0, 80));
+        panelInferior.setBackground(new Color(245, 245, 245));
+        panelInferior.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(2, 0, 0, 0, new Color(180, 180, 180)),
+            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+        
+        JLabel lblTimeline = new JLabel("Timeline de Despegues y Aterrizajes", JLabel.CENTER);
+        lblTimeline.setFont(new Font("Arial", Font.BOLD, 14));
+        panelInferior.add(lblTimeline, BorderLayout.NORTH);
+        
+        // Panel para los cuadrados animados (aquí irán los threads)
+        JPanel panelAnimacion = new JPanel();
+        panelAnimacion.setBackground(Color.WHITE);
+        panelAnimacion.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        JLabel lblPlaceholder = new JLabel("Espacio para animación de vuelos (threads/timer)", JLabel.CENTER);
+        lblPlaceholder.setForeground(Color.GRAY);
+        lblPlaceholder.setFont(new Font("Arial", Font.ITALIC, 12));
+        panelAnimacion.add(lblPlaceholder);
+        
+        panelInferior.add(panelAnimacion, BorderLayout.CENTER);
+        
+        add(panelInferior, BorderLayout.SOUTH);
     }
     
-    // Inicializa las tablas con sus modelos y renderers
+    // Estiliza los botones toggle para que parezcan pestañas modernas
+    private void estilizarBotonToggle(javax.swing.JToggleButton boton) {
+        boton.setFont(new Font("Arial", Font.BOLD, 12));
+        boton.setFocusPainted(false);
+        boton.setBorderPainted(true);
+        boton.setBackground(new Color(240, 240, 240));
+        boton.setForeground(Color.BLACK);
+        boton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(180, 180, 180), 1),
+            BorderFactory.createEmptyBorder(8, 15, 8, 15)
+        ));
+        
+        // Cambiar apariencia cuando está seleccionado
+        boton.addItemListener(e -> {
+            if (boton.isSelected()) {
+                boton.setBackground(new Color(70, 130, 180)); // Azul
+                boton.setForeground(Color.WHITE);
+            } else {
+                boton.setBackground(new Color(240, 240, 240));
+                boton.setForeground(Color.BLACK);
+            }
+        });
+    }
+    
     private void initTables() {
         // -----------------
         // TABLA VUELOS
@@ -149,18 +216,15 @@ public class JPanelSalesman extends JPanel {
         tablaVuelos.getTableHeader().setReorderingAllowed(false);
         tablaVuelos.getTableHeader().setResizingAllowed(false);
         
-        // Tamaños de columnas tabla vuelos
-        tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(80);   // Código
-        tablaVuelos.getColumnModel().getColumn(1).setPreferredWidth(80);  // Origen
-        tablaVuelos.getColumnModel().getColumn(2).setPreferredWidth(80);  // Destino
-        tablaVuelos.getColumnModel().getColumn(3).setPreferredWidth(70);  // Duración
-        tablaVuelos.getColumnModel().getColumn(4).setPreferredWidth(70);   // Delayed
+        tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(80);
+        tablaVuelos.getColumnModel().getColumn(1).setPreferredWidth(80);
+        tablaVuelos.getColumnModel().getColumn(2).setPreferredWidth(80);
+        tablaVuelos.getColumnModel().getColumn(3).setPreferredWidth(80);
+        tablaVuelos.getColumnModel().getColumn(4).setPreferredWidth(80);
         
-        // Tamaño mínimo total de columnas tabla vuelos
-        int anchoMinimoVuelos = 390; // = 400px
+        int anchoMinimoVuelos = 390;
         tablaVuelos.setPreferredScrollableViewportSize(new Dimension(anchoMinimoVuelos, 0));
         
-        // Listener para redimensionamiento tabla vuelos
         scrollVuelos.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -174,66 +238,29 @@ public class JPanelSalesman extends JPanel {
         });
         
         // -----------------
-        // TABLA PASAJEROS/TRIPULACIÓN
-        String[] columnasPasajeros = {"ID", "Nombre", "Asiento"};
-        modeloPasajeros = new DefaultTableModel(columnasPasajeros, 0);
-        tablaPasajerosTripulacion.setModel(modeloPasajeros);
-        tablaPasajerosTripulacion.getTableHeader().setReorderingAllowed(false);
-        tablaPasajerosTripulacion.getTableHeader().setResizingAllowed(false);
+        // TABLA DINÁMICA (inicialmente vacía)
+        modeloDinamico = new DefaultTableModel();
+        tablaDinamica.setModel(modeloDinamico);
+        tablaDinamica.getTableHeader().setReorderingAllowed(false);
+        tablaDinamica.getTableHeader().setResizingAllowed(false);
         
-        // Tamaños de columnas tabla pasajeros
-        tablaPasajerosTripulacion.getColumnModel().getColumn(0).setPreferredWidth(60);   // ID
-        tablaPasajerosTripulacion.getColumnModel().getColumn(1).setPreferredWidth(180);  // Nombre
-        tablaPasajerosTripulacion.getColumnModel().getColumn(2).setPreferredWidth(90);   // Asiento
+        int anchoMinimoDinamico = 330;
+        tablaDinamica.setPreferredScrollableViewportSize(new Dimension(anchoMinimoDinamico, 0));
         
-        // Tamaño mínimo total de columnas tabla pasajeros
-        int anchoMinimoPasajeros = 330; // = 330px
-        tablaPasajerosTripulacion.setPreferredScrollableViewportSize(new Dimension(anchoMinimoPasajeros, 0));
-        
-        // Listener para redimensionamiento tabla pasajeros
-        scrollPasajeros.addComponentListener(new ComponentAdapter() {
+        scrollDinamico.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                int anchoDisponible = scrollPasajeros.getViewport().getWidth();
-                if (anchoDisponible >= anchoMinimoPasajeros) {
-                    tablaPasajerosTripulacion.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+                int anchoDisponible = scrollDinamico.getViewport().getWidth();
+                if (anchoDisponible >= anchoMinimoDinamico) {
+                    tablaDinamica.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
                 } else {
-                    tablaPasajerosTripulacion.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+                    tablaDinamica.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
                 }
             }
         });
 
         // -----------------
-        // TABLA INFO VUELO
-        String[] columnasInfo = {"Campo", "Valor"};
-        modeloInfoVuelo = new DefaultTableModel(columnasInfo, 0);
-        tablaInfoVuelo.setModel(modeloInfoVuelo);
-        tablaInfoVuelo.getTableHeader().setReorderingAllowed(false);
-        tablaInfoVuelo.getTableHeader().setResizingAllowed(false);
-        
-        // Tamaños de columnas tabla info
-        tablaInfoVuelo.getColumnModel().getColumn(0).setPreferredWidth(120);  // Campo
-        tablaInfoVuelo.getColumnModel().getColumn(1).setPreferredWidth(220);  // Valor
-        
-        // Tamaño mínimo total de columnas tabla info
-        int anchoMinimoInfo = 330; // = 370px
-        tablaInfoVuelo.setPreferredScrollableViewportSize(new Dimension(anchoMinimoInfo, 0));
-        
-        // Listener para redimensionamiento tabla info
-        scrollInfo.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                int anchoDisponible = scrollInfo.getViewport().getWidth();
-                if (anchoDisponible >= anchoMinimoInfo) {
-                    tablaInfoVuelo.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-                } else {
-                    tablaInfoVuelo.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-                }
-            }
-        });
-
-        // -----------------
-        // HEADER RENDERER (común para todas las tablas)
+        // RENDERERS
         TableCellRenderer headerRenderer = (table, value, isSelected, hasFocus, row, column) -> {
             JLabel lbl = new JLabel(value.toString(), JLabel.CENTER);
             lbl.setFont(new Font("Arial", Font.BOLD, 14));
@@ -244,32 +271,28 @@ public class JPanelSalesman extends JPanel {
             return lbl;
         };
 
-        // CELL RENDERER (común para todas las tablas)
         TableCellRenderer cellRenderer = (table, value, isSelected, hasFocus, row, column) -> {
             JLabel lbl = new JLabel(value.toString());
             lbl.setOpaque(true);
             lbl.setFont(new Font("Arial", Font.PLAIN, 12));
 
-            // Centrar ciertas columnas
             if (table == tablaVuelos && (column == 0 || column == 3 || column == 4)) {
                 lbl.setHorizontalAlignment(JLabel.CENTER);
-            } else if (table == tablaPasajerosTripulacion && (column == 0 || column == 2)) {
+            } else if (table == tablaDinamica && modeloDinamico.getColumnCount() == 3 && (column == 0 || column == 2)) {
                 lbl.setHorizontalAlignment(JLabel.CENTER);
             } else {
                 lbl.setHorizontalAlignment(JLabel.LEFT);
             }
 
-            // Colores alternados
             if (!isSelected) {
-                if (row % 2 == 0) lbl.setBackground(new Color(245, 255, 245)); // verde claro
-                else lbl.setBackground(new Color(255, 255, 255)); // blanco
+                if (row % 2 == 0) lbl.setBackground(new Color(245, 255, 245));
+                else lbl.setBackground(new Color(255, 255, 255));
 
-                // Highlight delayed en tabla vuelos
                 if (table == tablaVuelos) {
                     try {
                         Object delayedObj = table.getModel().getValueAt(row, 4);
                         int delayed = Integer.parseInt(delayedObj.toString());
-                        if (delayed > 0) lbl.setBackground(new Color(255, 230, 230)); // rojo claro
+                        if (delayed > 0) lbl.setBackground(new Color(255, 230, 230));
                     } catch (Exception ex) {}
                 }
             } else {
@@ -280,25 +303,17 @@ public class JPanelSalesman extends JPanel {
             return lbl;
         };
 
-        // -----------------
-        // Aplicar renderers a todas las tablas
         tablaVuelos.getTableHeader().setDefaultRenderer(headerRenderer);
         tablaVuelos.setDefaultRenderer(Object.class, cellRenderer);
         tablaVuelos.getTableHeader().setPreferredSize(new Dimension(0, 30));
         tablaVuelos.setRowHeight(25);
 
-        tablaPasajerosTripulacion.getTableHeader().setDefaultRenderer(headerRenderer);
-        tablaPasajerosTripulacion.setDefaultRenderer(Object.class, cellRenderer);
-        tablaPasajerosTripulacion.getTableHeader().setPreferredSize(new Dimension(0, 30));
-        tablaPasajerosTripulacion.setRowHeight(25);
-
-        tablaInfoVuelo.getTableHeader().setDefaultRenderer(headerRenderer);
-        tablaInfoVuelo.setDefaultRenderer(Object.class, cellRenderer);
-        tablaInfoVuelo.getTableHeader().setPreferredSize(new Dimension(0, 30));
-        tablaInfoVuelo.setRowHeight(25);
+        tablaDinamica.getTableHeader().setDefaultRenderer(headerRenderer);
+        tablaDinamica.setDefaultRenderer(Object.class, cellRenderer);
+        tablaDinamica.getTableHeader().setPreferredSize(new Dimension(0, 30));
+        tablaDinamica.setRowHeight(25);
     }
 
-    // Lugar para enganchar listeners
     private void attachListeners() {
         // Listener para selección de vuelo
         tablaVuelos.getSelectionModel().addListSelectionListener(e -> {
@@ -306,28 +321,48 @@ public class JPanelSalesman extends JPanel {
                 int filaSeleccionada = tablaVuelos.getSelectedRow();
                 if (filaSeleccionada >= 0) {
                     Vuelo vueloSeleccionado = vuelos.get(filaSeleccionada);
-                    cargarInfoVuelo(vueloSeleccionado);
-                    cargarPasajerosTripulacion(vueloSeleccionado);
+                    actualizarPanelDinamico(vueloSeleccionado);
                 }
             }
         });
         
-        // Listener para cambiar entre Pasajeros y Tripulación
-        comboOpciones.addActionListener(e -> {
+        // Listeners para los botones toggle
+        btnPasajeros.addActionListener(e -> {
             int filaSeleccionada = tablaVuelos.getSelectedRow();
             if (filaSeleccionada >= 0) {
                 Vuelo vueloSeleccionado = vuelos.get(filaSeleccionada);
-                cargarPasajerosTripulacion(vueloSeleccionado);
+                actualizarPanelDinamico(vueloSeleccionado);
+            }
+        });
+        
+        btnTripulacion.addActionListener(e -> {
+            int filaSeleccionada = tablaVuelos.getSelectedRow();
+            if (filaSeleccionada >= 0) {
+                Vuelo vueloSeleccionado = vuelos.get(filaSeleccionada);
+                actualizarPanelDinamico(vueloSeleccionado);
+            }
+        });
+        
+        btnInfoVuelo.addActionListener(e -> {
+            int filaSeleccionada = tablaVuelos.getSelectedRow();
+            if (filaSeleccionada >= 0) {
+                Vuelo vueloSeleccionado = vuelos.get(filaSeleccionada);
+                actualizarPanelDinamico(vueloSeleccionado);
+            }
+        });
+        
+        btnSeatmap.addActionListener(e -> {
+            int filaSeleccionada = tablaVuelos.getSelectedRow();
+            if (filaSeleccionada >= 0) {
+                Vuelo vueloSeleccionado = vuelos.get(filaSeleccionada);
+                actualizarPanelDinamico(vueloSeleccionado);
             }
         });
     }
     
-    // Carga los vuelos reales en la tabla
     private void cargarVuelosReales() {
-        // Limpiar tabla
         modeloVuelos.setRowCount(0);
         
-        // Cargar vuelos reales
         for (Vuelo vuelo : vuelos) {
             String origen = vuelo.getOrigen().getCiudad();
             String destino = vuelo.getDestino().getCiudad();
@@ -343,62 +378,101 @@ public class JPanelSalesman extends JPanel {
         }
     }
     
-    // Formatea la duración de minutos a formato "Xh Ym"
     private String formatearDuracion(int minutos) {
         int horas = minutos / 60;
         int mins = minutos % 60;
         return horas + "h " + mins + "m";
     }
     
-    // Carga la información detallada del vuelo seleccionado
-    private void cargarInfoVuelo(Vuelo vuelo) {
-        modeloInfoVuelo.setRowCount(0);
+    // Actualiza el panel dinámico según el botón seleccionado
+    private void actualizarPanelDinamico(Vuelo vuelo) {
+        panelDinamico.removeAll();
         
-        modeloInfoVuelo.addRow(new Object[]{"Código", vuelo.getcodigo()});
-        modeloInfoVuelo.addRow(new Object[]{"Origen", vuelo.getOrigen().getCiudad()});
-        modeloInfoVuelo.addRow(new Object[]{"Aeropuerto Origen", vuelo.getOrigen().getNombre()});
-        modeloInfoVuelo.addRow(new Object[]{"Código Origen", vuelo.getOrigen().getCodigo()});
-        modeloInfoVuelo.addRow(new Object[]{"Destino", vuelo.getDestino().getCiudad()});
-        modeloInfoVuelo.addRow(new Object[]{"Aeropuerto Destino", vuelo.getDestino().getNombre()});
-        modeloInfoVuelo.addRow(new Object[]{"Código Destino", vuelo.getDestino().getCodigo()});
-        modeloInfoVuelo.addRow(new Object[]{"Duración", formatearDuracion(vuelo.getDuracion())});
-        modeloInfoVuelo.addRow(new Object[]{"Retraso", vuelo.getDelayed() > 0 ? vuelo.getDelayed() + " min" : "Sin retraso"});
-        modeloInfoVuelo.addRow(new Object[]{"Estado", vuelo.isEstado() ? "Activo" : "Cancelado"});
-        modeloInfoVuelo.addRow(new Object[]{"Emergencia", vuelo.isEmergencia() ? "SÍ" : "NO"});
-        modeloInfoVuelo.addRow(new Object[]{"Modelo Avión", vuelo.getAvion().getModelo()});
-        modeloInfoVuelo.addRow(new Object[]{"Matrícula", vuelo.getAvion().getMatricula()});
-        modeloInfoVuelo.addRow(new Object[]{"Capacidad Avión", vuelo.getAvion().getCapacidad() + " pasajeros"});
-        modeloInfoVuelo.addRow(new Object[]{"Total Pasajeros", vuelo.getPasajeros().size()});
-        modeloInfoVuelo.addRow(new Object[]{"Total Tripulación", vuelo.getTripulacion().size()});
+        if (btnSeatmap.isSelected()) {
+            // Mostrar seatmap
+            panelDinamico.add(panelSeatmap, BorderLayout.CENTER);
+        } else {
+            // Mostrar tabla
+            modeloDinamico.setRowCount(0);
+            modeloDinamico.setColumnCount(0);
+            
+            if (btnPasajeros.isSelected()) {
+                cargarPasajeros(vuelo);
+            } else if (btnTripulacion.isSelected()) {
+                cargarTripulacion(vuelo);
+            } else if (btnInfoVuelo.isSelected()) {
+                cargarInfoVuelo(vuelo);
+            }
+            
+            panelDinamico.add(scrollDinamico, BorderLayout.CENTER);
+        }
+        
+        panelDinamico.revalidate();
+        panelDinamico.repaint();
     }
     
-    // Carga los pasajeros o tripulación según el combo seleccionado
-    private void cargarPasajerosTripulacion(Vuelo vuelo) {
-        modeloPasajeros.setRowCount(0);
+    private void cargarPasajeros(Vuelo vuelo) {
+        modeloDinamico.addColumn("ID");
+        modeloDinamico.addColumn("Nombre");
+        modeloDinamico.addColumn("Asiento");
         
-        String seleccion = (String) comboOpciones.getSelectedItem();
+        tablaDinamica.getColumnModel().getColumn(0).setPreferredWidth(60);
+        tablaDinamica.getColumnModel().getColumn(1).setPreferredWidth(180);
+        tablaDinamica.getColumnModel().getColumn(2).setPreferredWidth(90);
         
-        if ("Pasajeros".equals(seleccion)) {
-            ArrayList<String> pasajeros = vuelo.getPasajeros();
-            for (int i = 0; i < pasajeros.size(); i++) {
-                String asiento = generarAsiento(i);
-                modeloPasajeros.addRow(new Object[]{i + 1, pasajeros.get(i), asiento});
-            }
-        } else {
-            ArrayList<String> tripulacion = vuelo.getTripulacion();
-            String[] roles = {"Piloto", "Copiloto", "Jefe Cabina", "Auxiliar", "Auxiliar", "Auxiliar", "Auxiliar", "Auxiliar"};
-            for (int i = 0; i < tripulacion.size(); i++) {
-                String rol = i < roles.length ? roles[i] : "Auxiliar";
-                modeloPasajeros.addRow(new Object[]{i + 1, tripulacion.get(i), rol});
-            }
+        ArrayList<String> pasajeros = vuelo.getPasajeros();
+        for (int i = 0; i < pasajeros.size(); i++) {
+            String asiento = generarAsiento(i);
+            modeloDinamico.addRow(new Object[]{i + 1, pasajeros.get(i), asiento});
         }
     }
     
-    // Genera un asiento aleatorio (ej: 12A, 15C)
+    private void cargarTripulacion(Vuelo vuelo) {
+        modeloDinamico.addColumn("ID");
+        modeloDinamico.addColumn("Nombre");
+        modeloDinamico.addColumn("Rol");
+        
+        tablaDinamica.getColumnModel().getColumn(0).setPreferredWidth(60);
+        tablaDinamica.getColumnModel().getColumn(1).setPreferredWidth(180);
+        tablaDinamica.getColumnModel().getColumn(2).setPreferredWidth(90);
+        
+        ArrayList<String> tripulacion = vuelo.getTripulacion();
+        String[] roles = {"Piloto", "Copiloto", "Jefe Cabina", "Auxiliar", "Auxiliar", "Auxiliar", "Auxiliar", "Auxiliar"};
+        for (int i = 0; i < tripulacion.size(); i++) {
+            String rol = i < roles.length ? roles[i] : "Auxiliar";
+            modeloDinamico.addRow(new Object[]{i + 1, tripulacion.get(i), rol});
+        }
+    }
+    
+    private void cargarInfoVuelo(Vuelo vuelo) {
+        modeloDinamico.addColumn("Campo");
+        modeloDinamico.addColumn("Valor");
+        
+        tablaDinamica.getColumnModel().getColumn(0).setPreferredWidth(120);
+        tablaDinamica.getColumnModel().getColumn(1).setPreferredWidth(220);
+        
+        modeloDinamico.addRow(new Object[]{"Código", vuelo.getcodigo()});
+        modeloDinamico.addRow(new Object[]{"Origen", vuelo.getOrigen().getCiudad()});
+        modeloDinamico.addRow(new Object[]{"Aeropuerto Origen", vuelo.getOrigen().getNombre()});
+        modeloDinamico.addRow(new Object[]{"Código Origen", vuelo.getOrigen().getCodigo()});
+        modeloDinamico.addRow(new Object[]{"Destino", vuelo.getDestino().getCiudad()});
+        modeloDinamico.addRow(new Object[]{"Aeropuerto Destino", vuelo.getDestino().getNombre()});
+        modeloDinamico.addRow(new Object[]{"Código Destino", vuelo.getDestino().getCodigo()});
+        modeloDinamico.addRow(new Object[]{"Duración", formatearDuracion(vuelo.getDuracion())});
+        modeloDinamico.addRow(new Object[]{"Retraso", vuelo.getDelayed() > 0 ? vuelo.getDelayed() + " min" : "Sin retraso"});
+        modeloDinamico.addRow(new Object[]{"Estado", vuelo.isEstado() ? "Activo" : "Cancelado"});
+        modeloDinamico.addRow(new Object[]{"Emergencia", vuelo.isEmergencia() ? "SÍ" : "NO"});
+        modeloDinamico.addRow(new Object[]{"Modelo Avión", vuelo.getAvion().getModelo()});
+        modeloDinamico.addRow(new Object[]{"Matrícula", vuelo.getAvion().getMatricula()});
+        modeloDinamico.addRow(new Object[]{"Capacidad Avión", vuelo.getAvion().getCapacidad() + " pasajeros"});
+        modeloDinamico.addRow(new Object[]{"Total Pasajeros", vuelo.getPasajeros().size()});
+        modeloDinamico.addRow(new Object[]{"Total Tripulación", vuelo.getTripulacion().size()});
+    }
+    
     private String generarAsiento(int index) {
         char[] letras = {'A', 'B', 'C', 'D', 'E', 'F'};
         int fila = (index / 6) + 1;
         char columna = letras[index % 6];
         return fila + "" + columna;
     }
- }
+}
