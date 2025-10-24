@@ -153,8 +153,8 @@ public class JPanelSalesman extends JPanel {
         tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(80);   // Código
         tablaVuelos.getColumnModel().getColumn(1).setPreferredWidth(80);  // Origen
         tablaVuelos.getColumnModel().getColumn(2).setPreferredWidth(80);  // Destino
-        tablaVuelos.getColumnModel().getColumn(3).setPreferredWidth(80);  // Duración
-        tablaVuelos.getColumnModel().getColumn(4).setPreferredWidth(80);   // Delayed
+        tablaVuelos.getColumnModel().getColumn(3).setPreferredWidth(70);  // Duración
+        tablaVuelos.getColumnModel().getColumn(4).setPreferredWidth(70);   // Delayed
         
         // Tamaño mínimo total de columnas tabla vuelos
         int anchoMinimoVuelos = 390; // = 400px
