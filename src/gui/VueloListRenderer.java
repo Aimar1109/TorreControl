@@ -57,15 +57,17 @@ public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo>
 
         if (value != null) {
             //Ruta: origen-destino
-            String origen = value.getOrigen().getNombre() + " " + value.getOrigen().getCiudad();
-            String destino = value.getDestino().getNombre() + " " + value.getDestino().getCiudad();
+            String origen = value.getOrigen().getNombre();
+            String destino = value.getDestino().getNombre();
             or_des.setText(origen + " → " + destino);
 
             //Codigo
             cod.setText("" + value.getcodigo());
 
             //Información
-            String puerta = "Puerta: " + value.getPuerta();
+            String ciudadOrigen = value.getOrigen().getCiudad();
+            String ciudadDestino = value.getOrigen().getCiudad();
+            info.setText(ciudadOrigen + " → " + ciudadDestino);
 
             //Estado
             if (value.isEmergencia()) {
