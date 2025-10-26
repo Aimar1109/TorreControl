@@ -11,6 +11,17 @@ public class JFramePrincipal extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
+	//Referencias
+	private JList<Vuelo> listaVuelosCercanos;
+	private JList<Vuelo> listaVuelosPista1;
+	private JList<Vuelo> listaVuelosPista2;
+
+	//Y sus respectivos modelos
+	private DefaultListModel<Vuelo> modeloVuelosCercanos;
+	private DefaultListModel<Vuelo> modeloVuelosPista1;
+	private DefaultListModel<Vuelo> modeloVuelosPista2;
+
+
 	public JFramePrincipal(ArrayList<Vuelo> vuelos) {
 
 		//Panel Principal
@@ -37,7 +48,7 @@ public class JFramePrincipal extends JFrame {
 		mainPanel.add(menuPanel, gbc);
 
 		//Vuelos Cercanos
-		JPanel panelVuelos = crearPanelLista("Vuelos Cercanos", vuelos);
+		JPanel panelVuelos = crearPanelListaOrigen("Vuelos Cercanos", vuelos);
 
 		gbc.gridx = 0;
 		gbc.gridy = 1;
@@ -61,8 +72,8 @@ public class JFramePrincipal extends JFrame {
 
 		//Pistas
 		JPanel panelPistas = new JPanel(new GridLayout(1, 2, 5, 0));
-		JPanel pista1 = crearPanelLista("Aterrizajes Pista 1", new ArrayList<>());
-		JPanel pista2 = crearPanelLista("Aterrizajes Pista 2", new ArrayList<>());
+		JPanel pista1 = crearPanelListaPanel1("Aterrizajes Pista 1");
+		JPanel pista2 = crearPanelListaPanel2("Aterrizajes Pista 2");
 		panelPistas.add(pista1);
 		panelPistas.add(pista2);
 
@@ -75,6 +86,8 @@ public class JFramePrincipal extends JFrame {
 		mainPanel.add(panelPistas, gbc);
 
 		//Configuración de la ventana
+		configuraciónDrag();
+
 		this.add(mainPanel);
 
 		this.setTitle("Torre de Control");
@@ -85,18 +98,63 @@ public class JFramePrincipal extends JFrame {
 		this.setVisible(true);
 	}
 
-	private JPanel crearPanelLista(String titulo, List<Vuelo> vuelos) {
+	private JPanel crearPanelListaOrigen(String titulo, List<Vuelo> vuelos) {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder(titulo));
 
-		Vuelo[] arrayVuelos = vuelos.toArray(new Vuelo[0]);
+		modeloVuelosCercanos = new DefaultListModel<>();
+		for (Vuelo vuelo : vuelos) {
+			modeloVuelosCercanos.addElement(vuelo);
+		}
 
-		JList lista = new JList<>(arrayVuelos);
-		lista.setCellRenderer(new VueloListRenderer());
-		lista.setFixedCellHeight(60);
-		JScrollPane scrollAviones = new JScrollPane(lista);
+		listaVuelosCercanos = new JList<>(modeloVuelosCercanos);
+		listaVuelosCercanos.setCellRenderer(new VueloListRenderer());
+		listaVuelosCercanos.setFixedCellHeight(60);
+
+		JScrollPane scrollAviones = new JScrollPane(listaVuelosCercanos);
 		panel.add(scrollAviones, BorderLayout.CENTER);
 
 		return panel;
+	}
+
+	private JPanel crearPanelListaPanel1(String titulo) {
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(titulo));
+
+		modeloVuelosPista1 = new DefaultListModel<>();
+		listaVuelosPista1 = new JList<>(modeloVuelosPista1);
+		listaVuelosPista1.setCellRenderer(new VueloListRenderer());
+		listaVuelosPista1.setFixedCellHeight(60);
+
+		JScrollPane scrollAviones = new JScrollPane(listaVuelosPista1);
+		panel.add(scrollAviones, BorderLayout.CENTER);
+
+		return panel;
+	}
+
+	private JPanel crearPanelListaPanel2(String titulo) {
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(titulo));
+
+		modeloVuelosPista2 = new DefaultListModel<>();
+		listaVuelosPista2 = new JList<>(modeloVuelosPista2);
+		listaVuelosPista2.setCellRenderer(new VueloListRenderer());
+		listaVuelosPista2.setFixedCellHeight(60);
+
+		JScrollPane scrollAviones = new JScrollPane(listaVuelosPista2);
+		panel.add(scrollAviones, BorderLayout.CENTER);
+
+		return panel;
+	}
+
+	private void configuraciónDrag() {
+		List<JList<Vuelo>> destinos = new ArrayList<>();
+		destinos.add(listaVuelosPista1);
+		destinos.add(listaVuelosPista2);
+
+		PistasDragListener listener = new PistasDragListener(listaVuelosCercanos, destinos, this);
+
+		listaVuelosCercanos.addMouseListener(listener);
+		listaVuelosCercanos.addMouseMotionListener(listener);
 	}
 }
