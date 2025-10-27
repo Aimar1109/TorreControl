@@ -202,22 +202,37 @@ public class JPanelVuelos extends JPanel {
         panelFiltros.add(txtFiltroDO);
         
         // Filtro Fecha
+        JPanel panelFecha = new JPanel(new BorderLayout());
+        // JDateChooser para fecha
         JDateChooser dateChooserFiltro = new JDateChooser();
-        dateChooserFiltro.setDateFormatString("dd/MM/yyyy"); // formato de fecha       
-        panelFiltros.add(dateChooserFiltro);
+        dateChooserFiltro.setDateFormatString("dd/MM/yyyy"); // formato de fecha
+        panelFecha.add(dateChooserFiltro, BorderLayout.CENTER);
+        // Boton para borrar
+        ImageIcon xIcon = new ImageIcon("resources\\img\\x.png");
+        Image xImg = xIcon.getImage().getScaledInstance(15, 15, Image.SCALE_SMOOTH);
+        JLabel xLabel = new JLabel(new ImageIcon(xImg));
+        panelFecha.add(xLabel, BorderLayout.EAST);
+        panelFiltros.add(panelFecha);
         
         // Filtro Hora
-        JCheckBox chkFiltroHora = new JCheckBox("Hora");
+        JPanel panelHora = new JPanel(new BorderLayout());
+        // CheckBox para hora
+        JCheckBox chkFiltroHora = new JCheckBox();
+        chkFiltroHora.setFont(new Font("Arial", Font.BOLD, 10));
+        panelHora.add(chkFiltroHora, BorderLayout.WEST);
+        // Spinner para la hora
         JSpinner spinnerFiltroHora = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor editorFiltroHora = new JSpinner.DateEditor(spinnerFiltroHora, "HH:mm");
         spinnerFiltroHora.setEditor(editorFiltroHora);
-
-        chkFiltroHora.add(spinnerFiltroHora);
+        spinnerFiltroHora.setEnabled(false);
         
         chkFiltroHora.addActionListener(e -> {
         	spinnerFiltroHora.setEnabled(chkFiltroHora.isSelected());
         });
-        panelFiltros.add(chkFiltroHora);
+        
+        panelHora.add(spinnerFiltroHora, BorderLayout.CENTER);
+        
+        panelFiltros.add(panelHora);
         
         // Tabla
         String ae = esLlegada ? "ORIGEN": "DESTINO";
@@ -287,7 +302,7 @@ public class JPanelVuelos extends JPanel {
         	
         	// Filtrar y agregar filar
         	for(Vuelo v: vuelos) {
-        		String ciudad = (esLlegada ? v.getOrigen().getCiudad() : v.getDestino().getCiudad()).toLowerCase();
+        		String ciudad = (esLlegada ? v.getOrigen().getCiudad() : v.getDestino().getCiudad());
         		int codigo = v.getCodigo();
         		LocalDateTime fechaHora = v.getFechaHoraProgramada();
         		
@@ -295,13 +310,14 @@ public class JPanelVuelos extends JPanel {
         		if (filtroVuelo != 0 && codigo != filtroVuelo) {
         			coincide = false;
         		}
-        		if (!filtroDO.isEmpty() && !ciudad.contains(filtroDO)) {
+        		if (!filtroDO.isEmpty() && !(ciudad.toLowerCase()).contains(filtroDO.toLowerCase())) {
         			coincide = false;
         		}
-        		if(dateChooserFiltro.getDate() != null) {
-        			if(!fechaHora.toLocalDate().equals(dateChooseraLocalDate(dateChooserFiltro))) {
-        				coincide = false;
-        			}
+        		if (dateChooserFiltro.getDate() != null && !fechaHora.toLocalDate().equals(dateChooseraLocalDate(dateChooserFiltro))) {
+        			coincide = false;
+        		}
+        		if (chkFiltroHora.isSelected() && !fechaHora.toLocalTime().equals(spinnerToLocalTime(spinnerFiltroHora))) {
+        			coincide = false;
         		}
         		
         		if (coincide) {
@@ -317,6 +333,7 @@ public class JPanelVuelos extends JPanel {
         	}
         };
         
+        // Aplicar filtro cuando haya cambios en cualquier filtro
         txtFiltroVuelo.addActionListener(e -> aplicarFiltros.run());
         txtFiltroDO.addActionListener(e -> aplicarFiltros.run());
         dateChooserFiltro.getDateEditor().addPropertyChangeListener(new PropertyChangeListener() {
@@ -327,8 +344,19 @@ public class JPanelVuelos extends JPanel {
 				}
 			}
 		});
+        xLabel.addMouseListener(new MouseAdapter() {
+        	
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		// Borrar fecha de JDateChooser
+        		dateChooserFiltro.setDate(null);
+        		aplicarFiltros.run();
+                
+        	}
+        });
         chkFiltroHora.addActionListener(e -> aplicarFiltros.run());
         
+        // Para que vaya aplicando los filtros mientras se escribe
         DocumentListener filtroListener = new DocumentListener() {
         	public void changedUpdate(DocumentEvent e) {aplicarFiltros.run();}
         	public void removeUpdate(DocumentEvent e) {aplicarFiltros.run();}
@@ -354,7 +382,7 @@ public class JPanelVuelos extends JPanel {
                     txtFiltroVuelo.setText("");
                     txtFiltroDO.setText("");
                     dateChooserFiltro.cleanup();
-                    chkFiltroHora.setEnabled(false);
+                    chkFiltroHora.setSelected(false);
                     aplicarFiltros.run();
                 }
                 
@@ -540,13 +568,16 @@ public class JPanelVuelos extends JPanel {
 	private LocalDateTime creadorLDTdeSpinner(JDateChooser dateChooser, JSpinner sHora) {
 		// Funcion para crear un Local Date Time apartir dos spinners de fecha y de hora
 		LocalDate localDate = dateChooseraLocalDate(dateChooser);
-    	LocalTime localHora = ((((Date) sHora.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalTime();
+    	LocalTime localHora = spinnerToLocalTime(sHora);
     	LocalDateTime fechaHora = LocalDateTime.of(localDate, localHora);
-    	
     	return fechaHora;		
 	}
 	
 	private LocalDate dateChooseraLocalDate(JDateChooser dateChooser) {
 		return dateChooser.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();		
+	}
+	
+	private LocalTime spinnerToLocalTime(JSpinner sHora) {
+		return ((((Date) sHora.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalTime();
 	}
 }
