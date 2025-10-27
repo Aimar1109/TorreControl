@@ -11,6 +11,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -200,23 +202,16 @@ public class JPanelVuelos extends JPanel {
         panelFiltros.add(txtFiltroDO);
         
         // Filtro Fecha
-        JCheckBox chkFiltroFecha = new JCheckBox("Fecha");
         JDateChooser dateChooserFiltro = new JDateChooser();
-        dateChooserFiltro.setDateFormatString("dd/MM/yyyy"); // formato de fecha
-        dateChooserFiltro.setEnabled(false);
-        chkFiltroFecha.add(dateChooserFiltro);
-        
-        chkFiltroFecha.addActionListener(e -> {
-        	dateChooserFiltro.setEnabled(chkFiltroFecha.isSelected());
-        });
-        panelFiltros.add(chkFiltroFecha);
+        dateChooserFiltro.setDateFormatString("dd/MM/yyyy"); // formato de fecha       
+        panelFiltros.add(dateChooserFiltro);
         
         // Filtro Hora
         JCheckBox chkFiltroHora = new JCheckBox("Hora");
         JSpinner spinnerFiltroHora = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor editorFiltroHora = new JSpinner.DateEditor(spinnerFiltroHora, "HH:mm");
         spinnerFiltroHora.setEditor(editorFiltroHora);
-        spinnerFiltroHora.setEnabled(false);
+
         chkFiltroHora.add(spinnerFiltroHora);
         
         chkFiltroHora.addActionListener(e -> {
@@ -285,7 +280,6 @@ public class JPanelVuelos extends JPanel {
         // Metdo para filtrar la tabla
         Runnable aplicarFiltros = () -> {
         	int filtroVuelo = txtFiltroVuelo.getText().isEmpty() ? 0: Integer.parseInt(txtFiltroVuelo.getText().toLowerCase().trim());
-        	LocalDateTime filtroFechaHora = creadorLDTdeSpinner(dateChooserFiltro, spinnerFiltroHora);
         	String filtroDO = txtFiltroDO.getText().toLowerCase().trim();
         	
         	// Limpiar la tabla
@@ -304,8 +298,10 @@ public class JPanelVuelos extends JPanel {
         		if (!filtroDO.isEmpty() && !ciudad.contains(filtroDO)) {
         			coincide = false;
         		}
-        		if (chkFiltroFecha.isEnabled() && !fechaHora.equals(filtroFechaHora)) {
-        			coincide = false;
+        		if(dateChooserFiltro.getDate() != null) {
+        			if(!fechaHora.toLocalDate().equals(dateChooseraLocalDate(dateChooserFiltro))) {
+        				coincide = false;
+        			}
         		}
         		
         		if (coincide) {
@@ -323,7 +319,14 @@ public class JPanelVuelos extends JPanel {
         
         txtFiltroVuelo.addActionListener(e -> aplicarFiltros.run());
         txtFiltroDO.addActionListener(e -> aplicarFiltros.run());
-        chkFiltroFecha.addActionListener(e -> aplicarFiltros.run());
+        dateChooserFiltro.getDateEditor().addPropertyChangeListener(new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				if("date".equals(evt.getPropertyName())) {
+					aplicarFiltros.run();
+				}
+			}
+		});
         chkFiltroHora.addActionListener(e -> aplicarFiltros.run());
         
         DocumentListener filtroListener = new DocumentListener() {
@@ -350,7 +353,7 @@ public class JPanelVuelos extends JPanel {
                 if (!panelFiltros.isVisible()) {
                     txtFiltroVuelo.setText("");
                     txtFiltroDO.setText("");
-                    chkFiltroFecha.setEnabled(false);
+                    dateChooserFiltro.cleanup();
                     chkFiltroHora.setEnabled(false);
                     aplicarFiltros.run();
                 }
@@ -536,10 +539,14 @@ public class JPanelVuelos extends JPanel {
 	
 	private LocalDateTime creadorLDTdeSpinner(JDateChooser dateChooser, JSpinner sHora) {
 		// Funcion para crear un Local Date Time apartir dos spinners de fecha y de hora
-		LocalDate localDate = dateChooser.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		LocalDate localDate = dateChooseraLocalDate(dateChooser);
     	LocalTime localHora = ((((Date) sHora.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalTime();
     	LocalDateTime fechaHora = LocalDateTime.of(localDate, localHora);
     	
     	return fechaHora;		
+	}
+	
+	private LocalDate dateChooseraLocalDate(JDateChooser dateChooser) {
+		return dateChooser.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();		
 	}
 }
