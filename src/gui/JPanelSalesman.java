@@ -3,11 +3,11 @@ package gui;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
 import javax.swing.JTable;
-import javax.swing.JToggleButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
+import javax.swing.ButtonGroup;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -31,16 +31,16 @@ public class JPanelSalesman extends JPanel {
     
     // Componentes visuales
     private JTable tablaVuelos;
-    private JTable tablaDinamica; // Tabla que cambia entre Pasajeros/Tripulación/Info
+    private JTable tablaDinamica;
     private JToggleButton btnPasajeros;
     private JToggleButton btnTripulacion;
     private JToggleButton btnInfoVuelo;
     private JToggleButton btnSeatmap;
     private ButtonGroup buttonGroup;
-    private JPanel panelDinamico; // Panel que cambia entre tabla y seatmap
-    private JPanel panelSeatmap; // Panel del seatmap
+    private JPanel panelDinamico;
+    private JPanel panelSeatmap;
     private JScrollPane scrollDinamico;
-    private JPanel panelInferior; // Panel para progress bar y threads
+    private JPanel panelInferior;
     
     // Modelos
     private DefaultTableModel modeloVuelos;
@@ -60,19 +60,19 @@ public class JPanelSalesman extends JPanel {
     }
     
     private void initComponents() {
-        // Panel superior con título
+        // Panel superior
         JPanel panelSuperior = new JPanel();
         JLabel lblTitulo = new JLabel("Panel Salesman");
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 24));
         panelSuperior.add(lblTitulo);
         add(panelSuperior, BorderLayout.NORTH);
         
-        // Panel central con margen
+        // Panel central
         JPanel panelCentral = new JPanel(new BorderLayout());
         panelCentral.setBorder(new EmptyBorder(5, 15, 5, 10));
         
         // -----------------
-        // PANEL IZQUIERDO: Tabla de vuelos (SIN espacio extra abajo)
+        // PANEL IZQUIERDO
         JPanel panelIzquierdo = new JPanel(new BorderLayout());
         tablaVuelos = new JTable();
         scrollVuelos = new JScrollPane(tablaVuelos);
@@ -81,7 +81,7 @@ public class JPanelSalesman extends JPanel {
         panelIzquierdo.add(scrollVuelos, BorderLayout.CENTER);
         
         // -----------------
-        // PANEL DERECHO: Botones Toggle + Panel Dinámico
+        // PANEL DERECHO
         JPanel panelDerecho = new JPanel(new BorderLayout());
         panelDerecho.setBorder(new EmptyBorder(0, 5, 0, 5));
 
@@ -101,7 +101,7 @@ public class JPanelSalesman extends JPanel {
         estilizarBotonToggle(btnInfoVuelo);
         estilizarBotonToggle(btnSeatmap);
         
-        // Agrupar botones (solo uno puede estar seleccionado)
+        // Agrupar botones
         buttonGroup = new ButtonGroup();
         buttonGroup.add(btnPasajeros);
         buttonGroup.add(btnTripulacion);
@@ -146,14 +146,13 @@ public class JPanelSalesman extends JPanel {
         panelDerecho.add(panelDinamico, BorderLayout.CENTER);
         
         // -----------------
-        // JSplitPane para dividir izquierda/derecha
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panelIzquierdo, panelDerecho);
-        splitPane.setDividerLocation(575);
-        splitPane.setResizeWeight(0.5);
-        splitPane.setOneTouchExpandable(true);
+        // JSplitPane HORIZONTAL para dividir izquierda/derecha
+        JSplitPane splitPaneHorizontal = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panelIzquierdo, panelDerecho);
+        splitPaneHorizontal.setDividerLocation(575);
+        splitPaneHorizontal.setResizeWeight(0.5);
+        splitPaneHorizontal.setOneTouchExpandable(true);
         
-        panelCentral.add(splitPane, BorderLayout.CENTER);
-        add(panelCentral, BorderLayout.CENTER);
+        panelCentral.add(splitPaneHorizontal, BorderLayout.CENTER);
         
         // -----------------
         // PANEL INFERIOR: Progress Bar / Threads / Timeline de vuelos
@@ -169,7 +168,7 @@ public class JPanelSalesman extends JPanel {
         lblTimeline.setFont(new Font("Arial", Font.BOLD, 14));
         panelInferior.add(lblTimeline, BorderLayout.NORTH);
         
-        // Panel para los cuadrados animados (aquí irán los threads)
+        // Panel para los cuadrados animados
         JPanel panelAnimacion = new JPanel();
         panelAnimacion.setBackground(Color.WHITE);
         panelAnimacion.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
@@ -180,7 +179,14 @@ public class JPanelSalesman extends JPanel {
         
         panelInferior.add(panelAnimacion, BorderLayout.CENTER);
         
-        add(panelInferior, BorderLayout.SOUTH);
+        // -----------------
+        // JSplitPane VERTICAL para hacer resizable el panel inferior
+        JSplitPane splitPaneVertical = new JSplitPane(JSplitPane.VERTICAL_SPLIT, panelCentral, panelInferior);
+        splitPaneVertical.setDividerLocation(450);
+        splitPaneVertical.setResizeWeight(0.65);
+        splitPaneVertical.setOneTouchExpandable(true);
+        
+        add(splitPaneVertical, BorderLayout.CENTER);
     }
     
     // Estiliza los botones toggle para que parezcan pestañas modernas
@@ -416,9 +422,9 @@ public class JPanelSalesman extends JPanel {
         modeloDinamico.addColumn("Nombre");
         modeloDinamico.addColumn("Asiento");
         
-        tablaDinamica.getColumnModel().getColumn(0).setPreferredWidth(60);
-        tablaDinamica.getColumnModel().getColumn(1).setPreferredWidth(180);
-        tablaDinamica.getColumnModel().getColumn(2).setPreferredWidth(90);
+        tablaDinamica.getColumnModel().getColumn(0).setPreferredWidth(120);
+        tablaDinamica.getColumnModel().getColumn(1).setPreferredWidth(250);
+        tablaDinamica.getColumnModel().getColumn(2).setPreferredWidth(180);
         
         ArrayList<String> pasajeros = vuelo.getPasajeros();
         for (int i = 0; i < pasajeros.size(); i++) {
@@ -432,9 +438,9 @@ public class JPanelSalesman extends JPanel {
         modeloDinamico.addColumn("Nombre");
         modeloDinamico.addColumn("Rol");
         
-        tablaDinamica.getColumnModel().getColumn(0).setPreferredWidth(60);
-        tablaDinamica.getColumnModel().getColumn(1).setPreferredWidth(180);
-        tablaDinamica.getColumnModel().getColumn(2).setPreferredWidth(90);
+        tablaDinamica.getColumnModel().getColumn(0).setPreferredWidth(120);
+        tablaDinamica.getColumnModel().getColumn(1).setPreferredWidth(250);
+        tablaDinamica.getColumnModel().getColumn(2).setPreferredWidth(180);
         
         ArrayList<String> tripulacion = vuelo.getTripulacion();
         String[] roles = {"Piloto", "Copiloto", "Jefe Cabina", "Auxiliar", "Auxiliar", "Auxiliar", "Auxiliar", "Auxiliar"};
@@ -448,8 +454,8 @@ public class JPanelSalesman extends JPanel {
         modeloDinamico.addColumn("Campo");
         modeloDinamico.addColumn("Valor");
         
-        tablaDinamica.getColumnModel().getColumn(0).setPreferredWidth(120);
-        tablaDinamica.getColumnModel().getColumn(1).setPreferredWidth(220);
+        tablaDinamica.getColumnModel().getColumn(0).setPreferredWidth(240);
+        tablaDinamica.getColumnModel().getColumn(1).setPreferredWidth(440);
         
         modeloDinamico.addRow(new Object[]{"Código", vuelo.getcodigo()});
         modeloDinamico.addRow(new Object[]{"Origen", vuelo.getOrigen().getCiudad()});
