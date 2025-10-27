@@ -316,7 +316,7 @@ public class JPanelVuelos extends JPanel {
         		if (dateChooserFiltro.getDate() != null && !fechaHora.toLocalDate().equals(dateChooseraLocalDate(dateChooserFiltro))) {
         			coincide = false;
         		}
-        		if (chkFiltroHora.isSelected() && !fechaHora.toLocalTime().equals(spinnerToLocalTime(spinnerFiltroHora))) {
+        		if (chkFiltroHora.isSelected() && !(fechaHora.toLocalTime().withSecond(0).withNano(0)).equals(spinnerToLocalTime(spinnerFiltroHora))) {
         			coincide = false;
         		}
         		
@@ -578,6 +578,6 @@ public class JPanelVuelos extends JPanel {
 	}
 	
 	private LocalTime spinnerToLocalTime(JSpinner sHora) {
-		return ((((Date) sHora.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalTime();
+		return ((((Date) sHora.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalTime().withSecond(0).withNano(0);
 	}
 }
