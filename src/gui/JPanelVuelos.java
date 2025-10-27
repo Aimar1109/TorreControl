@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,6 +39,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+
+import com.toedter.calendar.JDateChooser;
 
 import domain.Vuelo;
 
@@ -198,25 +201,26 @@ public class JPanelVuelos extends JPanel {
         
         // Filtro Fecha
         JCheckBox chkFiltroFecha = new JCheckBox("Fecha");
-        JSpinner spinnerFiltroFecha = new JSpinner(new SpinnerDateModel());
-        JSpinner.DateEditor editorFiltroFecha = new JSpinner.DateEditor(spinnerFiltroFecha, "dd/MM/yyyy");
-        spinnerFiltroFecha.setEditor(editorFiltroFecha);
-        spinnerFiltroFecha.setEnabled(false);
+        JDateChooser dateChooserFiltro = new JDateChooser();
+        dateChooserFiltro.setDateFormatString("dd/MM/yyyy"); // formato de fecha
+        dateChooserFiltro.setEnabled(false);
+        chkFiltroFecha.add(dateChooserFiltro);
         
         chkFiltroFecha.addActionListener(e -> {
-        	spinnerFiltroFecha.setEnabled(chkFiltroFecha.isSelected());
+        	dateChooserFiltro.setEnabled(chkFiltroFecha.isSelected());
         });
         panelFiltros.add(chkFiltroFecha);
         
         // Filtro Hora
         JCheckBox chkFiltroHora = new JCheckBox("Hora");
         JSpinner spinnerFiltroHora = new JSpinner(new SpinnerDateModel());
-        JSpinner.DateEditor editorFiltroHora = new JSpinner.DateEditor(spinnerFiltroHora, "dd/MM/yyyy");
+        JSpinner.DateEditor editorFiltroHora = new JSpinner.DateEditor(spinnerFiltroHora, "HH:mm");
         spinnerFiltroHora.setEditor(editorFiltroHora);
         spinnerFiltroHora.setEnabled(false);
+        chkFiltroHora.add(spinnerFiltroHora);
         
         chkFiltroHora.addActionListener(e -> {
-        	spinnerFiltroFecha.setEnabled(chkFiltroHora.isSelected());
+        	spinnerFiltroHora.setEnabled(chkFiltroHora.isSelected());
         });
         panelFiltros.add(chkFiltroHora);
         
@@ -281,7 +285,7 @@ public class JPanelVuelos extends JPanel {
         // Metdo para filtrar la tabla
         Runnable aplicarFiltros = () -> {
         	int filtroVuelo = txtFiltroVuelo.getText().isEmpty() ? 0: Integer.parseInt(txtFiltroVuelo.getText().toLowerCase().trim());
-        	LocalDateTime filtroFechaHora = creadorLDTdeSpinner(spinnerFiltroFecha, spinnerFiltroHora);
+        	LocalDateTime filtroFechaHora = creadorLDTdeSpinner(dateChooserFiltro, spinnerFiltroHora);
         	String filtroDO = txtFiltroDO.getText().toLowerCase().trim();
         	
         	// Limpiar la tabla
@@ -452,14 +456,11 @@ public class JPanelVuelos extends JPanel {
 	    
 	    //Fecha
 	    panelCampos.add(new JLabel("Fecha:"));
-	    
-	    // Crear spinner de fecha
-        JSpinner spinnerFecha = new JSpinner(new SpinnerDateModel());
         
-        // Configurar el formato de fecha
-        JSpinner.DateEditor editorFecha = new JSpinner.DateEditor(spinnerFecha, "dd/MM/yyyy");
-        spinnerFecha.setEditor(editorFecha);
-        panelCampos.add(spinnerFecha);
+        // Fecha
+        JDateChooser dateChooser = new JDateChooser();
+        dateChooser.setDateFormatString("dd/MM/yyyy"); // formato de fecha
+        panelCampos.add(dateChooser);
 	    
 	    
         // Hora
@@ -488,7 +489,7 @@ public class JPanelVuelos extends JPanel {
 	    btnGuardar.addActionListener(ev -> {
 	        // Validar y guardar
 	        if (validarFormulario()) {
-	        	LocalDateTime fechaHora = creadorLDTdeSpinner(spinnerFecha, spinnerHora);
+	        	LocalDateTime fechaHora = creadorLDTdeSpinner(dateChooser, spinnerHora);
 	        	
 	        	System.out.println(fechaHora);
 	        	
@@ -533,9 +534,9 @@ public class JPanelVuelos extends JPanel {
 	    // TODO: Actualizar la tabla
 	}
 	
-	private LocalDateTime creadorLDTdeSpinner(JSpinner sFecha, JSpinner sHora) {
+	private LocalDateTime creadorLDTdeSpinner(JDateChooser dateChooser, JSpinner sHora) {
 		// Funcion para crear un Local Date Time apartir dos spinners de fecha y de hora
-		LocalDate localDate = ((((Date) sFecha.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalDate();
+		LocalDate localDate = dateChooser.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     	LocalTime localHora = ((((Date) sHora.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalTime();
     	LocalDateTime fechaHora = LocalDateTime.of(localDate, localHora);
     	
