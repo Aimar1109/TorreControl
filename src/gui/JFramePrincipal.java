@@ -25,13 +25,17 @@ public class JFramePrincipal extends JFrame {
 		
 		mainPanel.add(menuPanel, BorderLayout.NORTH);
 		
+		// Creamos una instancia de nuestro panel de clima
+        JPanelClima panelClima = new JPanelClima();
+        mainPanel.add(panelClima, BorderLayout.CENTER);
+		
 		
 		// CONFIGURACION DE LA VENTANA
 		this.add(mainPanel);
 		
 		this.setTitle("Torre de Control");		
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
+		
 		this.setSize(800, 600);
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);	
