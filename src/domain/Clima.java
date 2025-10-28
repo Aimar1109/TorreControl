@@ -7,191 +7,189 @@ public abstract class Clima {
 	// Atributos
 	protected double temperatura;				// En °C
 	protected double velocidadViento;			// En km/h
-	protected boolean senalPeligro;
 	protected double visibilidadKm;				// En km
+	protected double precipitacion;				// En mm/h
+	protected int techoNubesMetros;				// Es similar relativamente a cantidad de nubes
+	protected double humedad; 			// Porcentaje (0-100)
+	protected double presionHPa; 				// Presión atmosférica
+	
+	protected boolean senalPeligro;
 	
 	protected static final double VISIBILIDAD_PELIGROSA = 1.0;
-	protected static final double VELOCIDAD_VIENTO_PELIGROSA = 60.0;
+	protected static final double VELOCIDAD_VIENTO_PELIGROSA = 80.0;
+	protected static final int TECHO_NUBES_PELIGROSO_METROS = 300;
 	
 	// Constructor
-	public Clima(double temperatura, double velocidadViento, double visibilidadKm) {
+	public Clima(double temperatura, double velocidadViento, double visibilidadKm, double precipitacion, int techoNubesMetros, double humedad, double presionHPa) {
 		super();
 		this.temperatura = temperatura;
-		this.setVelocidadViento(velocidadViento);
-		this.senalPeligro = false;
+		this.velocidadViento = velocidadViento;
 		this.visibilidadKm = visibilidadKm;
+		this.precipitacion = precipitacion;
+		this.techoNubesMetros = techoNubesMetros;
+		this.humedad = humedad;
+		this.presionHPa = presionHPa;
+		this.senalPeligro = false;
+		
+		this.actualizarSenalPeligro();
 	}
 	
-	public abstract void actualizarSenalPeligro();
+	public void actualizarSenalPeligro() {
+		if (this.velocidadViento > VELOCIDAD_VIENTO_PELIGROSA || 
+	            this.visibilidadKm < VISIBILIDAD_PELIGROSA || 
+	            this.techoNubesMetros < TECHO_NUBES_PELIGROSO_METROS ||
+	            this.techoNubesMetros != 0) {
+	            this.senalPeligro = true;
+	        } else {
+	            this.senalPeligro = false;
+	        }
+	}
+	
 	public abstract String getDescripcionParaPanel();
 
-	// Getters y Setters
+	// Getters
 	public double getTemperatura() {
 		return temperatura;
 	}
-
-	public void setTemperatura(int temperatura) {
-		this.temperatura = temperatura;
-	}
-
+	
 	public double getVelocidadViento() {
 		return velocidadViento;
-	}
-
-	public void setVelocidadViento(double velocidadViento) {
-		this.velocidadViento = velocidadViento;
 	}
 
 	public boolean isSenalPeligro() {
 		return senalPeligro;
 	}
-
-	public void setSenalPeligro(boolean senalPeligro) {
-		this.senalPeligro = senalPeligro;
-	}
-
+	
 	public double getVisibilidadKm() {
 		return visibilidadKm;
 	}
-
-	public void setVisibilidadKm(double visibilidadKm) {
-		this.visibilidadKm = visibilidadKm;
+	
+	public double getPrecipitacion() {
+		return precipitacion;
+	}
+	
+	public int getTechoNubesMetros() {
+		return techoNubesMetros;
 	}
 	
 	public static class ClimaDespejado extends Clima {
 		
 		private IntensidadSol intensidad;
 		
-		public ClimaDespejado(double temperaturaCelsius, double velocidadVientoKmh, double visibilidadKm, IntensidadSol intensidad) {
-	        super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm); 
-	        this.intensidad = intensidad;
-	    }
-		
-		public void actualizarSenalPeligro() {
-	        // Peligro si el viento es muy fuerte o la visibilidad es inesperadamente baja.
-	        if (this.velocidadViento > VELOCIDAD_VIENTO_PELIGROSA || this.visibilidadKm < VISIBILIDAD_PELIGROSA) {
-	            this.senalPeligro = true;
-	        } else {
-	            this.senalPeligro = false;
-	        }
+		public ClimaDespejado(double temperatura, double velocidadViento, double visibilidadKm, double precipitacion,
+				int techoNubesMetros, double humedad, double presionHPa, IntensidadSol intensidad) {
+			super(temperatura, velocidadViento, visibilidadKm, precipitacion, techoNubesMetros, humedad, presionHPa);
+			this.intensidad = intensidad;
 		}
-		
-		public String getDescripcionParaPanel() {
+
+		@Override
+	    public String getDescripcionParaPanel() {
+	        // (Esto lo usaremos para la ventana emergente de detalle)
 	        StringJoiner sj = new StringJoiner("\n");
-	        sj.add("--- CLIMA DESPEJADO ---");
-	        sj.add("Temperatura: " + this.temperatura + " °C");
-	        sj.add("Viento: " + this.velocidadViento + " km/h");
-	        sj.add("Visibilidad: " + this.visibilidadKm + " km");
-	        sj.add("Intensidad Sol: " + this.intensidad);
+	        sj.add("Temperatura: " + temperatura + " °C");
+	        sj.add("Viento: " + velocidadViento + " km/h");
+	        sj.add("Visibilidad: " + visibilidadKm + " km");
+	        sj.add("Techo de Nubes: DESPEJADO");
+	        sj.add("Precipitación: 0.0 mm/h");
+	        sj.add("Humedad: " + humedad + " %");
+	        sj.add("Presión: " + presionHPa + " hPa");
+	        sj.add("---");
+	        sj.add("Intensidad Sol: " + this.intensidad); // Dato específico
 	        return sj.toString();
 	    }
-		
-		public IntensidadSol getIntensidad() {
-			return intensidad;
-		}
-		
+
 	}
 	
 	public static class ClimaLluvioso extends Clima {
-		 
+		
 		private boolean tormentaElectrica;
-	    private double cantidadPrecipitacion;		// En milímetros == Litros por metro cuadrado
-	    
-	    public ClimaLluvioso(double temperaturaCelsius, double velocidadVientoKmh, double visibilidadKm, boolean tormentaElectrica, double cantidadPrecipitacion) {
-	        super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm);
-	        this.tormentaElectrica = tormentaElectrica;
-	    }
-	    
+		
+		public ClimaLluvioso(double temperaturaCelsius, double velocidadVientoKmh, double visibilidadKm,
+                double precipitacionMmH, int techoNubesMetros, 
+                double humedadRelativa, double presionHPa, boolean tormentaElectrica) {
+				// Pasa todos los datos base a la madre
+				super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm, precipitacionMmH, techoNubesMetros, humedadRelativa, presionHPa);
+					this.tormentaElectrica = tormentaElectrica;
+		}
+		
+		@Override
 	    public void actualizarSenalPeligro() {
-	        // Peligro si hay tormenta, viento fuerte o baja visibilidad por lluvia intensa
-	        if (this.tormentaElectrica || this.velocidadViento > VELOCIDAD_VIENTO_PELIGROSA || this.visibilidadKm < VISIBILIDAD_PELIGROSA) {
+	        super.actualizarSenalPeligro(); // Revisa las condiciones base (viento, visi, techo)
+	        if (this.tormentaElectrica) { // Añade la condición de tormenta
 	            this.senalPeligro = true;
-	        } else {
-	            this.senalPeligro = false;
 	        }
 	    }
-	    
+		
+		@Override
 	    public String getDescripcionParaPanel() {
 	        StringJoiner sj = new StringJoiner("\n");
-	        sj.add("--- CLIMA LLUVIOSO ---");
-	        sj.add("Temperatura: " + this.temperatura + " °C");
-	        sj.add("Viento: " + this.velocidadViento + " km/h");
-	        sj.add("Visibilidad: " + this.visibilidadKm + " km");
-	        sj.add("Precipitación (L/m²): " + this.cantidadPrecipitacion + " mm");
-	        sj.add("Tormenta Eléctrica: " + (this.tormentaElectrica ? "SÍ" : "NO"));
+	        sj.add("Temperatura: " + temperatura + " °C");
+	        sj.add("Viento: " + velocidadViento + " km/h");
+	        sj.add("Visibilidad: " + visibilidadKm + " km");
+	        sj.add("Techo de Nubes: " + techoNubesMetros + " m");
+	        sj.add("Precipitación: " + precipitacion + " mm/h");
+	        sj.add("Humedad: " + humedad + " %");
+	        sj.add("Presión: " + presionHPa + " hPa");
+	        sj.add("---");
+	        sj.add("Tormenta Eléctrica: " + (this.tormentaElectrica ? "SÍ" : "NO")); // Dato específico
 	        return sj.toString();
 	    }
-	    
-	    public boolean isTormentaElectrica() {
-	        return tormentaElectrica;
-	    }
-
-		public double getCantidadPrecipitacion() {
-			return cantidadPrecipitacion;
-		}
 	}
 	
 	public static class ClimaNublado extends Clima {
 		
-		private int techoNubesAltura;
-		private static final int TECHO_NUBES_ALTURA_PELIGROSA = 300;
+		public ClimaNublado(double temperaturaCelsius, double velocidadVientoKmh, double visibilidadKm,
+                int techoNubesMetros, double humedadRelativa, double presionHPa) {
+				super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm, 0.0, techoNubesMetros, humedadRelativa, presionHPa);
+		}
 		
-		public ClimaNublado(double temperaturaCelsius, double velocidadVientoKmh, double visibilidadKm, int techoNubesAltura) {
-	        super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm);
-	        this.techoNubesAltura = techoNubesAltura;
-	    }
-
 		@Override
-		public void actualizarSenalPeligro() {
-	        // Peligro si las nubes están muy bajas, la visibilidad es mala (niebla) O el viento es fuerte
-	        if (this.techoNubesAltura < TECHO_NUBES_ALTURA_PELIGROSA || this.visibilidadKm < VISIBILIDAD_PELIGROSA || this.velocidadViento > VELOCIDAD_VIENTO_PELIGROSA) {
-	            this.senalPeligro = true;
-	        } else {
-	            this.senalPeligro = false;
-	        }
-	    }
-		
-		public String getDescripcionParaPanel() {
+	    public String getDescripcionParaPanel() {
 	        StringJoiner sj = new StringJoiner("\n");
-	        sj.add("--- CLIMA NUBLADO ---");
-	        sj.add("Temperatura: " + this.temperatura + " °C");
-	        sj.add("Viento: " + this.velocidadViento + " km/h");
-	        sj.add("Visibilidad: " + this.visibilidadKm + " km");
-	        sj.add("Techo de Nubes: " + this.techoNubesAltura + " m");
+	        sj.add("Temperatura: " + temperatura + " °C");
+	        sj.add("Viento: " + velocidadViento + " km/h");
+	        sj.add("Visibilidad: " + visibilidadKm + " km");
+	        sj.add("Techo de Nubes: " + techoNubesMetros + " m");
+	        sj.add("Precipitación: 0.0 mm/h");
+	        sj.add("Humedad: " + humedad + " %");
+	        sj.add("Presión: " + presionHPa + " hPa");
+	        // No tiene datos específicos extra
 	        return sj.toString();
-	    }
-		
-		public int getTechoNubesMetros() {
-	        return techoNubesAltura;
 	    }
 	}
 	
 	public static class ClimaNevado extends Clima {
 		
-		private double acumulacionNieve;		// En cm
+		private double acumulacionNieveCm; 
 		
-		public ClimaNevado(double temperaturaCelsius, double velocidadVientoKmh, double visibilidadKm, double acumulacionNieve) {
-	        super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm);
-	        this.acumulacionNieve = acumulacionNieve;
-	    }
+		public ClimaNevado(double temperaturaCelsius, double velocidadVientoKmh, double visibilidadKm,
+                double precipitacionMmH, int techoNubesMetros, 
+                double humedadRelativa, double presionHPa, double acumulacionNieveCm) {
+ 
+				super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm, precipitacionMmH, techoNubesMetros, humedadRelativa, presionHPa);
+				this.acumulacionNieveCm = acumulacionNieveCm;
+		}
 		
-		public void actualizarSenalPeligro() {
-	        // Peligro si hay acumulación, la visibilidad es baja (ventisca) O viento fuerte
-	        if (this.acumulacionNieve > 0.5 || this.visibilidadKm < VISIBILIDAD_PELIGROSA || this.velocidadViento > VELOCIDAD_VIENTO_PELIGROSA
-	        		) {
+		@Override
+	    public void actualizarSenalPeligro() {
+	        super.actualizarSenalPeligro();
+	        if (this.acumulacionNieveCm > 0.5) { // Nieve en pista
 	            this.senalPeligro = true;
-	        } else {
-	            this.senalPeligro = false;
 	        }
 	    }
 		
-		public String getDescripcionParaPanel() {
+		@Override
+	    public String getDescripcionParaPanel() {
 	        StringJoiner sj = new StringJoiner("\n");
-	        sj.add("--- CLIMA NEVADO ---");
-	        sj.add("Temperatura: " + this.temperatura + " °C");
-	        sj.add("Viento: " + this.velocidadViento + " km/h");
-	        sj.add("Visibilidad: " + this.visibilidadKm + " km");
-	        sj.add("Acumulación Nieve: " + this.acumulacionNieve + " cm");
+	        sj.add("Temperatura: " + temperatura + " °C");
+	        sj.add("Viento: " + velocidadViento + " km/h");
+	        sj.add("Visibilidad: " + visibilidadKm + " km");
+	        sj.add("Techo de Nubes: " + techoNubesMetros + " m");
+	        sj.add("Precipitación (nieve): " + precipitacion + " mm/h");
+	        sj.add("Humedad: " + humedad + " %");
+	        sj.add("Presión: " + presionHPa + " hPa");
+	        sj.add("---");
+	        sj.add("Acumulación en Pista: " + this.acumulacionNieveCm + " cm"); // Dato específico
 	        return sj.toString();
 	    }
 	}
