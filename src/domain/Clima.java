@@ -72,6 +72,14 @@ public abstract class Clima {
 		return techoNubesMetros;
 	}
 	
+	public double getHumedad() {
+		return humedad;
+	}
+	
+	public double getPresionHPa() {
+		return presionHPa;
+	}
+	
 	public static class ClimaDespejado extends Clima {
 		
 		private IntensidadSol intensidad;
@@ -97,6 +105,10 @@ public abstract class Clima {
 	        sj.add("Intensidad Sol: " + this.intensidad); // Dato específico
 	        return sj.toString();
 	    }
+
+		public IntensidadSol getIntensidad() {
+			return intensidad;
+		}
 
 	}
 	
@@ -134,6 +146,10 @@ public abstract class Clima {
 	        sj.add("Tormenta Eléctrica: " + (this.tormentaElectrica ? "SÍ" : "NO")); // Dato específico
 	        return sj.toString();
 	    }
+
+		public boolean isTormentaElectrica() {
+			return tormentaElectrica;
+		}
 	}
 	
 	public static class ClimaNublado extends Clima {
@@ -192,5 +208,10 @@ public abstract class Clima {
 	        sj.add("Acumulación en Pista: " + this.acumulacionNieveCm + " cm"); // Dato específico
 	        return sj.toString();
 	    }
+
+		public double getAcumulacionNieveCm() {
+			return acumulacionNieveCm;
+		}
 	}
 }
+

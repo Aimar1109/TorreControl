@@ -26,15 +26,25 @@ public class JPanelClima extends JPanel {
     private JPanel panelTablaClima; // Panel central con GridLayout
     private JButton btnAvanzarHoraRapido;
     
+    // --- Componentes del Panel Izquierdo (Formato Tabla) ---
+    private JPanel panelHoraActual; 
+    private JLabel valTemp;
+    private JLabel valViento;
+    private JLabel valLluvia;
+    private JLabel valNieve;
+    private JLabel valNiebla; // Mapeado a Visibilidad
+    private JLabel valNubes;  // Mapeado a Techo de Nubes
+    
+    // --- Lógica de Simulación ---
     private int horaActual;
     private Random generadorAleatorio;
     private int segundosTranscurridosEnLaHora;
+    private Clima climaHoraActual;
 	
 	// Lógica del Reloj Interno
 	private Timer relojInterno;
 	
 	private static final int SEGUNDOS_REALES_POR_HORA_SIMULADA = 60;	// 1 hora del programa = 60 segundos reales
-	
 	private static final int TICK_DEL_RELOJ_MS = 1000; // 1000ms = 1 segundo
 	
 	public JPanelClima() {
@@ -51,28 +61,81 @@ public class JPanelClima extends JPanel {
         
         // 3. Crear el panel de controles (Norte)
         JPanel panelControles = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        
-        lblReloj = new JLabel("Hora actual: 0");
-        lblReloj.setFont(new Font("Arial", Font.BOLD, 16));
-        
+        lblReloj = new JLabel("00:00");
+        lblReloj.setFont(new Font("Monospaced", Font.BOLD, 16));
         btnPausarReanudar = new JButton("Pausar");
         btnReiniciar = new JButton("Reiniciar Simulación");
         btnAvanzarHoraRapido = new JButton("Avanzar 1 Hora");
-        
         panelControles.add(lblReloj);
         panelControles.add(btnPausarReanudar);
         panelControles.add(btnReiniciar);
         panelControles.add(btnAvanzarHoraRapido);
         
-        // 4. Crear el panel de la "tabla" de climas (Centro)
-        // Usamos GridLayout de 1 fila y 6 columnas, con 10px de separación
+        add(panelControles, BorderLayout.NORTH);
+        
+        
+        // ---  Panel Izquierdo (Formato Tabla) ---
+        panelHoraActual = new JPanel(new BorderLayout()); // Layout simple
+        panelHoraActual.setBorder(BorderFactory.createTitledBorder(String.format("Clima Actual (Hora %02d:00)", horaActual)));
+        
+        // Creamos la tabla de datos
+        JPanel tablaDatos = new JPanel(new GridLayout(7, 2, 5, 5)); // 7 filas, 2 columnas, con espacios
+        tablaDatos.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Margen interno
+        
+        // Fila 1: Cabeceras
+        Font headerFont = new Font("Arial", Font.BOLD, 12);
+        JLabel lblProperty = new JLabel("Tipo");
+        lblProperty.setFont(headerFont);
+        JLabel lblValue = new JLabel("Valor");
+        lblValue.setFont(headerFont);
+        tablaDatos.add(lblProperty);
+        tablaDatos.add(lblValue);
+        
+        // Fila 2: Temperatura
+        tablaDatos.add(new JLabel("Temperatura [°C]"));
+        valTemp = new JLabel("---");
+        tablaDatos.add(valTemp);
+
+        // Fila 3: Viento
+        tablaDatos.add(new JLabel("Viento [km/h]"));
+        valViento = new JLabel("---");
+        tablaDatos.add(valViento);
+
+        // Fila 4: Lluvia
+        tablaDatos.add(new JLabel("Lluvia [mm/h]"));
+        valLluvia = new JLabel("---");
+        tablaDatos.add(valLluvia);
+
+        // Fila 5: Nieve
+        tablaDatos.add(new JLabel("Nieve [mm/h]"));
+        valNieve = new JLabel("---");
+        tablaDatos.add(valNieve);
+
+        // Fila 6: Niebla (Visibilidad)
+        tablaDatos.add(new JLabel("Visibilidad [km]"));
+        valNiebla = new JLabel("---");
+        tablaDatos.add(valNiebla);
+
+        // Fila 7: Nubes (Techo)
+        tablaDatos.add(new JLabel("Nubes [m]"));
+        valNubes = new JLabel("---");
+        tablaDatos.add(valNubes);
+        
+        panelHoraActual.add(tablaDatos, BorderLayout.NORTH); // Añadimos la tabla
+        
+        
+        // 3. Panel Derecho (Pronóstico 6 Horas) - Sin cambios
         panelTablaClima = new JPanel(new GridLayout(1, 6, 10, 10));
         panelTablaClima.setBorder(BorderFactory.createTitledBorder("Pronóstico Próximas 6 Horas"));
         
-        // 5. Añadir los paneles (directamente sobre el panel)
-        add(panelControles, BorderLayout.NORTH);
-        add(panelTablaClima, BorderLayout.CENTER);
+        // Este panel unirá el panel izquierdo (WEST) y el de 6h (CENTER)
+        JPanel mainContentPanel = new JPanel(new BorderLayout(10, 10));
+        mainContentPanel.add(panelHoraActual, BorderLayout.WEST);
+        mainContentPanel.add(panelTablaClima, BorderLayout.CENTER);
         
+        // 5. Añadimos el panel de contenido al centro de la ventana
+        add(mainContentPanel, BorderLayout.CENTER);
+     
         // 6. Añadir Listeners a los botones
         btnPausarReanudar.addActionListener(new ActionListener() {
             @Override
@@ -117,6 +180,40 @@ public class JPanelClima extends JPanel {
         });
         relojInterno.start();
 	}
+	
+	// --- MÉTODOS ---
+	
+	private void actualizarPanelHoraActual() {
+        if (climaHoraActual == null) return;
+
+        // Actualizamos el título del panel
+        panelHoraActual.setBorder(BorderFactory.createTitledBorder(
+            String.format("Clima Actual (Hora %02d:00)", (horaActual % 24))
+        ));
+        
+        // Actualizamos los valores
+        valTemp.setText(String.format("%.1f", climaHoraActual.getTemperatura()));
+        valViento.setText(String.format("%.1f", climaHoraActual.getVelocidadViento()));
+        valNiebla.setText(String.format("%.1f", climaHoraActual.getVisibilidadKm()));
+        
+        // Lógica para Nubes (Techo)
+        valNubes.setText(climaHoraActual.getTechoNubesMetros() >= 10000 ? 
+            "N/A" : String.format("%d", climaHoraActual.getTechoNubesMetros()));
+
+        // Lógica para Lluvia/Nieve
+        double precipitacion = climaHoraActual.getPrecipitacion();
+        
+        if (climaHoraActual instanceof ClimaNevado) {
+            valLluvia.setText("0.0");
+            valNieve.setText(String.format("%.1f", precipitacion));
+        } else if (precipitacion > 0) { // Lluvioso
+            valLluvia.setText(String.format("%.1f", precipitacion));
+            valNieve.setText("0.0");
+        } else { // Despejado o Nublado
+            valLluvia.setText("0.0");
+            valNieve.setText("0.0");
+        }
+    }
 	
 	/**
      * Pausa o reanuda el reloj interno (Timer).
@@ -190,25 +287,21 @@ public class JPanelClima extends JPanel {
      * Borra la tabla y la vuelve a generar con las 6 horas correspondientes.
      */
     private void actualizarTablaClima() {
-        // 1. Borrar todos los componentes anteriores del panel
         panelTablaClima.removeAll();
-
-        // 2. Generar y añadir las 6 "columnas" (paneles) nuevas
+        
         for (int i = 0; i < 6; i++) {
-            int horaMostrada = this.horaActual + i;
+            int horaEnPanel = (this.horaActual + i) % 24;
+            Clima climaDeLaHora = generarClimaAleatorio(horaEnPanel);
             
-            // Generamos un clima aleatorio para esa hora
-            Clima climaDeLaHora = generarClimaAleatorio();
-            climaDeLaHora.actualizarSenalPeligro(); // Importante calcular el peligro
-
-            // Creamos un panel-columna para ese clima
-            JPanel panelColumna = crearPanelColumna(climaDeLaHora, horaMostrada);
+            if (i == 0) {
+                this.climaHoraActual = climaDeLaHora;
+                actualizarPanelHoraActual(); // Actualiza el panel izquierdo
+            }
             
-            // Añadimos la nueva columna al GridLayout
+            JPanel panelColumna = crearPanelColumnaResumen(climaDeLaHora, horaEnPanel); 
             panelTablaClima.add(panelColumna);
         }
-
-        // 3. Refrescar el panel para que muestre los cambios
+        
         panelTablaClima.revalidate();
         panelTablaClima.repaint();
     }
@@ -219,13 +312,10 @@ public class JPanelClima extends JPanel {
      * @param hora La hora que representa este panel.
      * @return Un JPanel formateado.
      */
-    private JPanel crearPanelColumna(Clima clima, int hora) {
+    private JPanel crearPanelColumnaResumen(Clima clima, int hora) {
         JPanel panelColumna = new JPanel(new BorderLayout(5, 5));
-        
-        // Formateamos la hora para que se vea bien (ej: 08:00)
         String horaFormateada = String.format("%02d:00", hora % 24);
         
-        // Usamos TitledBorder para poner la hora como título de la columna
         panelColumna.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(Color.GRAY),
                 " Hora: " + horaFormateada + " ",
@@ -234,35 +324,25 @@ public class JPanelClima extends JPanel {
                 new Font("Arial", Font.BOLD, 14)
         ));
 
-        // Usamos un GridLayout de 5 filas y 2 columnas (para "Etiqueta" y "Valor")
+        // Panel de Resumen (Big 5)
         JPanel panelDatosResumen = new JPanel(new GridLayout(5, 2, 3, 3));
-        panelDatosResumen.setOpaque(false); // Transparente para heredar el color
+        panelDatosResumen.setOpaque(false);
         panelDatosResumen.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        
-        // 1. Temperatura
+
         panelDatosResumen.add(new JLabel("Temp:"));
         panelDatosResumen.add(new JLabel(String.format("%.1f °C", clima.getTemperatura())));
-        
-        // 2. Viento
         panelDatosResumen.add(new JLabel("Viento:"));
         panelDatosResumen.add(new JLabel(String.format("%.1f km/h", clima.getVelocidadViento())));
-        
-        // 3. Visibilidad
         panelDatosResumen.add(new JLabel("Visib:"));
         panelDatosResumen.add(new JLabel(String.format("%.1f km", clima.getVisibilidadKm())));
-        
-        // 4. Techo de Nubes
         panelDatosResumen.add(new JLabel("Techo:"));
         panelDatosResumen.add(new JLabel(clima.getTechoNubesMetros() >= 10000 ? "DESPEJADO" : clima.getTechoNubesMetros() + " m"));
-        
-        // 5. Precipitación
         panelDatosResumen.add(new JLabel("Precip:"));
         panelDatosResumen.add(new JLabel(String.format("%.1f mm/h", clima.getPrecipitacion())));
         
-        // Añadimos el panel de datos al centro de la columna
         panelColumna.add(panelDatosResumen, BorderLayout.CENTER);
-        
-        // La lógica del color de peligro sigue igual
+
+        // Lógica del color de peligro
         if (clima.isSenalPeligro()) {
             panelColumna.setBackground(new Color(255, 220, 220));
             panelDatosResumen.setOpaque(true);
@@ -274,8 +354,9 @@ public class JPanelClima extends JPanel {
         return panelColumna;
     }
     
-    private Clima generarClimaAleatorio() {
+    private Clima generarClimaAleatorio(int hora) {
         int tipoClima = generadorAleatorio.nextInt(4); // 0, 1, 2, o 3
+        boolean esDeNoche = (hora > 20 || hora < 6);
 
         // Datos base aleatorios (ahora incluye humedad y presión)
         double temp = -5 + (35 * generadorAleatorio.nextDouble());
@@ -283,6 +364,11 @@ public class JPanelClima extends JPanel {
         double visi = 20 * generadorAleatorio.nextDouble();
         double humedad = 20 + (80 * generadorAleatorio.nextDouble()); // Humedad 20-100%
         double presion = 980 + (50 * generadorAleatorio.nextDouble()); // Presión 980-1030 hPa
+        
+        // Ajuste nocturno: baja la temperatura
+        if (esDeNoche) {
+            temp -= 5.0;
+        }
         
         // Redondeo
         temp = Math.round(temp * 10.0) / 10.0;
