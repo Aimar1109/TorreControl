@@ -276,7 +276,7 @@ public class JPanelSalesman extends JPanel {
             lbl.setOpaque(true);
             lbl.setBackground(new Color(200, 200, 200));
             lbl.setForeground(Color.BLACK);
-            lbl.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.DARK_GRAY));
+            lbl.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
             return lbl;
         };
 
@@ -319,7 +319,9 @@ public class JPanelSalesman extends JPanel {
                 boolean delayed = false;
                 try {
                     Object delayedObj = tablaVuelos.getModel().getValueAt(modelRow, 5); // columna 5 = Delayed
-                    if (delayedObj != null) delayed = Integer.parseInt(delayedObj.toString()) > 0;
+                    if (delayedObj != null) {
+                    	delayed = Integer.parseInt(delayedObj.toString()) > 0;
+                    }
                 } catch (Exception ex) {
                     delayed = false;
                 }
