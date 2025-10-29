@@ -8,6 +8,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToggleButton;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -17,6 +18,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
@@ -216,19 +218,20 @@ public class JPanelSalesman extends JPanel {
     private void initTables() {
         // -----------------
         // TABLA VUELOS
-        String[] columnasVuelos = {"Código", "Origen", "Destino", "Duración", "Delayed"};
+        String[] columnasVuelos = {"Estado", "Código", "Origen", "Destino", "Duración", "Delayed"};
         modeloVuelos = new DefaultTableModel(columnasVuelos, 0);
         tablaVuelos.setModel(modeloVuelos);
         tablaVuelos.getTableHeader().setReorderingAllowed(false);
         tablaVuelos.getTableHeader().setResizingAllowed(false);
         
-        tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(120);
-        tablaVuelos.getColumnModel().getColumn(1).setPreferredWidth(120);
+        tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(60);  // Estado (icono)
+        tablaVuelos.getColumnModel().getColumn(1).setPreferredWidth(100);
         tablaVuelos.getColumnModel().getColumn(2).setPreferredWidth(120);
         tablaVuelos.getColumnModel().getColumn(3).setPreferredWidth(120);
-        tablaVuelos.getColumnModel().getColumn(4).setPreferredWidth(120);
+        tablaVuelos.getColumnModel().getColumn(4).setPreferredWidth(100);
+        tablaVuelos.getColumnModel().getColumn(5).setPreferredWidth(70);
         
-        int anchoMinimoVuelos = 500;
+        int anchoMinimoVuelos = 580;
         tablaVuelos.setPreferredScrollableViewportSize(new Dimension(anchoMinimoVuelos, 0));
         
         scrollVuelos.addComponentListener(new ComponentAdapter() {
@@ -278,36 +281,80 @@ public class JPanelSalesman extends JPanel {
         };
 
         TableCellRenderer cellRenderer = (table, value, isSelected, hasFocus, row, column) -> {
-            JLabel lbl = new JLabel(value.toString());
+            JLabel lbl = new JLabel();
             lbl.setOpaque(true);
             lbl.setFont(new Font("Arial", Font.PLAIN, 12));
 
-            if (table == tablaVuelos && (column == 0 || column == 3 || column == 4)) {
-                lbl.setHorizontalAlignment(JLabel.CENTER);
-            } else if (table == tablaDinamica && modeloDinamico.getColumnCount() == 3 && (column == 0 || column == 2)) {
+            // Icono en la columna 0
+            if (table == tablaVuelos && column == 0 && value instanceof ImageIcon) {
+                lbl.setIcon((ImageIcon) value);
                 lbl.setHorizontalAlignment(JLabel.CENTER);
             } else {
-                lbl.setHorizontalAlignment(JLabel.LEFT);
-            }
-
-            if (!isSelected) {
-                if (row % 2 == 0) lbl.setBackground(new Color(245, 255, 245));
-                else lbl.setBackground(new Color(255, 255, 255));
-
-                if (table == tablaVuelos) {
-                    try {
-                        Object delayedObj = table.getModel().getValueAt(row, 4);
-                        int delayed = Integer.parseInt(delayedObj.toString());
-                        if (delayed > 0) lbl.setBackground(new Color(255, 230, 230));
-                    } catch (Exception ex) {}
+                lbl.setText(value.toString());
+                if (table == tablaVuelos && (column == 1 || column == 4 || column == 5)) {
+                    lbl.setHorizontalAlignment(JLabel.CENTER);
+                } else if (table == tablaDinamica && modeloDinamico.getColumnCount() == 3 && (column == 0 || column == 2)) {
+                    lbl.setHorizontalAlignment(JLabel.CENTER);
+                } else {
+                    lbl.setHorizontalAlignment(JLabel.LEFT);
                 }
-            } else {
-                lbl.setBackground(table.getSelectionBackground());
-                lbl.setForeground(table.getSelectionForeground());
             }
 
+            // Si es la tabla de vuelos, convertimos el índice de vista a modelo (por filtros/orden)
+            boolean isVuelosTable = table == tablaVuelos;
+            int modelRow = -1;
+            if (isVuelosTable && row >= 0) {
+                modelRow = table.convertRowIndexToModel(row);
+            }
+
+            // Si está seleccionado, prioridad al color de selección
+            if (isSelected) {
+                lbl.setBackground(new Color(70, 130, 180));
+                lbl.setForeground(Color.WHITE);
+                return lbl;
+            }
+
+            // Si es la tabla de vuelos y hay datos válidos, comprobamos retraso y tipo (salida/llegada)
+            if (isVuelosTable && modelRow >= 0 && modelRow < vuelos.size()) {
+                boolean delayed = false;
+                try {
+                    Object delayedObj = tablaVuelos.getModel().getValueAt(modelRow, 5); // columna 5 = Delayed
+                    if (delayedObj != null) delayed = Integer.parseInt(delayedObj.toString()) > 0;
+                } catch (Exception ex) {
+                    delayed = false;
+                }
+
+                // Si hay retraso, resaltamos SOLO la celda "Delayed" (columna 5) en rojo suave
+                if (delayed && column == 5) {
+                    lbl.setBackground(new Color(255, 200, 200)); // rojo claro
+                    lbl.setForeground(Color.BLACK);
+                    lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
+                    return lbl;
+                }
+
+                // Si no hay retraso, pintamos según salida/llegada (usando constantes si las tienes)
+                boolean esSalida = false;
+                try {
+                    esSalida = vuelos.get(modelRow).getOrigen().getCiudad().equalsIgnoreCase("Bilbao");
+                } catch (Exception ex) {
+                    esSalida = false;
+                }
+                lbl.setBackground(esSalida ? new Color(186, 214, 242) : new Color(198, 234, 214));
+                lbl.setForeground(Color.BLACK);
+                return lbl;
+            }
+
+            // Caso general (otras tablas o modelos fuera de rango): fondo alternado
+            if (table == tablaDinamica) {
+                if (row % 2 == 0) lbl.setBackground(new Color(245, 255, 245));
+                else lbl.setBackground(Color.WHITE);
+            } else {
+                lbl.setBackground(Color.WHITE);
+            }
+            lbl.setForeground(Color.BLACK);
             return lbl;
         };
+
 
         tablaVuelos.getTableHeader().setDefaultRenderer(headerRenderer);
         tablaVuelos.setDefaultRenderer(Object.class, cellRenderer);
@@ -374,7 +421,11 @@ public class JPanelSalesman extends JPanel {
             String destino = vuelo.getDestino().getCiudad();
             String duracion = formatearDuracion(vuelo.getDuracion());
             
+            // Determinar el icono según el estado del vuelo
+            ImageIcon icono = obtenerIconoEstado(vuelo);
+            
             modeloVuelos.addRow(new Object[]{
+                icono,
                 vuelo.getcodigo(),
                 origen,
                 destino,
@@ -383,6 +434,25 @@ public class JPanelSalesman extends JPanel {
             });
         }
     }
+    
+    // Obtiene el icono según el estado del vuelo
+ // Obtiene el icono según el estado del vuelo
+    private ImageIcon obtenerIconoEstado(Vuelo vuelo) {
+
+        ImageIcon icono;
+
+        if (vuelo.isEmergencia()) {
+            icono = new ImageIcon("resources\\emergencia.png");
+        } else if (vuelo.getDelayed() > 0) {
+            icono = new ImageIcon("resources\\retrasado.png");
+        } else {
+            icono = new ImageIcon("resources\\atiempo.png");
+        }
+
+        Image imagenEscalada = icono.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
+        return new ImageIcon(imagenEscalada);
+    }
+
     
     private String formatearDuracion(int minutos) {
         int horas = minutos / 60;
