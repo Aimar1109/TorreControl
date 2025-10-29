@@ -84,9 +84,9 @@ public abstract class Clima {
 		
 		private IntensidadSol intensidad;
 		
-		public ClimaDespejado(double temperatura, double velocidadViento, double visibilidadKm, double precipitacion,
-				int techoNubesMetros, double humedad, double presionHPa, IntensidadSol intensidad) {
-			super(temperatura, velocidadViento, visibilidadKm, precipitacion, techoNubesMetros, humedad, presionHPa);
+		public ClimaDespejado(double temperatura, double velocidadViento, double visibilidadKm, 
+				double humedad, double presionHPa, IntensidadSol intensidad) {
+			super(temperatura, velocidadViento, visibilidadKm, 0.0, 10000, humedad, presionHPa);
 			this.intensidad = intensidad;
 		}
 

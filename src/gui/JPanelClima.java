@@ -14,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Random;
 import javax.swing.Timer;
+import java.util.LinkedList;
 
 public class JPanelClima extends JPanel {
 
@@ -28,30 +29,38 @@ public class JPanelClima extends JPanel {
     
     // --- Componentes del Panel Izquierdo (Formato Tabla) ---
     private JPanel panelHoraActual; 
-    private JLabel valTemp;
-    private JLabel valViento;
-    private JLabel valLluvia;
-    private JLabel valNieve;
-    private JLabel valNiebla; // Mapeado a Visibilidad
-    private JLabel valNubes;  // Mapeado a Techo de Nubes
+    private JLabel lblTituloClima;
+    private JLabel valTemp, valViento, valLluvia, valNieve, valNiebla, valNubes;
     
     // --- Lógica de Simulación ---
     private int horaActual;
     private Random generadorAleatorio;
     private int segundosTranscurridosEnLaHora;
-    private Clima climaHoraActual;
+    
+    private Clima climaHoraActual;	// Almacena T (Hora Actual)
+    private LinkedList<Clima> pronosticoFuturo; // Almacena T+1, T+2, T+3, T+4, T+5, T+6
+    
 	
 	// Lógica del Reloj Interno
 	private Timer relojInterno;
-	
 	private static final int SEGUNDOS_REALES_POR_HORA_SIMULADA = 60;	// 1 hora del programa = 60 segundos reales
 	private static final int TICK_DEL_RELOJ_MS = 1000; // 1000ms = 1 segundo
+	
+	// Color de fondo (como el amarillo de la referencia) ---
+    private final Color PANEL_BACKGROUND_COLOR = new Color(210,210,210);
 	
 	public JPanelClima() {
 		this.horaActual = 0;
 		this.generadorAleatorio = new Random();
 		this.segundosTranscurridosEnLaHora = 0;
 		
+		this.pronosticoFuturo = new LinkedList<>();
+		// Generamos el clima actual (Hora 0)
+        this.climaHoraActual = generarClimaAleatorio(0);
+        // Generamos los 6 pronósticos futuros (Hora 1 a 6)
+        for (int i = 1; i <= 6; i++) {
+            this.pronosticoFuturo.add(generarClimaAleatorio(i));
+        }
 		
 		// 1. Configurar el layout principal (directamente sobre el panel)
         setLayout(new BorderLayout(10, 10));
@@ -73,68 +82,80 @@ public class JPanelClima extends JPanel {
         
         add(panelControles, BorderLayout.NORTH);
         
+        // --- 2. Panel Izquierdo (Tabla "Clima Actual") ---
         
-        // ---  Panel Izquierdo (Formato Tabla) ---
-        panelHoraActual = new JPanel(new BorderLayout()); // Layout simple
-        panelHoraActual.setBorder(BorderFactory.createTitledBorder(String.format("Clima Actual (Hora %02d:00)", horaActual)));
+        // El panel "wrapper" principal
+        panelHoraActual = new JPanel(new BorderLayout(0, 5)); // 0px h-gap, 5px v-gap
+        panelHoraActual.setBackground(PANEL_BACKGROUND_COLOR); // Fondo gris claro
+        // (Quitamos el TitledBorder)
+
+        // El Título (Centrado, más pequeño)
+        lblTituloClima = new JLabel(String.format("Clima Actual (Hora %02d:00)", horaActual));
+        lblTituloClima.setFont(new Font("Arial", Font.BOLD, 12)); // Fuente más pequeña
+        lblTituloClima.setHorizontalAlignment(SwingConstants.CENTER);
+        lblTituloClima.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0)); // Padding superior
         
-        // Creamos la tabla de datos
-        JPanel tablaDatos = new JPanel(new GridLayout(7, 2, 5, 5)); // 7 filas, 2 columnas, con espacios
-        tablaDatos.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Margen interno
-        
-        // Fila 1: Cabeceras
+        // La tabla de datos interna
+        JPanel tablaDatos = new JPanel(new GridLayout(7, 2, 2, 2)); // 7 filas, 2 col, 2px GAPS
+        tablaDatos.setBackground(PANEL_BACKGROUND_COLOR); // El gap será gris claro
+        tablaDatos.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); // Padding exterior
+
+        // Definimos las fuentes y alineaciones
         Font headerFont = new Font("Arial", Font.BOLD, 12);
-        JLabel lblProperty = new JLabel("Tipo");
-        lblProperty.setFont(headerFont);
-        JLabel lblValue = new JLabel("Valor");
-        lblValue.setFont(headerFont);
-        tablaDatos.add(lblProperty);
-        tablaDatos.add(lblValue);
+        Font typeFont = new Font("Arial", Font.PLAIN, 12);
+        Font valueFont = new Font("Monospaced", Font.PLAIN, 12);
         
-        // Fila 2: Temperatura
-        tablaDatos.add(new JLabel("Temperatura [°C]"));
-        valTemp = new JLabel("---");
+        // Fila 1: Cabeceras (Centradas)
+        tablaDatos.add(crearCeldaTabla("Tipo", SwingConstants.CENTER, headerFont));
+        tablaDatos.add(crearCeldaTabla("Valor", SwingConstants.CENTER, headerFont));
+
+        // Fila 2: Temperatura (Izquierda, Derecha)
+        tablaDatos.add(crearCeldaTabla("Temperatura [°C]", SwingConstants.LEFT, typeFont));
+        valTemp = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont);
         tablaDatos.add(valTemp);
 
-        // Fila 3: Viento
-        tablaDatos.add(new JLabel("Viento [km/h]"));
-        valViento = new JLabel("---");
+        // Fila 3: Viento (Izquierda, Derecha)
+        tablaDatos.add(crearCeldaTabla("Viento [km/h]", SwingConstants.LEFT, typeFont));
+        valViento = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont);
         tablaDatos.add(valViento);
 
-        // Fila 4: Lluvia
-        tablaDatos.add(new JLabel("Lluvia [mm/h]"));
-        valLluvia = new JLabel("---");
+        // Fila 4: Lluvia (Izquierda, Derecha)
+        tablaDatos.add(crearCeldaTabla("Lluvia [mm/h]", SwingConstants.LEFT, typeFont));
+        valLluvia = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont);
         tablaDatos.add(valLluvia);
 
-        // Fila 5: Nieve
-        tablaDatos.add(new JLabel("Nieve [mm/h]"));
-        valNieve = new JLabel("---");
+        // Fila 5: Nieve (Izquierda, Derecha)
+        tablaDatos.add(crearCeldaTabla("Nieve [mm/h]", SwingConstants.LEFT, typeFont));
+        valNieve = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont);
         tablaDatos.add(valNieve);
 
-        // Fila 6: Niebla (Visibilidad)
-        tablaDatos.add(new JLabel("Visibilidad [km]"));
-        valNiebla = new JLabel("---");
+        // Fila 6: Visibilidad (Izquierda, Derecha)
+        tablaDatos.add(crearCeldaTabla("Visibilidad [km]", SwingConstants.LEFT, typeFont));
+        valNiebla = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont);
         tablaDatos.add(valNiebla);
 
-        // Fila 7: Nubes (Techo)
-        tablaDatos.add(new JLabel("Nubes [m]"));
-        valNubes = new JLabel("---");
+        // Fila 7: Nubes (Izquierda, Derecha)
+        tablaDatos.add(crearCeldaTabla("Nubes [m]", SwingConstants.LEFT, typeFont));
+        valNubes = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont);
         tablaDatos.add(valNubes);
+
+        // Montamos el panel izquierdo (Título + Tabla)
+        panelHoraActual.add(lblTituloClima, BorderLayout.NORTH);
+        panelHoraActual.add(tablaDatos, BorderLayout.CENTER);
         
-        panelHoraActual.add(tablaDatos, BorderLayout.NORTH); // Añadimos la tabla
-        
-        
-        // 3. Panel Derecho (Pronóstico 6 Horas) - Sin cambios
+        // 3. Panel Derecho (Pronóstico 6 Horas)
         panelTablaClima = new JPanel(new GridLayout(1, 6, 10, 10));
         panelTablaClima.setBorder(BorderFactory.createTitledBorder("Pronóstico Próximas 6 Horas"));
         
-        // Este panel unirá el panel izquierdo (WEST) y el de 6h (CENTER)
+        // 4. Panel de Contenido Principal (Izquierda + Derecha)
+        JPanel panelWrapperIzquierdo = new JPanel(new BorderLayout());
+        panelWrapperIzquierdo.add(panelHoraActual, BorderLayout.NORTH); // Lo anclamos al NORTE
         JPanel mainContentPanel = new JPanel(new BorderLayout(10, 10));
-        mainContentPanel.add(panelHoraActual, BorderLayout.WEST);
-        mainContentPanel.add(panelTablaClima, BorderLayout.CENTER);
-        
-        // 5. Añadimos el panel de contenido al centro de la ventana
+        mainContentPanel.add(panelWrapperIzquierdo, BorderLayout.WEST); // Añadimos el wrapper
+        mainContentPanel.add(panelTablaClima, BorderLayout.CENTER); // El pronóstico ocupa el resto
         add(mainContentPanel, BorderLayout.CENTER);
+        
+        
      
         // 6. Añadir Listeners a los botones
         btnPausarReanudar.addActionListener(new ActionListener() {
@@ -159,6 +180,7 @@ public class JPanelClima extends JPanel {
         });
 
         // 7. Cargar los datos iniciales
+        actualizarPanelHoraActual();
         actualizarTablaClima();
         
         // 8. Configurar y arrancar el Timer
@@ -169,7 +191,6 @@ public class JPanelClima extends JPanel {
                 
             	// 1. Avanzamos el contador de segundos
                 segundosTranscurridosEnLaHora++;
-                
                 // 2. Comprobamos si ha pasado una hora simulada (60 seg)
                 if (segundosTranscurridosEnLaHora >= SEGUNDOS_REALES_POR_HORA_SIMULADA) {
                     segundosTranscurridosEnLaHora = 0; // Resetea el contador de segundos
@@ -183,20 +204,34 @@ public class JPanelClima extends JPanel {
 	
 	// --- MÉTODOS ---
 	
+	private JLabel crearCeldaTabla(String texto, int alignment, Font font) {
+        JLabel label = new JLabel(texto);
+        label.setFont(font);
+        label.setHorizontalAlignment(alignment);
+        
+        // Celdas blancas y opacas
+        label.setOpaque(true);
+        label.setBackground(Color.WHITE);
+        
+        // Borde vacío (padding interno)
+        label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
+        return label;
+    }
+	
+	
+	
 	private void actualizarPanelHoraActual() {
         if (climaHoraActual == null) return;
 
         // Actualizamos el título del panel
-        panelHoraActual.setBorder(BorderFactory.createTitledBorder(
-            String.format("Clima Actual (Hora %02d:00)", (horaActual % 24))
-        ));
+        lblTituloClima.setText(String.format("Clima Actual (Hora %02d:00)", (horaActual % 24)));
         
-        // Actualizamos los valores
+        // Actualizamos los valores (solo el texto)
         valTemp.setText(String.format("%.1f", climaHoraActual.getTemperatura()));
         valViento.setText(String.format("%.1f", climaHoraActual.getVelocidadViento()));
         valNiebla.setText(String.format("%.1f", climaHoraActual.getVisibilidadKm()));
         
-        // Lógica para Nubes (Techo)
         valNubes.setText(climaHoraActual.getTechoNubesMetros() >= 10000 ? 
             "N/A" : String.format("%d", climaHoraActual.getTechoNubesMetros()));
 
@@ -213,6 +248,8 @@ public class JPanelClima extends JPanel {
             valLluvia.setText("0.0");
             valNieve.setText("0.0");
         }
+        
+        // (La alineación ya está definida en la creación de los JLabels)
     }
 	
 	/**
@@ -232,26 +269,31 @@ public class JPanelClima extends JPanel {
      * Incrementa la hora y actualiza la interfaz.
      */
     private void avanzarHora() {
-        this.horaActual++;
-        actualizarTablaClima();
+        this.horaActual = (this.horaActual + 1) % 24; // Avanza la hora (ej. 0 a 1)
+        
+        // 1. El pronóstico T+1 se convierte en el clima actual T
+        this.climaHoraActual = pronosticoFuturo.poll(); // Saca el primer item de la cola
+
+        // 2. Generamos un nuevo pronóstico para T+6
+        int horaNuevoPronostico = (this.horaActual + 6) % 24; // La nueva 6ª hora
+        Clima nuevoPronostico = generarClimaAleatorio(horaNuevoPronostico);
+        
+        // 3. Añadimos el nuevo pronóstico al final de la cola
+        pronosticoFuturo.add(nuevoPronostico);
+        
+        // 4. Actualizamos las dos tablas en la UI
+        actualizarPanelHoraActual(); // Muestra el nuevo clima actual
+        actualizarTablaClima(); // Muestra la nueva cola de 6 pronósticos
     }
     
-    /**
-     * ¡NUEVO! Método para el botón de "Avanzar 1 Hora".
-     */
     private void avanzarHoraRapido() {
-        avanzarHora(); // Avanza la lógica de la hora y actualiza la tabla
+        avanzarHora(); // Ejecuta la lógica del turno
+        
         segundosTranscurridosEnLaHora = 0; // Resetea el contador de segundos
         actualizarLabelReloj(); // Actualiza el label visual a HH:00
-        relojInterno.restart(); // Reinicia el timer para que el próximo tick automático sea en 1 seg
+        relojInterno.restart(); // Reinicia el timer para que el próximo tick sea en 1 seg
         
-        // Asegurarse de que el botón de pausa esté en el estado correcto
-        if (!relojInterno.isRunning()) {
-            // Si el reloj estaba pausado, lo reanudamos
-            toggleReloj();
-        } else {
-             btnPausarReanudar.setText("Pausar");
-        }
+        btnPausarReanudar.setText("Pausar");
     }
     
     /**
@@ -259,9 +301,18 @@ public class JPanelClima extends JPanel {
      */
     private void reiniciarSimulacion() {
         this.horaActual = 0;
-        this.segundosTranscurridosEnLaHora = 0;		// Resetea los segundos a 0
+        this.segundosTranscurridosEnLaHora = 0;
         
+        // Vuelve a llenar la cola
+        pronosticoFuturo.clear();
+        this.climaHoraActual = generarClimaAleatorio(0);
+        for (int i = 1; i <= 6; i++) {
+            pronosticoFuturo.add(generarClimaAleatorio(i));
+        }
+        
+        // Actualiza toda la UI
         actualizarLabelReloj();
+        actualizarPanelHoraActual();
         actualizarTablaClima();
         
         relojInterno.restart();
@@ -287,22 +338,20 @@ public class JPanelClima extends JPanel {
      * Borra la tabla y la vuelve a generar con las 6 horas correspondientes.
      */
     private void actualizarTablaClima() {
-        panelTablaClima.removeAll();
+        panelTablaClima.removeAll(); // Borra las 6 columnas viejas
         
-        for (int i = 0; i < 6; i++) {
+        int i = 1; // Empezamos en T+1
+        for (Clima climaPronosticado : pronosticoFuturo) {
+            // Calculamos la hora que representará esta columna
             int horaEnPanel = (this.horaActual + i) % 24;
-            Clima climaDeLaHora = generarClimaAleatorio(horaEnPanel);
             
-            if (i == 0) {
-                this.climaHoraActual = climaDeLaHora;
-                actualizarPanelHoraActual(); // Actualiza el panel izquierdo
-            }
-            
-            JPanel panelColumna = crearPanelColumnaResumen(climaDeLaHora, horaEnPanel); 
-            panelTablaClima.add(panelColumna);
+            // Creamos la columna con el clima de la cola
+            JPanel panelColumna = crearPanelColumnaResumen(climaPronosticado, horaEnPanel); 
+            panelTablaClima.add(panelColumna); // Añadimos la nueva columna
+            i++;
         }
         
-        panelTablaClima.revalidate();
+        panelTablaClima.revalidate(); // Re-dibuja el panel de pronóstico
         panelTablaClima.repaint();
     }
     
@@ -354,59 +403,96 @@ public class JPanelClima extends JPanel {
         return panelColumna;
     }
     
+    private double round(double valor) {
+        return Math.round(valor * 10.0) / 10.0;
+    }
+    
     private Clima generarClimaAleatorio(int hora) {
-        int tipoClima = generadorAleatorio.nextInt(4); // 0, 1, 2, o 3
+        int tipoClima = generadorAleatorio.nextInt(4);
         boolean esDeNoche = (hora > 20 || hora < 6);
 
-        // Datos base aleatorios (ahora incluye humedad y presión)
+        // --- 1. Generar valores base (que pueden ser sobreescritos) ---
         double temp = -5 + (35 * generadorAleatorio.nextDouble());
-        double viento = 100 * generadorAleatorio.nextDouble();
-        double visi = 20 * generadorAleatorio.nextDouble();
-        double humedad = 20 + (80 * generadorAleatorio.nextDouble()); // Humedad 20-100%
-        double presion = 980 + (50 * generadorAleatorio.nextDouble()); // Presión 980-1030 hPa
-        
-        // Ajuste nocturno: baja la temperatura
-        if (esDeNoche) {
-            temp -= 5.0;
-        }
-        
-        // Redondeo
-        temp = Math.round(temp * 10.0) / 10.0;
-        viento = Math.round(viento * 10.0) / 10.0;
-        visi = Math.round(visi * 10.0) / 10.0;
-        humedad = Math.round(humedad * 10.0) / 10.0;
-        presion = Math.round(presion * 10.0) / 10.0;
+        double viento = 120 * generadorAleatorio.nextDouble();
+        double visi = 20 * generadorAleatorio.nextDouble(); // Visibilidad base (alta)
+        double humedad = 20 + (80 * generadorAleatorio.nextDouble());
+        double presion = 980 + (50 * generadorAleatorio.nextDouble());
 
+        if (esDeNoche) { temp -= 5.0; } // Más frío de noche
+
+        // --- 2. Aplicar lógica de clima específica ---
         switch (tipoClima) {
-        	case 0: // Despejado
-        		IntensidadSol[] intensidades = IntensidadSol.values();
-        		IntensidadSol intensidad = intensidades[generadorAleatorio.nextInt(intensidades.length)];
-        		return new ClimaDespejado(temp, viento, visi, humedad, tipoClima, presion, presion, intensidad);
-
-        case 1: // Lluvioso
-            boolean tormenta = generadorAleatorio.nextBoolean();
-            double precipitacion = 50 * generadorAleatorio.nextDouble();
-            precipitacion = Math.round(precipitacion * 10.0) / 10.0;
-            int techoLluvia = 100 + generadorAleatorio.nextInt(1000); // Techo bajo
-            return new ClimaLluvioso(temp, viento, visi, precipitacion, techoLluvia, humedad, presion, tormenta);
-
-        case 2: // Nublado
-            int techoNubes = 150 + generadorAleatorio.nextInt(2000); // Techo variable
-            return new ClimaNublado(temp, viento, visi, techoNubes, humedad, presion);
-
-        case 3: // Nevado
-        	default:
-        		double precipitacionNieve = 20 * generadorAleatorio.nextDouble(); // Nieve
-        		precipitacionNieve = Math.round(precipitacionNieve * 10.0) / 10.0;
-        		int techoNieve = 100 + generadorAleatorio.nextInt(800); // Techo muy bajo
-        		double acumulacion = 10 * generadorAleatorio.nextDouble();
-        		acumulacion = Math.round(acumulacion * 10.0) / 10.0;
             
-        		// Forzamos la temperatura a bajo cero
-        		if (temp > 0) temp = -temp / 5; 
-        		temp = Math.round(temp * 10.0) / 10.0;
-            
-        		return new ClimaNevado(temp, viento, visi, precipitacionNieve, techoNieve, humedad, presion, acumulacion);
+            case 0: // Despejado
+            {
+                // LÓGICA: precipitación 0, nubes "infinitas"
+                double precipitacion = 0.0;
+                int techoNubes = 10000; // Valor simbólico para "Despejado"
+                
+                IntensidadSol intensidad = IntensidadSol.BAJA;
+                if (!esDeNoche) {
+                    IntensidadSol[] intensidades = {IntensidadSol.BAJA, IntensidadSol.MEDIA, IntensidadSol.ALTA};
+                    intensidad = intensidades[generadorAleatorio.nextInt(intensidades.length)];
+                }
+                
+                return new ClimaDespejado(round(temp), round(viento), round(visi), 
+                                        round(humedad), round(presion), intensidad);
+            }
+
+            case 1: // Lluvioso
+            {
+                // LÓGICA: precipitación > 0, nubes BAJAS
+                double precipitacion = 1 + (50 * generadorAleatorio.nextDouble()); // Mínimo 1.0
+                int techoNubes = 100 + generadorAleatorio.nextInt(1000); // Nubes bajas (100-1100m)
+                boolean tormenta = generadorAleatorio.nextBoolean();
+                
+                // Si llueve mucho, baja la visibilidad
+                if (precipitacion > 25) {
+                    visi = visi / 3;
+                } else if (precipitacion > 10) {
+                    visi = visi / 2;
+                }
+                
+                return new ClimaLluvioso(round(temp), round(viento), round(visi), 
+                                      round(precipitacion), techoNubes, round(humedad), 
+                                      round(presion), tormenta);
+            }
+
+            case 2: // Nublado
+            {
+                // LÓGICA: precipitación 0, nubes variables (pero no 0 ni 10000)
+                double precipitacion = 0.0;
+                int techoNubes = 150 + generadorAleatorio.nextInt(2000); // Nubes (150-2150m)
+                
+                // Si las nubes están muy bajas (niebla alta), baja la visibilidad
+                if (techoNubes < 300) {
+                    visi = visi / 2;
+                }
+
+                return new ClimaNublado(round(temp), round(viento), round(visi), 
+                                    techoNubes, round(humedad), round(presion));
+            }
+
+            case 3: // Nevado
+            default:
+            {
+                // LÓGICA: precipitación > 0, nubes MUY BAJAS, temp <= 0
+                double precipitacion = 1 + (20 * generadorAleatorio.nextDouble()); // Nieve (mínimo 1.0)
+                int techoNubes = 100 + generadorAleatorio.nextInt(800); // Nubes muy bajas (100-900m)
+                double acumulacion = 1 + (10 * generadorAleatorio.nextDouble());
+                
+                // Forzar temperatura bajo cero
+                if (temp > 0) {
+                    temp = - (temp / 5);
+                }
+                
+                // La nieve siempre reduce mucho la visibilidad
+                visi = visi / 4; 
+                
+                return new ClimaNevado(round(temp), round(viento), round(visi), 
+                                     round(precipitacion), techoNubes, round(humedad), 
+                                     round(presion), round(acumulacion));
+            }
         }
     }
 }
