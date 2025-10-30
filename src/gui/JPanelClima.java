@@ -39,7 +39,7 @@ public class JPanelClima extends JPanel {
     private Random generadorAleatorio;
     private int segundosTranscurridosEnLaHora;
     private Clima climaHoraActual;	// Almacena T (Hora Actual)
-    private LinkedList<Clima> pronosticoFuturo; // Almacena T+1, T+2, T+3, T+4, T+5, T+6
+    private LinkedList<Clima> pronosticoFuturo; // Almacena T+1, T+2, T+3, T+4, T+5
     
 	
 	// Lógica del Reloj Interno
@@ -370,6 +370,8 @@ public class JPanelClima extends JPanel {
         return Math.round(valor * 10.0) / 10.0;
     }
     
+    
+    // Este método genera un objeto Clima por cada hora
     private Clima generarClimaAleatorio(int hora) {
         int tipoClima = generadorAleatorio.nextInt(4);
         boolean esDeNoche = (hora > 20 || hora < 6);
