@@ -12,6 +12,7 @@ public abstract class Clima {
 	protected int techoNubesMetros;				// Es similar relativamente a cantidad de nubes
 	protected double humedad; 			// Porcentaje (0-100)
 	protected double presionHPa; 				// Presión atmosférica
+	protected int probabilidadPrecipitacion;
 	
 	protected boolean senalPeligro;
 	
@@ -20,7 +21,7 @@ public abstract class Clima {
 	protected static final int TECHO_NUBES_PELIGROSO_METROS = 300;
 	
 	// Constructor
-	public Clima(double temperatura, double velocidadViento, double visibilidadKm, double precipitacion, int techoNubesMetros, double humedad, double presionHPa) {
+	public Clima(double temperatura, double velocidadViento, double visibilidadKm, double precipitacion, int techoNubesMetros, int probabilidadPrecipitacion, double humedad, double presionHPa) {
 		super();
 		this.temperatura = temperatura;
 		this.velocidadViento = velocidadViento;
@@ -30,6 +31,7 @@ public abstract class Clima {
 		this.humedad = humedad;
 		this.presionHPa = presionHPa;
 		this.senalPeligro = false;
+		this.probabilidadPrecipitacion = probabilidadPrecipitacion;
 		
 		this.actualizarSenalPeligro();
 	}
@@ -48,37 +50,15 @@ public abstract class Clima {
 	public abstract String getDescripcionParaPanel();
 
 	// Getters
-	public double getTemperatura() {
-		return temperatura;
-	}
-	
-	public double getVelocidadViento() {
-		return velocidadViento;
-	}
-
-	public boolean isSenalPeligro() {
-		return senalPeligro;
-	}
-	
-	public double getVisibilidadKm() {
-		return visibilidadKm;
-	}
-	
-	public double getPrecipitacion() {
-		return precipitacion;
-	}
-	
-	public int getTechoNubesMetros() {
-		return techoNubesMetros;
-	}
-	
-	public double getHumedad() {
-		return humedad;
-	}
-	
-	public double getPresionHPa() {
-		return presionHPa;
-	}
+	public double getTemperatura() { return temperatura; }
+	public double getVelocidadViento() { return velocidadViento; }
+	public boolean isSenalPeligro() { return senalPeligro; }
+	public double getVisibilidadKm() { return visibilidadKm; }
+	public double getPrecipitacion() { return precipitacion; }
+	public int getTechoNubesMetros() { return techoNubesMetros; }
+	public double getHumedad() { return humedad; }
+	public double getPresionHPa() { return presionHPa; }
+	public int getProbabilidadPrecipitacion() { return probabilidadPrecipitacion; }
 	
 	public static class ClimaDespejado extends Clima {
 		
@@ -86,7 +66,7 @@ public abstract class Clima {
 		
 		public ClimaDespejado(double temperatura, double velocidadViento, double visibilidadKm, 
 				double humedad, double presionHPa, IntensidadSol intensidad) {
-			super(temperatura, velocidadViento, visibilidadKm, 0.0, 10000, humedad, presionHPa);
+			super(temperatura, velocidadViento, visibilidadKm, 0.0, 10000, 0, humedad, presionHPa);
 			this.intensidad = intensidad;
 		}
 
@@ -103,6 +83,7 @@ public abstract class Clima {
 	        sj.add("Presión: " + presionHPa + " hPa");
 	        sj.add("---");
 	        sj.add("Intensidad Sol: " + this.intensidad); // Dato específico
+	        sj.add("Prob. Precip: " + this.probabilidadPrecipitacion + " %");
 	        return sj.toString();
 	    }
 
@@ -117,10 +98,10 @@ public abstract class Clima {
 		private boolean tormentaElectrica;
 		
 		public ClimaLluvioso(double temperaturaCelsius, double velocidadVientoKmh, double visibilidadKm,
-                double precipitacionMmH, int techoNubesMetros, 
+                double precipitacionMmH, int techoNubesMetros, int probabilidadPrecipitacion, 
                 double humedadRelativa, double presionHPa, boolean tormentaElectrica) {
 				// Pasa todos los datos base a la madre
-				super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm, precipitacionMmH, techoNubesMetros, humedadRelativa, presionHPa);
+				super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm, precipitacionMmH, techoNubesMetros, probabilidadPrecipitacion, humedadRelativa, presionHPa);
 					this.tormentaElectrica = tormentaElectrica;
 		}
 		
@@ -144,6 +125,7 @@ public abstract class Clima {
 	        sj.add("Presión: " + presionHPa + " hPa");
 	        sj.add("---");
 	        sj.add("Tormenta Eléctrica: " + (this.tormentaElectrica ? "SÍ" : "NO")); // Dato específico
+	        sj.add("Prob. Precip: " + this.probabilidadPrecipitacion + " %");
 	        return sj.toString();
 	    }
 
@@ -155,8 +137,8 @@ public abstract class Clima {
 	public static class ClimaNublado extends Clima {
 		
 		public ClimaNublado(double temperaturaCelsius, double velocidadVientoKmh, double visibilidadKm,
-                int techoNubesMetros, double humedadRelativa, double presionHPa) {
-				super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm, 0.0, techoNubesMetros, humedadRelativa, presionHPa);
+                int techoNubesMetros, int probabilidadPrecipitacion, double humedadRelativa, double presionHPa) {
+				super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm, 0.0, techoNubesMetros, probabilidadPrecipitacion, humedadRelativa, presionHPa);
 		}
 		
 		@Override
@@ -169,6 +151,7 @@ public abstract class Clima {
 	        sj.add("Precipitación: 0.0 mm/h");
 	        sj.add("Humedad: " + humedad + " %");
 	        sj.add("Presión: " + presionHPa + " hPa");
+	        sj.add("Prob. Precip: " + this.probabilidadPrecipitacion + " %");
 	        // No tiene datos específicos extra
 	        return sj.toString();
 	    }
@@ -179,10 +162,10 @@ public abstract class Clima {
 		private double acumulacionNieveCm; 
 		
 		public ClimaNevado(double temperaturaCelsius, double velocidadVientoKmh, double visibilidadKm,
-                double precipitacionMmH, int techoNubesMetros, 
+                double precipitacionMmH, int techoNubesMetros, int probabilidadPrecipitacion, 
                 double humedadRelativa, double presionHPa, double acumulacionNieveCm) {
  
-				super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm, precipitacionMmH, techoNubesMetros, humedadRelativa, presionHPa);
+				super(temperaturaCelsius, velocidadVientoKmh, visibilidadKm, precipitacionMmH, techoNubesMetros, probabilidadPrecipitacion, humedadRelativa, presionHPa);
 				this.acumulacionNieveCm = acumulacionNieveCm;
 		}
 		
@@ -201,11 +184,12 @@ public abstract class Clima {
 	        sj.add("Viento: " + velocidadViento + " km/h");
 	        sj.add("Visibilidad: " + visibilidadKm + " km");
 	        sj.add("Techo de Nubes: " + techoNubesMetros + " m");
-	        sj.add("Precipitación (nieve): " + precipitacion + " mm/h");
+	        sj.add("Precipitación (nieve): " + precipitacion + " cm/h");
 	        sj.add("Humedad: " + humedad + " %");
 	        sj.add("Presión: " + presionHPa + " hPa");
 	        sj.add("---");
 	        sj.add("Acumulación en Pista: " + this.acumulacionNieveCm + " cm"); // Dato específico
+	        sj.add("Prob. Precip: " + this.probabilidadPrecipitacion + " %");
 	        return sj.toString();
 	    }
 
