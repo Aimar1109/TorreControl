@@ -2,16 +2,21 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.GridLayout;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
+import domain.Vuelo;
+
 public class JFramePrincipal extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	
-	public JFramePrincipal() {
+	private ArrayList<Vuelo> vuelos;
+	
+	public JFramePrincipal(ArrayList<Vuelo> vuelos) {
 		
 		// PANEL PRINCIPAL
 		JPanel mainPanel = new JPanel(new BorderLayout());
@@ -25,6 +30,10 @@ public class JFramePrincipal extends JFrame {
 		
 		mainPanel.add(menuPanel, BorderLayout.NORTH);
 		
+		// PANEL CENTRAL VUELOS
+		JPanelVuelos jfvuelos = new JPanelVuelos(vuelos);
+		mainPanel.add(jfvuelos, BorderLayout.CENTER);
+		
 		
 		// CONFIGURACION DE LA VENTANA
 		this.add(mainPanel);
@@ -32,7 +41,7 @@ public class JFramePrincipal extends JFrame {
 		this.setTitle("Torre de Control");		
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-		this.setSize(800, 600);
+		this.setSize(1000, 800);
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);	
 	}
