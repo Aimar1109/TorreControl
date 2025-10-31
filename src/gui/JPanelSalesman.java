@@ -21,6 +21,9 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 
 import domain.Vuelo;
@@ -28,6 +31,7 @@ import domain.Vuelo;
 public class JPanelSalesman extends JPanel {
 
     private static final long serialVersionUID = 1L;
+    private int hoverRow = -1;
     
     private ArrayList<Vuelo> vuelos;
     
@@ -221,6 +225,11 @@ public class JPanelSalesman extends JPanel {
         String[] columnasVuelos = {"Estado", "Código", "Origen", "Destino", "Duración", "Delayed"};
         modeloVuelos = new DefaultTableModel(columnasVuelos, 0);
         tablaVuelos.setModel(modeloVuelos);
+        
+        tablaVuelos.setBorder(null);
+        scrollVuelos.setBorder(null);
+        scrollVuelos.getViewport().setBackground(Color.WHITE);
+        
         tablaVuelos.getTableHeader().setReorderingAllowed(false);
         tablaVuelos.getTableHeader().setResizingAllowed(false);
         
@@ -314,6 +323,7 @@ public class JPanelSalesman extends JPanel {
                 return lbl;
             }
 
+
             // Si es la tabla de vuelos y hay datos válidos, comprobamos retraso y tipo (salida/llegada)
             if (isVuelosTable && modelRow >= 0 && modelRow < vuelos.size()) {
                 boolean delayed = false;
@@ -380,6 +390,8 @@ public class JPanelSalesman extends JPanel {
                 }
             }
         });
+        
+        
         
         // Listeners para los botones toggle
         btnPasajeros.addActionListener(e -> {
