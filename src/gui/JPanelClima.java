@@ -44,7 +44,7 @@ public class JPanelClima extends JPanel {
 	
 	// Lógica del Reloj Interno
 	private Timer relojInterno;
-	private static final int SEGUNDOS_REALES_POR_HORA_SIMULADA = 10;	// 1 hora del programa = 60 segundos reales
+	private static final int SEGUNDOS_REALES_POR_HORA_SIMULADA = 60;	// 1 hora del programa = 60 segundos reales
 	private static final int TICK_DEL_RELOJ_MS = 1000; // 1000ms = 1 segundo
 	
 	// Color de fondo (como el amarillo de la referencia) ---
