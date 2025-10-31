@@ -6,6 +6,7 @@ import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,13 +21,28 @@ public class MapPanel extends JPanel {
     private List<Avion> avionesAeropuerto = new ArrayList<>();
     //Imagen del aeropuerto
     private Image mapaAeropuerto;
+    //Imagenes de los aviones
+    private List<Image> imagenesAviones;
 
     public MapPanel() {
         super(null, true);
         this.avionesAeropuerto = avionesAeropuerto;
 
         cargarImagenMapa();
+        cargarImagenesAviones();
         setBackground(Color.BLACK);
+    }
+
+    //Actualiza lista aviones
+    public void setAviones (List<Avion> aviones) {
+        this.avionesAeropuerto = aviones;
+        repaint();
+    }
+
+    //Añade a lista aviones
+    public void addAviones (Avion avion) {
+        this.avionesAeropuerto.add(avion);
+        repaint();
     }
 
     @Override
@@ -45,6 +61,74 @@ public class MapPanel extends JPanel {
         g2d.drawImage(mapaAeropuerto, 0, 0, getWidth(), getHeight(), this);
 
         //Dibujo aviones únicamente si están en el mapa
+        for (Avion avion: avionesAeropuerto) {
+            if (estaMapa(avion)) {
+                //dibujarAvion
+            }
+        }
+    }
+
+    private void dibujarAvion(Graphics2D g2d, Avion avion, double escaladoX, double escaladoY) {
+        //Coordenadas lógicas
+        int x = (int) (avion.getX() * escaladoX);
+        int y = (int) (avion.getY() * escaladoY);
+
+        //Tamaño base del avion
+        int tamañoBaseX = 20;
+        int tamañoBaseY = 30;
+
+        //Escalado en función del tamaño del mapa
+        int tamañoRealX = (int) Math.max(tamañoBaseX * escaladoX, 10);
+        int tamañoRealY = (int) Math.max(tamañoBaseY * escaladoY, 15);
+
+        //Transformación inicial
+        AffineTransform transformaciónInicial = g2d.getTransform();
+
+        //Se traslada al centro del avión y rota
+        g2d.translate(x, y);
+        g2d.rotate(avion.getAngulo());
+
+        int mitadX = tamañoRealX/2;
+        int mitadY = tamañoRealY/2;
+
+        //Si la imagen existe se dibuja
+        if (avion.getImagen() != null) {
+            g2d.drawImage(avion.getImagen(), -mitadX, -mitadY, tamañoRealX, tamañoRealY, this);
+        }
+        //Si no se consigue acceder a la imagen, se crea un avión(poligono) manualmente
+        else {
+            int[] xPoint = {0, -(int)(tamañoRealX * 0.4), (int)(tamañoRealX * 0.4)};
+            int[] yPoint = {-(int)(tamañoRealY * 0.5), (int)(tamañoRealY * 0.5), (int)(tamañoRealY * 0.5)};
+
+            g2d.fillPolygon(xPoint, yPoint, 3);
+            g2d.setColor(Color.WHITE);
+            g2d.drawPolygon(xPoint, yPoint, 3);
+        }
+
+        g2d.setTransform(transformaciónInicial);
+    }
+
+    private void cargarImagenesAviones() {
+        imagenesAviones = new ArrayList<>();
+        String[] nombresDistintosAviones = {
+                "avion1.PNG",
+                "avion2.png",
+                "avion3.PNG",
+                "avion4.PNG",
+                "avion5.PNG",
+                "avion6.PNG",
+                "avion7.PNG",
+        };
+
+        for (String nombreAvion : nombresDistintosAviones) {
+            try {
+                Image imagenAvion = ImageIO.read(new File("/resources/img/" + nombreAvion));
+                imagenesAviones.add(imagenAvion);
+            } catch (IOException e) {
+                //En caso de no poder cargarlo la imagen
+                System.err.println("No se ha podido cargar el avión" + e.getMessage());
+            }
+        }
     }
 
     private void cargarImagenMapa() {
@@ -54,5 +138,14 @@ public class MapPanel extends JPanel {
             //En caso de no poder cargarlo el fondo se queda negro
             System.err.println("No se ha podido cargar el mapa" + e.getMessage());
         }
+    }
+
+    private boolean estaMapa(Avion avion) {
+        int x = avion.getX();
+        int y = avion.getY();
+
+        //Compruebo si
+        boolean devolver = x >= 0 && x <= widthReal && y >= 0 && y <= heightReal;
+        return devolver;
     }
 }
