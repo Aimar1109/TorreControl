@@ -10,6 +10,7 @@ import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class MapPanel extends JPanel {
@@ -23,6 +24,11 @@ public class MapPanel extends JPanel {
     private Image mapaAeropuerto;
     //Imagenes de los aviones
     private List<Image> imagenesAviones;
+    //Caché de imagenes
+    private HashMap<String, Image> cacheImagenes = new HashMap<>();
+    private Image mapaCache = null;
+    private int ultimoWidth = -1;
+    private int ultimoHeight = -1;
 
     public MapPanel() {
         super(null, true);
@@ -58,14 +64,28 @@ public class MapPanel extends JPanel {
         double escaladoY = getHeight()/heightReal;
 
         //Dibuja mapa del aeropuerto
-        g2d.drawImage(mapaAeropuerto, 0, 0, getWidth(), getHeight(), this);
+        dibujarMapa(g2d);
 
         //Dibujo aviones únicamente si están en el mapa
         for (Avion avion: avionesAeropuerto) {
             if (estaMapa(avion)) {
-                //dibujarAvion
+                dibujarAvion(g2d, avion, escaladoX, escaladoY);
             }
         }
+    }
+
+    private void dibujarMapa(Graphics2D g2d) {
+        int width = this.getWidth();
+        int height = this.getHeight();
+
+        //Si la ventana ha variado su tamaño
+        if (width != ultimoWidth || height != ultimoHeight || mapaCache == null) {
+            mapaCache = mapaAeropuerto.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            ultimoHeight = height;
+            ultimoWidth = width;
+        }
+
+        g2d.drawImage(mapaCache, 0, 0, this);
     }
 
     private void dibujarAvion(Graphics2D g2d, Avion avion, double escaladoX, double escaladoY) {
@@ -93,7 +113,8 @@ public class MapPanel extends JPanel {
 
         //Si la imagen existe se dibuja
         if (avion.getImagen() != null) {
-            g2d.drawImage(avion.getImagen(), -mitadX, -mitadY, tamañoRealX, tamañoRealY, this);
+            Image imagenAvionCacheEscalada = obtenerImagenCache(avion.getImagen(), tamañoRealX, tamañoRealY);
+            g2d.drawImage(avion.getImagen(),-mitadX, -mitadY, this);
         }
         //Si no se consigue acceder a la imagen, se crea un avión(poligono) manualmente
         else {
@@ -147,5 +168,22 @@ public class MapPanel extends JPanel {
         //Compruebo si
         boolean devolver = x >= 0 && x <= widthReal && y >= 0 && y <= heightReal;
         return devolver;
+    }
+
+    private Image obtenerImagenCache(Image imagenOriginal, int width, int height) {
+        String clave = width + "x" + height + System.identityHashCode(imagenOriginal);
+
+        //Si el mapa no contiene la clave se incluye con la imagen
+        if (!cacheImagenes.containsKey(clave)) {
+            Image imagenEscalada = imagenOriginal.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            cacheImagenes.put(clave, imagenEscalada);
+        }
+
+        return cacheImagenes.get(clave);
+    }
+
+    private void limpiarCache() {
+        cacheImagenes.clear();
+        mapaCache = null;
     }
 }

@@ -12,6 +12,10 @@ public class Avion {
     private double angulo;
     private Image imagen;
     private int combustible;
+    private int futureX;
+    private int futureY;
+    //Speed en pixels/Frame
+    private double speed;
 
     public Avion() {
         this.modelo = "";
@@ -93,5 +97,23 @@ public class Avion {
     public void mover(int x, int y) {
         this.x += x;
         this.y += y;
+    }
+
+    //Hace que el movimento del avión sea más suave
+    public void actualizarPosicion() {
+        //Vector desde la posición actual al objetivo
+        double dx = futureX - x;
+        double dy = futureY - y;
+        //Módulo del vector (Teorema de pitagoras)
+        double d = Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2));
+        //Normalizo el vector
+        double normalDx = dx/d;
+        double normalDy = dy/d;
+
+        //Si la distancia es mayor que la velocidad(pixels por frame) el avión se movera, sino no porque se pasaría
+        if (d > speed) {
+            x += (int) (normalDx * speed);
+            y += (int) (normalDy * speed);
+        }
     }
 }
