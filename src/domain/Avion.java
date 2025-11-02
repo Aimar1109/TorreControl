@@ -21,12 +21,14 @@ public class Avion {
         this.modelo = "";
         this.matricula = "";
         this.capacidad = 0;
+        this.speed = 1.0;
     }
 
     public Avion(String modelo, String matricula, int capacidad) {
         this.modelo = modelo;
         this.matricula = matricula;
         this.capacidad = capacidad;
+        this.speed = 1.0;
     }
 
     public Avion(String modelo, String matricula, int capacidad, int x, int y, double angulo) {
@@ -36,6 +38,9 @@ public class Avion {
         this.x = x;
         this.y = y;
         this.angulo = angulo;
+        this.futureX = x;
+        this.futureY = y;
+        this.speed = 1.0;
     }
 
     public String getModelo() {
@@ -110,10 +115,58 @@ public class Avion {
         double normalDx = dx/d;
         double normalDy = dy/d;
 
+        if (d < 0.0001) {
+            return;
+        }
+
         //Si la distancia es mayor que la velocidad(pixels por frame) el avión se movera, sino no porque se pasaría
         if (d > speed) {
             x += (int) (normalDx * speed);
             y += (int) (normalDy * speed);
+
+            //Se le suman pi/2 radianes ya que es el desfase. La imagen del avión apunta hacia arriba por lo que tiene un desfase de 90 grados
+            angulo = Math.atan2(dx, dy) + Math.PI/2;
+        } else {
+            //Si está muy cerca (speed>d) se coloca directamente encima
+            x = futureX;
+            y = futureY;
         }
+    }
+
+    public void setDestino(int x, int y) {
+        futureY = y;
+        futureX = x;
+    }
+
+    public int getCombustible() {
+        return combustible;
+    }
+
+    public void setCombustible(int combustible) {
+        this.combustible = combustible;
+    }
+
+    public int getFutureX() {
+        return futureX;
+    }
+
+    public void setFutureX(int futureX) {
+        this.futureX = futureX;
+    }
+
+    public int getFutureY() {
+        return futureY;
+    }
+
+    public void setFutureY(int futureY) {
+        this.futureY = futureY;
+    }
+
+    public double getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(double speed) {
+        this.speed = speed;
     }
 }

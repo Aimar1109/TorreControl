@@ -2,7 +2,6 @@ package gui;
 
 import domain.Avion;
 
-import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 public class MapPanel extends JPanel {
 
@@ -23,7 +23,7 @@ public class MapPanel extends JPanel {
     //Imagen del aeropuerto
     private Image mapaAeropuerto;
     //Imagenes de los aviones
-    private List<Image> imagenesAviones;
+    private List<Image> imagenesAviones = new ArrayList<>();
     //Caché de imagenes
     private HashMap<String, Image> cacheImagenes = new HashMap<>();
     private Image mapaCache = null;
@@ -32,7 +32,6 @@ public class MapPanel extends JPanel {
 
     public MapPanel() {
         super(null, true);
-        this.avionesAeropuerto = avionesAeropuerto;
 
         cargarImagenMapa();
         cargarImagenesAviones();
@@ -42,13 +41,42 @@ public class MapPanel extends JPanel {
     //Actualiza lista aviones
     public void setAviones (List<Avion> aviones) {
         this.avionesAeropuerto = aviones;
+
+        if (aviones != null) {
+            for (int i = 0; i < aviones.size(); i++) {
+                Avion a = aviones.get(i);
+            }
+        }
+
+        asignarImagenesAleatorias();
         repaint();
     }
 
     //Añade a lista aviones
-    public void addAviones (Avion avion) {
+    public void addAvion (Avion avion) {
         this.avionesAeropuerto.add(avion);
+        asignarImagenAleatoria(avion);
         repaint();
+    }
+
+    //Asigna Imagen Aleatoria a un avión
+    private void asignarImagenAleatoria(Avion avion) {
+        if (imagenesAviones != null && !imagenesAviones.isEmpty()){
+            Random r = new Random();
+            int aleatorio = r.nextInt(imagenesAviones.size());
+            avion.setImagen(imagenesAviones.get(aleatorio));
+        }
+    }
+
+    //Asigna Imagen Aleatoria a todos los aviones
+    private void asignarImagenesAleatorias() {
+        if (imagenesAviones != null && !imagenesAviones.isEmpty()) {
+            for (Avion avion : avionesAeropuerto) {
+                if (avion.getImagen() == null) {
+                    asignarImagenAleatoria(avion);
+                }
+            }
+        }
     }
 
     @Override
@@ -60,15 +88,17 @@ public class MapPanel extends JPanel {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         //Escalado para conseguir coordenadas relativas
-        double escaladoX = getWidth()/widthReal;
-        double escaladoY = getHeight()/heightReal;
+        double escaladoX = (double)getWidth() / widthReal;
+        double escaladoY = (double)getHeight() / heightReal;
 
         //Dibuja mapa del aeropuerto
         dibujarMapa(g2d);
 
         //Dibujo aviones únicamente si están en el mapa
         for (Avion avion: avionesAeropuerto) {
-            if (estaMapa(avion)) {
+            boolean enMapa = estaMapa(avion);
+
+            if (enMapa) {
                 dibujarAvion(g2d, avion, escaladoX, escaladoY);
             }
         }
@@ -79,19 +109,22 @@ public class MapPanel extends JPanel {
         int height = this.getHeight();
 
         //Si la ventana ha variado su tamaño
-        if (width != ultimoWidth || height != ultimoHeight || mapaCache == null) {
+        if (mapaAeropuerto != null && (width != ultimoWidth || height != ultimoHeight || mapaCache == null)) {
             mapaCache = mapaAeropuerto.getScaledInstance(width, height, Image.SCALE_SMOOTH);
             ultimoHeight = height;
             ultimoWidth = width;
         }
 
-        g2d.drawImage(mapaCache, 0, 0, this);
+        if (mapaCache != null) {
+            g2d.drawImage(mapaCache, 0, 0, this);
+        }
     }
 
     private void dibujarAvion(Graphics2D g2d, Avion avion, double escaladoX, double escaladoY) {
         //Coordenadas lógicas
         int x = (int) (avion.getX() * escaladoX);
         int y = (int) (avion.getY() * escaladoY);
+
 
         //Tamaño base del avion
         int tamañoBaseX = 20;
@@ -102,7 +135,7 @@ public class MapPanel extends JPanel {
         int tamañoRealY = (int) Math.max(tamañoBaseY * escaladoY, 15);
 
         //Transformación inicial
-        AffineTransform transformaciónInicial = g2d.getTransform();
+        AffineTransform transformacionInicial = g2d.getTransform();
 
         //Se traslada al centro del avión y rota
         g2d.translate(x, y);
@@ -114,19 +147,20 @@ public class MapPanel extends JPanel {
         //Si la imagen existe se dibuja
         if (avion.getImagen() != null) {
             Image imagenAvionCacheEscalada = obtenerImagenCache(avion.getImagen(), tamañoRealX, tamañoRealY);
-            g2d.drawImage(avion.getImagen(),-mitadX, -mitadY, this);
+            g2d.drawImage(imagenAvionCacheEscalada,-mitadX, -mitadY, this);
         }
-        //Si no se consigue acceder a la imagen, se crea un avión(poligono) manualmente
+        //Si no se consigue acceder a la imagen, se crea un avión(polígono) manualmente
         else {
             int[] xPoint = {0, -(int)(tamañoRealX * 0.4), (int)(tamañoRealX * 0.4)};
             int[] yPoint = {-(int)(tamañoRealY * 0.5), (int)(tamañoRealY * 0.5), (int)(tamañoRealY * 0.5)};
 
+            g2d.setColor(Color.CYAN);
             g2d.fillPolygon(xPoint, yPoint, 3);
             g2d.setColor(Color.WHITE);
             g2d.drawPolygon(xPoint, yPoint, 3);
         }
 
-        g2d.setTransform(transformaciónInicial);
+        g2d.setTransform(transformacionInicial);
     }
 
     private void cargarImagenesAviones() {
@@ -143,21 +177,18 @@ public class MapPanel extends JPanel {
 
         for (String nombreAvion : nombresDistintosAviones) {
             try {
-                Image imagenAvion = ImageIO.read(new File("/resources/img/" + nombreAvion));
+                Image imagenAvion = ImageIO.read(new File("resources/img/" + nombreAvion));
                 imagenesAviones.add(imagenAvion);
             } catch (IOException e) {
-                //En caso de no poder cargarlo la imagen
-                System.err.println("No se ha podido cargar el avión" + e.getMessage());
             }
         }
     }
 
     private void cargarImagenMapa() {
         try {
-            mapaAeropuerto = ImageIO.read(new File("/resources/img/aeropuerto.PNG"));
+            mapaAeropuerto = ImageIO.read(new File("resources/img/aeropuerto.PNG"));
         } catch (IOException e) {
-            //En caso de no poder cargarlo el fondo se queda negro
-            System.err.println("No se ha podido cargar el mapa" + e.getMessage());
+            mapaAeropuerto = null;
         }
     }
 
@@ -165,13 +196,12 @@ public class MapPanel extends JPanel {
         int x = avion.getX();
         int y = avion.getY();
 
-        //Compruebo si
-        boolean devolver = x >= 0 && x <= widthReal && y >= 0 && y <= heightReal;
-        return devolver;
+        //Compruebo si está dentro del rango
+        return x >= 0 && x <= widthReal && y >= 0 && y <= heightReal;
     }
 
     private Image obtenerImagenCache(Image imagenOriginal, int width, int height) {
-        String clave = width + "x" + height + System.identityHashCode(imagenOriginal);
+        String clave = width + "x" + height + "@" + System.identityHashCode(imagenOriginal);
 
         //Si el mapa no contiene la clave se incluye con la imagen
         if (!cacheImagenes.containsKey(clave)) {
@@ -182,7 +212,7 @@ public class MapPanel extends JPanel {
         return cacheImagenes.get(clave);
     }
 
-    private void limpiarCache() {
+    public void limpiarCache() {
         cacheImagenes.clear();
         mapaCache = null;
     }

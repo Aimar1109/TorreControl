@@ -1,4 +1,5 @@
 package gui;
+import domain.Avion;
 import domain.Vuelo;
 
 import java.awt.*;
@@ -15,6 +16,7 @@ public class JFramePrincipal extends JFrame {
 	private JList<Vuelo> listaVuelosCercanos;
 	private JList<Vuelo> listaVuelosPista1;
 	private JList<Vuelo> listaVuelosPista2;
+	private MapPanel mapa;
 
 	//Y sus respectivos modelos
 	private DefaultListModel<Vuelo> modeloVuelosCercanos;
@@ -23,6 +25,10 @@ public class JFramePrincipal extends JFrame {
 
 
 	public JFramePrincipal(ArrayList<Vuelo> vuelos) {
+		this(vuelos, new ArrayList<>());
+	}
+
+	public JFramePrincipal(ArrayList<Vuelo> vuelos, List<Avion> aviones) {
 
 		//Panel Principal
 		JPanel mainPanel = new JPanel(new GridBagLayout());
@@ -59,8 +65,9 @@ public class JFramePrincipal extends JFrame {
 		mainPanel.add(panelVuelos, gbc);
 
 		//Panel Mapa
-		MapPanel mapa = new MapPanel();
+		mapa = new MapPanel();
 		mapa.setPreferredSize(new Dimension(1000, 700));
+		mapa.setAviones(aviones);
 
 		gbc.gridx = 1;
 		gbc.gridy = 1;
@@ -156,5 +163,9 @@ public class JFramePrincipal extends JFrame {
 
 		listaVuelosCercanos.addMouseListener(listener);
 		listaVuelosCercanos.addMouseMotionListener(listener);
+	}
+
+	public MapPanel getMapa() {
+		return mapa;
 	}
 }
