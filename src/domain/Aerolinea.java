@@ -5,6 +5,7 @@ import java.util.Set;
 
 import java.util.Objects;
 
+//IAG*+-7
 public class Aerolinea {
 	
 	public static Set<String> codigosRegistrados = new HashSet<>();
@@ -20,6 +21,9 @@ public class Aerolinea {
 		if(nombre == null || nombre.trim().isEmpty()) {
 			throw new IllegalArgumentException("El nombre no puede estar vacio.");
 		}
+		if(codigo.length()!= 2 && codigo.length()!=3) {
+			throw new IllegalArgumentException("El codigo tiene que se de 2 o 3 letras.");
+		}
 		String codigoNormalizado = codigo.trim().toUpperCase();
 		if(codigosRegistrados.contains(codigoNormalizado)) {
 			throw new IllegalArgumentException("El codigo esta utilizado.");
@@ -28,9 +32,7 @@ public class Aerolinea {
 		this.codigo = codigoNormalizado;
 		this.nombre = nombre.trim();
 		
-		codigosRegistrados.add(codigoNormalizado);
-		
-		
+		codigosRegistrados.add(codigoNormalizado);		
 	}
 
 	// Getters

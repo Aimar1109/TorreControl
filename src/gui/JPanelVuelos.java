@@ -294,6 +294,7 @@ public class JPanelVuelos extends JPanel {
         
         // Metdo para filtrar la tabla
         Runnable aplicarFiltros = () -> {
+        	String filtroVueloC = txtFiltroVuelo.getText().trim();
         	int filtroVuelo = txtFiltroVuelo.getText().isEmpty() ? 0: Integer.parseInt(txtFiltroVuelo.getText().toLowerCase().trim());
         	String filtroDO = txtFiltroDO.getText().toLowerCase().trim();
         	
@@ -303,11 +304,11 @@ public class JPanelVuelos extends JPanel {
         	// Filtrar y agregar filar
         	for(Vuelo v: vuelos) {
         		String ciudad = (esLlegada ? v.getOrigen().getCiudad() : v.getDestino().getCiudad());
-        		int codigo = v.getCodigo();
+        		String codigo = v.getCodigo();
         		LocalDateTime fechaHora = v.getFechaHoraProgramada();
         		
         		boolean coincide = true;
-        		if (filtroVuelo != 0 && codigo != filtroVuelo) {
+        		if (!filtroVueloC.isBlank() && !v.getCodigo().equals(codigo)) {
         			coincide = false;
         		}
         		if (!filtroDO.isEmpty() && !(ciudad.toLowerCase()).contains(filtroDO.toLowerCase())) {

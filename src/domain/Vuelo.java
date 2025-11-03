@@ -6,9 +6,11 @@ import java.util.ArrayList;
 public class Vuelo {
 	
 	// ATRIBUTOS
-	final private int codigo;
+	final private String codigo;
+	private Integer numero;
 	private Aereopuerto origen;
 	private Aereopuerto destino;
+	private Aerolinea aereolinea;
 	private Pista pista;
 	private PuertaEmbarque puerta;
 	private boolean estado;
@@ -21,13 +23,19 @@ public class Vuelo {
 	private int delayed;
 		
 	// CONSTRUCTOR	
-	public Vuelo(int codigo, Aereopuerto origen, Aereopuerto destino, Pista pista, PuertaEmbarque puerta,
-			boolean estado, LocalDateTime fechaHoraProgramada, float duracion, Avion avion, boolean emergencia,
-			ArrayList<String> pasajeros, ArrayList<String> tripulacion, int delayed) {
+	public Vuelo(Integer numero, Aereopuerto origen, Aereopuerto destino, Aerolinea aereolinea, Pista pista,
+			PuertaEmbarque puerta, boolean estado, LocalDateTime fechaHoraProgramada, float duracion, Avion avion,
+			boolean emergencia, ArrayList<String> pasajeros, ArrayList<String> tripulacion, int delayed) {
 		super();
-		this.codigo = codigo;
+		if (numero.toString().length() != 4) {
+			throw new IllegalArgumentException("El numero de vuelo tiene que tener 4 digitos");
+		} else {
+			this.numero = numero;
+		}
+		this.codigo = aereolinea.getCodigo() + numero.toString();
 		this.origen = origen;
 		this.destino = destino;
+		this.aereolinea = aereolinea;
 		this.pista = pista;
 		this.puerta = puerta;
 		this.estado = estado;
@@ -42,10 +50,21 @@ public class Vuelo {
 
 	
 	//GETTERS Y SETTERS
-	public int getCodigo() {
+	public String getCodigo() {
 		return codigo;
 	}
-	
+	public Integer getNumero() {
+		return numero;
+	}
+
+	public void setNumero(Integer numero) {
+		if (numero.toString().length() != 4) {
+			throw new IllegalArgumentException("El numero de vuelo tiene que tener 4 digitos");
+		} else {
+			this.numero = numero;
+		}
+	}
+
 	public Aereopuerto getOrigen() {
 		return origen;
 	}
@@ -60,6 +79,14 @@ public class Vuelo {
 
 	public void setDestino(Aereopuerto destino) {
 		this.destino = destino;
+	}
+
+	public Aerolinea getAereolinea() {
+		return aereolinea;
+	}
+
+	public void setAereolinea(Aerolinea aereolinea) {
+		this.aereolinea = aereolinea;
 	}
 
 	public Pista getPista() {
@@ -140,5 +167,5 @@ public class Vuelo {
 
 	public void setDelayed(int delayed) {
 		this.delayed = delayed;
-	}
+	}	
 }
