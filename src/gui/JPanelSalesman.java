@@ -23,6 +23,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
 import java.util.ArrayList;
+import java.util.HashMap; // Necesario para mapear asientos a Tooltips
+import java.util.Map;     // Necesario para el mapa de Tooltips
 
 import domain.Vuelo;
 
@@ -132,7 +134,7 @@ public class JPanelSalesman extends JPanel {
         scrollDinamico.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollDinamico.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         
-        // Inicialización del panel Seatmap (vacío, se llenará al cargar)
+        // Inicialización del panel Seatmap. El contenido se generará al seleccionar la pestaña.
         panelSeatmap = new JPanel(new BorderLayout());
         panelSeatmap.setBackground(new Color(245, 245, 245));
         panelSeatmap.setBorder(BorderFactory.createCompoundBorder(
@@ -380,10 +382,17 @@ public class JPanelSalesman extends JPanel {
                 int filaSeleccionada = tablaVuelos.getSelectedRow();
                 if (filaSeleccionada >= 0) {
                     Vuelo vueloSeleccionado = vuelos.get(filaSeleccionada);
+                    
+                    // Lógica para auto-seleccionar la pestaña Seatmap al hacer clic en un vuelo, 
+                    // proporcionando una vista de ocupación inmediata.
+                    if (!btnSeatmap.isSelected()) {
+                        btnSeatmap.setSelected(true);
+                    }
+                    
                     actualizarPanelDinamico(vueloSeleccionado);
                 } else {
-                    // Si se deselecciona, limpiar el panel dinámico o mostrar un mensaje
-                    panelDinamico.removeAll();
+                    // Si se deselecciona, limpiar el panel dinámico para no mostrar datos antiguos
+                    panelDinamico.removeAll(); 
                     panelDinamico.revalidate();
                     panelDinamico.repaint();
                 }
@@ -417,7 +426,7 @@ public class JPanelSalesman extends JPanel {
             }
         });
         
-        // El listener del Seatmap ahora solo asegura que se actualice el panel si se hace clic
+        // El listener del Seatmap solo asegura la actualización del panel si se hace clic manualmente
         btnSeatmap.addActionListener(e -> {
             int filaSeleccionada = tablaVuelos.getSelectedRow();
             if (filaSeleccionada >= 0) {
@@ -480,7 +489,7 @@ public class JPanelSalesman extends JPanel {
         
         if (btnSeatmap.isSelected()) {
             // Mostrar seatmap
-            cargarSeatmap(vuelo);
+            cargarSeatmap(vuelo); 
             panelDinamico.add(panelSeatmap, BorderLayout.CENTER);
         } else {
             // Mostrar tabla (Pasajeros, Tripulación, Info)
@@ -502,21 +511,46 @@ public class JPanelSalesman extends JPanel {
         panelDinamico.repaint();
     }
     
-    // LÓGICA DEL SEATMAP
+    // **********************************************
+    // LÓGICA DEL SEATMAP CON TOOLTIP SIMULADO
+    // **********************************************
     
     private void cargarSeatmap(Vuelo vuelo) {
         // Limpiar el panelSeatmap existente
         panelSeatmap.removeAll();
         
         // Obtener datos del vuelo
-        int capacidad = vuelo.getAvion().getCapacidad(); // Capacidad total del avión
-        int pasajerosActuales = vuelo.getPasajeros().size();
+        int capacidad = vuelo.getAvion().getCapacidad(); 
+        ArrayList<String> listaPasajeros = vuelo.getPasajeros(); // Lista de nombres (String)
         
-        // Configuración de la cabina (ejemplo 6 asientos por fila: A B C [pasillo] D E F)
-        final int ASIENTOS_POR_FILA = 6;
-        // El número de columnas en el GridLayout es 8: [Etiqueta Fila] [A] [B] [C] [Pasillo] [D] [E] [F]
-        final int NUM_COLUMNAS_GRID = ASIENTOS_POR_FILA + 2; 
+        // Configuración de la cabina (asumiendo 3-3, 6 asientos por fila)
+        final int ASIENTOS_POR_FILA = 6; 
+        final int NUM_COLUMNAS_GRID = ASIENTOS_POR_FILA + 2; // Incluye etiquetas de fila y pasillo
         int numFilas = (int) Math.ceil((double) capacidad / ASIENTOS_POR_FILA);
+
+        // --- Mapeo de Datos (SIMULACIÓN DE TOOLTIP) ---
+        // Asocia el código de asiento con el Tooltip HTML de los datos simulados del pasajero
+        Map<String, String> asientosTooltip = new HashMap<>(); 
+        
+        for (int i = 0; i < listaPasajeros.size(); i++) {
+            String nombrePasajero = listaPasajeros.get(i);
+            
+            // SIMULACIÓN DE DATOS FALTANTES:
+            String idSimulado = String.format("DOC-%04d", i + 1); 
+            String claseSimulada = (i % 3 == 0 || i % 7 == 0) ? "Business" : "Turista"; 
+            
+            String codigoAsientoAsignado = generarAsiento(i); 
+
+            // Construcción del Tooltip en formato HTML para mostrar múltiples líneas
+            String tooltipHTML = "<html><p style='padding: 5px;'>"
+                + "<b>Pasajero:</b> " + nombrePasajero + "<br>" 
+                + "<b>ID (Simulado):</b> " + idSimulado + "<br>"
+                + "<b>Clase:</b> <span style='color:" + (claseSimulada.equals("Business") ? "blue" : "black") + "'>" + claseSimulada + "</span>" 
+                + "</p></html>";
+                
+            asientosTooltip.put(codigoAsientoAsignado, tooltipHTML); 
+        }
+        // FIN: MAPEO DE DATOS
 
         // --- Panel Principal y Leyenda ---
         
@@ -549,58 +583,53 @@ public class JPanelSalesman extends JPanel {
 
         // --- Construcción de Asientos ---
         
-        // Panel de asientos con GridLayout
         JPanel panelAsientos = new JPanel(new GridLayout(numFilas, NUM_COLUMNAS_GRID, 5, 5)); 
         panelAsientos.setBackground(new Color(245, 245, 245));
         panelAsientos.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // Índice de asientos ocupados (usamos la misma lógica para simular)
-        ArrayList<String> asientosOcupados = new ArrayList<>();
-        for(int i = 0; i < pasajerosActuales; i++) {
-             asientosOcupados.add(generarAsiento(i));
-        }
         
         int asientosGenerados = 0;
-        char[] letras = {'A', 'B', 'C', 'D', 'E', 'F'};
 
         for (int fila = 1; fila <= numFilas; fila++) {
             
-            // Etiqueta de la fila (simula la estructura del avión)
+            // Etiqueta de la fila
             JLabel lblFila = new JLabel(String.valueOf(fila), JLabel.CENTER);
             lblFila.setFont(new Font("Arial", Font.BOLD, 14));
-            panelAsientos.add(lblFila); // Columna 1: Etiqueta de fila
+            panelAsientos.add(lblFila); 
             
             for (int col = 0; col < ASIENTOS_POR_FILA; col++) {
                 
-                // Simulación de pasillo central (entre C y D, que son índices 2 y 3)
+                // Simulación de pasillo central (columna entre C y D)
                 if (col == 3) {
-                    JLabel pasillo = new JLabel("-", JLabel.CENTER); // Etiqueta para el pasillo
+                    JLabel pasillo = new JLabel("-", JLabel.CENTER); 
                     pasillo.setFont(new Font("Arial", Font.ITALIC, 10));
                     pasillo.setForeground(new Color(150, 150, 150));
-                    panelAsientos.add(pasillo); // Columna 5: Pasillo
+                    panelAsientos.add(pasillo); 
                 }
                 
-                // Solo crear botón si el asiento es parte de la capacidad real
+                // Solo crear asiento si es parte de la capacidad real del avión
                 if (asientosGenerados < capacidad) {
-                    String codigoAsiento = fila + String.valueOf(letras[col]);
-                                     
-                    // Determinar si está ocupado
-                    boolean ocupado = asientosOcupados.contains(codigoAsiento); 
+                    // Genera el código de asiento (e.g., 1A, 2B)
+                    String codigoAsiento = generarAsientoDirecto(fila, col); 
                     
-                    SeatLabel seatLabel = new SeatLabel(codigoAsiento, ocupado);
-
-                    // Añadir al panel
+                    // Comprueba la ocupación y obtiene el tooltip
+                    boolean ocupado = asientosTooltip.containsKey(codigoAsiento); 
+                    String tooltipData = asientosTooltip.get(codigoAsiento); 
+                    
+                    // Crea la etiqueta estática (no-interactiva)
+                    SeatLabel seatLabel = new SeatLabel(codigoAsiento, ocupado, tooltipData); 
+                    
                     panelAsientos.add(seatLabel);
                     asientosGenerados++;
                 } else {
-                    // Rellenar espacio para mantener el GridLayout si la capacidad no es múltiplo de 6
+                    // Rellena el espacio vacío si la capacidad se agotó antes de esta posición
                     panelAsientos.add(new JLabel("")); 
                 }
             }
             
-            // Columna extra para mantener el formato de la cabina (pasillo)
+            // Columna extra para mantener el formato de la cabina
             JLabel lblPasilloFin = new JLabel("");
-            panelAsientos.add(lblPasilloFin); // Columna 8: Espacio vacío para rellenar el grid
+            panelAsientos.add(lblPasilloFin); 
         }
 
         // Envolver el panel de asientos en un JScrollPane
@@ -614,11 +643,26 @@ public class JPanelSalesman extends JPanel {
         panelSeatmap.add(panelLeyenda, BorderLayout.NORTH);
         panelSeatmap.add(scrollAsientos, BorderLayout.CENTER);
         
-        // Forzar revalidación y repintado
+        // Forzar revalidación y repintado para asegurar que la vista se actualiza
         panelSeatmap.revalidate();
         panelSeatmap.repaint();
     }
     
+    // Método auxiliar para generar el código de asiento basado en el índice de la lista de pasajeros
+    private String generarAsiento(int index) {
+        char[] letras = {'A', 'B', 'C', 'D', 'E', 'F'};
+        int fila = (index / 6) + 1;
+        char columna = letras[index % 6];
+        return fila + "" + columna;
+    }
+    
+    // Método auxiliar para generar el código de asiento basado en Fila y Columna
+    private String generarAsientoDirecto(int fila, int colIndex) {
+        char[] letras = {'A', 'B', 'C', 'D', 'E', 'F'};
+        char columna = letras[colIndex];
+        return fila + "" + columna;
+    }
+
     private void cargarPasajeros(Vuelo vuelo) {
         // Carga la lista de pasajeros en la tabla dinámica
         modeloDinamico.addColumn("ID");
@@ -632,7 +676,9 @@ public class JPanelSalesman extends JPanel {
         ArrayList<String> pasajeros = vuelo.getPasajeros();
         for (int i = 0; i < pasajeros.size(); i++) {
             String asiento = generarAsiento(i);
-            modeloDinamico.addRow(new Object[]{i + 1, pasajeros.get(i), asiento});
+            // SIMULACIÓN DE ID FALTANTE para la tabla:
+            String idSimulado = String.format("DOC-%04d", i + 1);
+            modeloDinamico.addRow(new Object[]{idSimulado, pasajeros.get(i), asiento});
         }
     }
     
@@ -650,7 +696,9 @@ public class JPanelSalesman extends JPanel {
         String[] roles = {"Piloto", "Copiloto", "Jefe Cabina", "Auxiliar", "Auxiliar", "Auxiliar", "Auxiliar", "Auxiliar"};
         for (int i = 0; i < tripulacion.size(); i++) {
             String rol = i < roles.length ? roles[i] : "Auxiliar";
-            modeloDinamico.addRow(new Object[]{i + 1, tripulacion.get(i), rol});
+            // SIMULACIÓN DE ID FALTANTE para la tabla:
+            String idSimulado = String.format("EMP-%03d", i + 1);
+            modeloDinamico.addRow(new Object[]{idSimulado, tripulacion.get(i), rol});
         }
     }
     
@@ -679,49 +727,49 @@ public class JPanelSalesman extends JPanel {
         modeloDinamico.addRow(new Object[]{"Total Pasajeros", vuelo.getPasajeros().size()});
         modeloDinamico.addRow(new Object[]{"Total Tripulación", vuelo.getTripulacion().size()});
     }
-    
-    private String generarAsiento(int index) {
-        // Lógica simple para generar un asiento basado en un índice (ej: 1A, 1B, 1C, 1D, 1E, 1F, 2A, ...)
-        char[] letras = {'A', 'B', 'C', 'D', 'E', 'F'};
-        int fila = (index / 6) + 1;
-        char columna = letras[index % 6];
-        
-        return fila + "" + columna;
-    }
 }
 
-
-
 /**
-* Clase auxiliar para el estilo del asiento. Ahora es un simple JLabel estático
-* para cumplir con la perspectiva informativa y no comercial.
-*/
+ * Clase auxiliar para el estilo del asiento. Implementa un JLabel estático
+ * para cumplir con la perspectiva informativa y no comercial.
+ */
 class SeatLabel extends JLabel {
- private static final long serialVersionUID = 1L;
- 
+    private static final long serialVersionUID = 1L;
+    
+    // Colores estandarizados
+    public static final Color COLOR_LIBRE = new Color(200, 200, 200); 
+    public static final Color COLOR_OCUPADO = new Color(70, 130, 180); 
 
- public static final Color COLOR_LIBRE = new Color(200, 200, 200); // Gris claro (Libre)
- public static final Color COLOR_OCUPADO = new Color(70, 130, 180); // Azul corporativo (Ocupado)
+    /**
+     * @param text El código del asiento (e.g., "1A").
+     * @param isOccupied El estado de ocupación del asiento.
+     * @param tooltip El texto (en formato HTML) a mostrar al pasar el ratón. Null si está libre.
+     */
+    public SeatLabel(String text, boolean isOccupied, String tooltip) {
+        super(text, JLabel.CENTER); 
+        setFont(new Font("Arial", Font.BOLD, 10));
+        setPreferredSize(new Dimension(50, 30));
+        setOpaque(true);
+        setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
 
- public SeatLabel(String text, boolean isOccupied) { 
-     super(text, JLabel.CENTER); // 
-     setFont(new Font("Arial", Font.BOLD, 10));
-     setPreferredSize(new Dimension(50, 30));
-     setOpaque(true);
-     setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
-     
-     updateStyle(isOccupied); 
- }
+        updateStyle(isOccupied);
 
- private void updateStyle(boolean isOccupied) { 
-     if (isOccupied) {
-         // Asiento Ocupado (Azul oscuro)
-         setBackground(COLOR_OCUPADO.darker());
-         setForeground(Color.WHITE);
-     } else {
-         // Asiento Libre (Gris claro)
-         setBackground(COLOR_LIBRE);
-         setForeground(Color.BLACK);
-     }
- }
+        // Configurar el tooltip solo si el asiento está ocupado para mostrar detalles del pasajero
+        if (isOccupied && tooltip != null && !tooltip.isEmpty()) {
+            setToolTipText(tooltip);
+        }
+    }
+
+    // Aplica el color estático del asiento basado en su estado de ocupación
+    private void updateStyle(boolean isOccupied) { 
+        if (isOccupied) {
+            // Asiento Ocupado (Azul oscuro)
+            setBackground(COLOR_OCUPADO.darker());
+            setForeground(Color.WHITE);
+        } else {
+            // Asiento Libre (Gris claro)
+            setBackground(COLOR_LIBRE);
+            setForeground(Color.BLACK);
+        }
+    }
 }
