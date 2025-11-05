@@ -66,7 +66,7 @@ public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo>
 
             //Información
             String ciudadOrigen = value.getOrigen().getCiudad();
-            String ciudadDestino = value.getOrigen().getCiudad();
+            String ciudadDestino = value.getDestino().getCiudad();
             info.setText(ciudadOrigen + " → " + ciudadDestino);
 
             //Estado

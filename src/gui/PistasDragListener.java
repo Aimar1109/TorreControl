@@ -1,5 +1,6 @@
 package gui;
 
+import domain.ComparadorFechaVuelos;
 import domain.Vuelo;
 
 import javax.swing.*;
@@ -8,6 +9,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class PistasDragListener implements MouseListener, MouseMotionListener {
@@ -109,6 +111,10 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
                     modeloOrigen.removeElement(vueloArrastrado);
                     modeloDestino.addElement(vueloArrastrado);
 
+                    //Ordeno los vuelos en orden de llegada
+                    Comparator<Vuelo> comparator = new ComparadorFechaVuelos();
+                    ordenarVuelos(modeloDestino, comparator);
+
                     break;
                 }
             }
@@ -138,5 +144,24 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
     @Override
     public void mouseClicked(MouseEvent e) {
 
+    }
+
+    private void ordenarVuelos(DefaultListModel<Vuelo> modeloVuelos, Comparator<Vuelo> comparator) {
+        ArrayList<Vuelo> vuelos = new ArrayList<>();
+
+        //Añado todos los vuelos del modeloVuelos a un nuevo arraylist
+        for (int i = 0; i < modeloVuelos.size(); i++) {
+            Vuelo vueloAñadir = modeloVuelos.get(i);
+            vuelos.add(vueloAñadir);
+        }
+
+        //Vacio el modelo y ordeno la lista auxiliar
+        vuelos.sort(comparator);
+        modeloVuelos.clear();
+
+        //Añado de nuevo los vuelos
+        for (Vuelo vuelo : vuelos) {
+            modeloVuelos.addElement(vuelo);
+        }
     }
 }
