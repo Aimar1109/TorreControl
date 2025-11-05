@@ -6,6 +6,8 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -17,6 +19,7 @@ import domain.Vuelo;
 
 public class JFramePrincipal extends JFrame {
 	private static final long serialVersionUID = 1L;
+	
 	private ArrayList<Vuelo> vuelos;
 	private ButtonGroup buttonGroup;
 	
@@ -28,10 +31,10 @@ public class JFramePrincipal extends JFrame {
 		// MENU DE ARRIBA
 		JPanel menuPanel = new JPanel(new GridLayout(1, 4, 5, 5));
 		
-		JToggleButton boton1 = new JToggleButton("Salesman");
-		JToggleButton boton2 = new JToggleButton("Vuelos");
-		JToggleButton boton3 = new JToggleButton("Clima");
-		JToggleButton boton4 = new JToggleButton("Principal");
+		JToggleButton boton1 = new JToggleButton("Principal");
+		JToggleButton boton2 = new JToggleButton("Salesman");
+		JToggleButton boton3 = new JToggleButton("Vuelos");
+		JToggleButton boton4 = new JToggleButton("Clima");
 		
 		// Estilizar botones
 		estilizarBotonToggle(boton1);
@@ -54,21 +57,25 @@ public class JFramePrincipal extends JFrame {
 		mainPanel.add(menuPanel, BorderLayout.NORTH);
 		
 		// PANEL CENTRAL VUELOS
-		JPanelVuelos jfvuelos = new JPanelVuelos(vuelos);
+		JPanelVuelos jpvuelos = new JPanelVuelos(vuelos);
 		
 		// AGREGAR JPanelSalesman con los vuelos
 		JPanelSalesman panelSalesman = new JPanelSalesman(vuelos);
 		
+		//
+		JPanelPrincipal jpPrincipal = new JPanelPrincipal(vuelos);
+		
 		// Seleccionar por defecto el botón Salesman
 		boton1.setSelected(true);
-		mainPanel.add(panelSalesman, BorderLayout.CENTER);
+		mainPanel.add(jpPrincipal, BorderLayout.CENTER);
+		
 		
 		boton1.addActionListener(e -> {
 			Component center = ((BorderLayout) mainPanel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
 			if (center != null) {
 			    mainPanel.remove(center);
 			}
-			mainPanel.add(panelSalesman, BorderLayout.CENTER);
+			mainPanel.add(jpPrincipal, BorderLayout.CENTER);
 			mainPanel.revalidate();
 			mainPanel.repaint();
 		});
@@ -78,19 +85,29 @@ public class JFramePrincipal extends JFrame {
 			if (center != null) {
 			    mainPanel.remove(center);
 			}
-			mainPanel.add(jfvuelos, BorderLayout.CENTER);
+			mainPanel.add(panelSalesman, BorderLayout.CENTER);
+			mainPanel.revalidate();
+			mainPanel.repaint();
+		});
+		
+		boton3.addActionListener(e -> {
+			Component center = ((BorderLayout) mainPanel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+			if (center != null) {
+			    mainPanel.remove(center);
+			}
+			mainPanel.add(jpvuelos, BorderLayout.CENTER);
 			mainPanel.revalidate();
 			mainPanel.repaint();
 		});
 		
 		// CONFIGURACION DE LA VENTANA
 		this.add(mainPanel);
-		
-		this.setTitle("Torre de Control");		
+
+		this.setTitle("Torre de Control");
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		this.setSize(1200, 800);
 		this.setLocationRelativeTo(null);
-		this.setVisible(true);	
+		this.setVisible(true);
 	}
 	
 	private void estilizarBotonToggle(JToggleButton boton) {

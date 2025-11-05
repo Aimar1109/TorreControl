@@ -18,7 +18,6 @@ import java.util.Random;
 
 public class Main {
 
-
     public static void main(String[] args) {
         // Generar vuelos de ejemplo
         ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(50);
@@ -128,7 +127,4 @@ public class Main {
 
         return vuelos;
     }
-
-
-
 }
