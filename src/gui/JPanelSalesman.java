@@ -23,8 +23,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
 import java.util.ArrayList;
-import java.util.HashMap; // Necesario para mapear asientos a Tooltips
-import java.util.Map;     // Necesario para el mapa de Tooltips
+import java.util.HashMap;
+import java.util.Map;
 
 import domain.Vuelo;
 
@@ -44,7 +44,7 @@ public class JPanelSalesman extends JPanel {
     private JToggleButton btnSeatmap;
     private ButtonGroup buttonGroup;
     private JPanel panelDinamico;
-    private JPanel panelSeatmap; // Panel que contendrá el mapa de asientos
+    private JPanel panelSeatmap; 
     private JScrollPane scrollDinamico;
     private JPanel panelInferior;
     
@@ -229,7 +229,7 @@ public class JPanelSalesman extends JPanel {
         tablaVuelos.getTableHeader().setReorderingAllowed(false);
         tablaVuelos.getTableHeader().setResizingAllowed(false);
         
-        tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(60);  // Estado (icono)
+        tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(60);
         tablaVuelos.getColumnModel().getColumn(1).setPreferredWidth(100);
         tablaVuelos.getColumnModel().getColumn(2).setPreferredWidth(120);
         tablaVuelos.getColumnModel().getColumn(3).setPreferredWidth(120);
@@ -511,9 +511,9 @@ public class JPanelSalesman extends JPanel {
         panelDinamico.repaint();
     }
     
-    // **********************************************
-    // LÓGICA DEL SEATMAP CON TOOLTIP SIMULADO
-    // **********************************************
+
+    // Lógica del seatmap con tooltip simulado
+
     
     private void cargarSeatmap(Vuelo vuelo) {
         // Limpiar el panelSeatmap existente
@@ -528,7 +528,7 @@ public class JPanelSalesman extends JPanel {
         final int NUM_COLUMNAS_GRID = ASIENTOS_POR_FILA + 2; // Incluye etiquetas de fila y pasillo
         int numFilas = (int) Math.ceil((double) capacidad / ASIENTOS_POR_FILA);
 
-        // --- Mapeo de Datos (SIMULACIÓN DE TOOLTIP) ---
+
         // Asocia el código de asiento con el Tooltip HTML de los datos simulados del pasajero
         Map<String, String> asientosTooltip = new HashMap<>(); 
         
@@ -550,9 +550,9 @@ public class JPanelSalesman extends JPanel {
                 
             asientosTooltip.put(codigoAsientoAsignado, tooltipHTML); 
         }
-        // FIN: MAPEO DE DATOS
 
-        // --- Panel Principal y Leyenda ---
+
+        // Panel Principal y Leyenda
         
         JPanel panelLeyenda = new JPanel(new BorderLayout());
         JLabel lblTitulo = new JLabel("Seatmap Vuelo: " + vuelo.getCodigo(), JLabel.CENTER);
@@ -581,7 +581,7 @@ public class JPanelSalesman extends JPanel {
         panelLeyenda.add(panelColores, BorderLayout.CENTER);
 
 
-        // --- Construcción de Asientos ---
+        // Construcción de Asientos
         
         JPanel panelAsientos = new JPanel(new GridLayout(numFilas, NUM_COLUMNAS_GRID, 5, 5)); 
         panelAsientos.setBackground(new Color(245, 245, 245));
@@ -676,7 +676,6 @@ public class JPanelSalesman extends JPanel {
         ArrayList<String> pasajeros = vuelo.getPasajeros();
         for (int i = 0; i < pasajeros.size(); i++) {
             String asiento = generarAsiento(i);
-            // SIMULACIÓN DE ID FALTANTE para la tabla:
             String idSimulado = String.format("DOC-%04d", i + 1);
             modeloDinamico.addRow(new Object[]{idSimulado, pasajeros.get(i), asiento});
         }
@@ -696,7 +695,6 @@ public class JPanelSalesman extends JPanel {
         String[] roles = {"Piloto", "Copiloto", "Jefe Cabina", "Auxiliar", "Auxiliar", "Auxiliar", "Auxiliar", "Auxiliar"};
         for (int i = 0; i < tripulacion.size(); i++) {
             String rol = i < roles.length ? roles[i] : "Auxiliar";
-            // SIMULACIÓN DE ID FALTANTE para la tabla:
             String idSimulado = String.format("EMP-%03d", i + 1);
             modeloDinamico.addRow(new Object[]{idSimulado, tripulacion.get(i), rol});
         }
@@ -740,11 +738,6 @@ class SeatLabel extends JLabel {
     public static final Color COLOR_LIBRE = new Color(200, 200, 200); 
     public static final Color COLOR_OCUPADO = new Color(70, 130, 180); 
 
-    /**
-     * @param text El código del asiento (e.g., "1A").
-     * @param isOccupied El estado de ocupación del asiento.
-     * @param tooltip El texto (en formato HTML) a mostrar al pasar el ratón. Null si está libre.
-     */
     public SeatLabel(String text, boolean isOccupied, String tooltip) {
         super(text, JLabel.CENTER); 
         setFont(new Font("Arial", Font.BOLD, 10));
