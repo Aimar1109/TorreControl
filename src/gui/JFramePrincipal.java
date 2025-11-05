@@ -93,7 +93,9 @@ public class JFramePrincipal extends JFrame {
 		mainPanel.add(panelPistas, gbc);
 
 		//Configuración de la ventana
-		configuraciónDrag();
+		configuraciónDraglistaVuelosCercanos();
+		configuraciónDraglistaVuelos1();
+		configuraciónDraglistaVuelos2();
 
 		this.add(mainPanel);
 
@@ -154,7 +156,7 @@ public class JFramePrincipal extends JFrame {
 		return panel;
 	}
 
-	private void configuraciónDrag() {
+	private void configuraciónDraglistaVuelosCercanos() {
 		List<JList<Vuelo>> destinos = new ArrayList<>();
 		destinos.add(listaVuelosPista1);
 		destinos.add(listaVuelosPista2);
@@ -163,6 +165,28 @@ public class JFramePrincipal extends JFrame {
 
 		listaVuelosCercanos.addMouseListener(listener);
 		listaVuelosCercanos.addMouseMotionListener(listener);
+	}
+
+	private void configuraciónDraglistaVuelos1() {
+		List<JList<Vuelo>> destinos = new ArrayList<>();
+		destinos.add(listaVuelosCercanos);
+		destinos.add(listaVuelosPista2);
+
+		PistasDragListener listener = new PistasDragListener(listaVuelosPista1, destinos, this);
+
+		listaVuelosPista1.addMouseListener(listener);
+		listaVuelosPista1.addMouseMotionListener(listener);
+	}
+
+	private void configuraciónDraglistaVuelos2() {
+		List<JList<Vuelo>> destinos = new ArrayList<>();
+		destinos.add(listaVuelosPista1);
+		destinos.add(listaVuelosCercanos);
+
+		PistasDragListener listener = new PistasDragListener(listaVuelosPista2, destinos, this);
+
+		listaVuelosPista2.addMouseListener(listener);
+		listaVuelosPista2.addMouseMotionListener(listener);
 	}
 
 	public MapPanel getMapa() {
