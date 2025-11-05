@@ -62,7 +62,7 @@ public class JPanelVuelos extends JPanel {
 		ArrayList<Vuelo> llegadas = new ArrayList<Vuelo>();
 		ArrayList<Vuelo> salidas = new ArrayList<Vuelo>();
 		for (Vuelo v: this.vuelos) {
-			if (v.getOrigen().getCiudad().equals("Bilbo")) {
+			if (v.getOrigen().getCiudad().equals("Bilbao")) {
 				salidas.add(v);
 			} else {
 				llegadas.add(v);

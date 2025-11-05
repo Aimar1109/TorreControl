@@ -44,27 +44,27 @@ public class JFramePrincipal extends JFrame {
 		
 		mainPanel.add(panelSalesman, BorderLayout.CENTER);
 		
-//		boton1.addActionListener(e -> {
-//			Component center = ((BorderLayout) mainPanel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
-//			if (center != null) {
-//			    mainPanel.remove(center);
-//			}
-//
-//			mainPanel.add(panelSalesman, BorderLayout.CENTER);
-//			mainPanel.revalidate();
-//			mainPanel.repaint();
-//		});
-//		
-//		boton2.addActionListener(e -> {
-//			Component center = ((BorderLayout) mainPanel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
-//			if (center != null) {
-//			    mainPanel.remove(center);
-//			}
-//
-//			mainPanel.add(jfvuelos, BorderLayout.CENTER);
-//			mainPanel.revalidate();
-//			mainPanel.repaint();
-//		});
+		boton1.addActionListener(e -> {
+			Component center = ((BorderLayout) mainPanel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+			if (center != null) {
+			    mainPanel.remove(center);
+			}
+
+			mainPanel.add(panelSalesman, BorderLayout.CENTER);
+			mainPanel.revalidate();
+			mainPanel.repaint();
+		});
+		
+		boton2.addActionListener(e -> {
+			Component center = ((BorderLayout) mainPanel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+			if (center != null) {
+			    mainPanel.remove(center);
+			}
+
+			mainPanel.add(jfvuelos, BorderLayout.CENTER);
+			mainPanel.revalidate();
+			mainPanel.repaint();
+		});
 
 		// CONFIGURACION DE LA VENTANA
 		this.add(mainPanel);
