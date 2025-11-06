@@ -62,7 +62,7 @@ public class JPanelVuelos extends JPanel {
 		ArrayList<Vuelo> llegadas = new ArrayList<Vuelo>();
 		ArrayList<Vuelo> salidas = new ArrayList<Vuelo>();
 		for (Vuelo v: this.vuelos) {
-			if (v.getOrigen().getCiudad().equals("Bilbo")) {
+			if (v.getOrigen().getCiudad().equals("Bilbao")) {
 				salidas.add(v);
 			} else {
 				llegadas.add(v);
@@ -294,7 +294,7 @@ public class JPanelVuelos extends JPanel {
         
         // Metdo para filtrar la tabla
         Runnable aplicarFiltros = () -> {
-        	int filtroVuelo = txtFiltroVuelo.getText().isEmpty() ? 0: Integer.parseInt(txtFiltroVuelo.getText().toLowerCase().trim());
+        	String filtroVueloC = txtFiltroVuelo.getText().trim();
         	String filtroDO = txtFiltroDO.getText().toLowerCase().trim();
         	
         	// Limpiar la tabla
@@ -303,11 +303,11 @@ public class JPanelVuelos extends JPanel {
         	// Filtrar y agregar filar
         	for(Vuelo v: vuelos) {
         		String ciudad = (esLlegada ? v.getOrigen().getCiudad() : v.getDestino().getCiudad());
-        		int codigo = v.getCodigo();
+        		String codigo = v.getCodigo();
         		LocalDateTime fechaHora = v.getFechaHoraProgramada();
-        		
+        
         		boolean coincide = true;
-        		if (filtroVuelo != 0 && codigo != filtroVuelo) {
+        		if (!filtroVueloC.isBlank() && !v.getCodigo().contains(filtroVueloC)) {
         			coincide = false;
         		}
         		if (!filtroDO.isEmpty() && !(ciudad.toLowerCase()).contains(filtroDO.toLowerCase())) {
