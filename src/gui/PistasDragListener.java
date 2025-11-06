@@ -22,9 +22,13 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
     private int indiceArrastrado = -1;
     private Point punto = null;
 
+    Timer timerActualizacion;
+    private final int INTERVALO_ACTUALIZACION = 8;
+
     //Ventada Flotante
     private JWindow ventanaFlotante;
-    private JLabel labelFlotante;
+    private JLabel labelCodigo;
+    private JLabel labelRuta;
 
     //Constructor una única lista destino
     public PistasDragListener(JList<Vuelo> listaOrigen, JList<Vuelo> listaDestino) {
@@ -34,6 +38,7 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
         this.ventanaPrincipal = ventanaPrincipal;
 
         inicializarVentanaFlotante();
+        inicializarTimer();
     }
 
     //Constructor multiples listas destino
@@ -43,18 +48,41 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
         this.ventanaPrincipal = ventanaPrincipal;
 
         inicializarVentanaFlotante();
+        inicializarTimer();
     }
 
     private void inicializarVentanaFlotante() {
         //Creación ventana flotante
-    	
         ventanaFlotante = new JWindow();
-        labelFlotante = new JLabel();
-        labelFlotante.setBackground(Color.WHITE);
-        labelFlotante.setBorder(BorderFactory.createLineBorder(Color.BLACK, 3));
-        labelFlotante.setFont(new Font("Arial", Font.BOLD, 13));
-        labelFlotante.setOpaque(true);
-        ventanaFlotante.add(labelFlotante);
+        ventanaFlotante.setAlwaysOnTop(true);
+
+        //Creo un JPanel para organizar el contenido dentro de la ventana flotante
+        JPanel contenidoLabel = new JPanel(new BorderLayout(0, 2));
+        contenidoLabel.setBackground(new Color(70, 130, 180, 230));
+        contenidoLabel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(50, 100, 150), 2),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+
+        //Label del codigo (contenido principal)
+        labelCodigo = new JLabel();
+        labelCodigo.setForeground(Color.WHITE);
+        labelCodigo.setFont(new Font("Arial", Font.BOLD, 13));
+        labelCodigo.setOpaque(false);
+        labelCodigo.setHorizontalAlignment(JLabel.CENTER);
+
+        //Label de la ruta (contenido secundario)
+        labelRuta = new JLabel();
+        labelRuta.setForeground(Color.WHITE);
+        labelRuta.setFont(new Font("Arial", Font.BOLD, 13));
+        labelRuta.setOpaque(false);
+        labelRuta.setHorizontalAlignment(JLabel.CENTER);
+        //labelRuta.setName("labelRuta");
+
+        contenidoLabel.add(labelCodigo, BorderLayout.NORTH);
+        contenidoLabel.add(labelRuta, BorderLayout.CENTER);
+
+        ventanaFlotante.add(contenidoLabel);
     }
 
     @Override
@@ -66,31 +94,36 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
         if (indiceElemento >= 0 && indiceElemento < lista.getModel().getSize()) {
             vueloArrastrado = lista.getModel().getElementAt(indiceElemento);
             indiceArrastrado = indiceElemento;
+
+            //Cambia el cursor
             lista.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-            punto = e.getPoint();
+
+            //Selecciona el elemento
+            lista.setSelectedIndex(indiceElemento);
+
+            //Configuro la ventana flotante
+            Point puntoActual = e.getLocationOnScreen();
+            ventanaFlotante.setLocation(puntoActual);
+            ventanaFlotante.setVisible(true);
+
+            //Configura la ventana flotante
+            configurarVentanaFlotante();
+
+            //Iniciar timer de actualización
+            timerActualizacion.start();
         }
     }
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        if (vueloArrastrado != null && punto != null) {
-            //Ubicación de la ventana flotante
-            Point ubicacionVentanaFlotante = e.getLocationOnScreen();
-            ventanaFlotante.setLocation(ubicacionVentanaFlotante.x + 5, ubicacionVentanaFlotante.y + 5);
 
-            //Configuración de la ventana flotante
-            labelFlotante.setText("" + vueloArrastrado.getCodigo());
-            ventanaFlotante.pack();
-
-            if (!ventanaFlotante.isVisible()) {
-                ventanaFlotante.setVisible(true);
-            }
-        }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
         if (vueloArrastrado != null) {
+            timerActualizacion.stop();
+
             //Reestablecer configuraciones visuales originales
             ventanaFlotante.setVisible(false);
             JList<Vuelo> lista = (JList<Vuelo>) e.getSource();
@@ -98,24 +131,26 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
 
             Point puntoSoltar = e.getLocationOnScreen();
 
-            for(JList<Vuelo> listaDestino : listasDestino) {
-                Point puntoRelativo = new Point(puntoSoltar);
-                SwingUtilities.convertPointFromScreen(puntoRelativo, listaDestino);
+            if (puntoSoltar != null) {
+                for (JList<Vuelo> listaDestino : listasDestino) {
+                    Point puntoRelativo = new Point(puntoSoltar);
+                    SwingUtilities.convertPointFromScreen(puntoRelativo, listaDestino);
 
-                //Si esta en la lista destino se actua
-                if (listaDestino.contains(puntoRelativo)) {
-                    DefaultListModel<Vuelo> modeloOrigen = (DefaultListModel<Vuelo>) this.listaOrigen.getModel();
-                    DefaultListModel<Vuelo> modeloDestino = (DefaultListModel<Vuelo>) listaDestino.getModel();
+                    //Si esta en la lista destino se actua
+                    if (listaDestino.contains(puntoRelativo)) {
+                        DefaultListModel<Vuelo> modeloOrigen = (DefaultListModel<Vuelo>) this.listaOrigen.getModel();
+                        DefaultListModel<Vuelo> modeloDestino = (DefaultListModel<Vuelo>) listaDestino.getModel();
 
-                    //Añado y elimino el vuelo de cada lista correspondiente
-                    modeloOrigen.removeElement(vueloArrastrado);
-                    modeloDestino.addElement(vueloArrastrado);
+                        //Añado y elimino el vuelo de cada lista correspondiente
+                        modeloOrigen.removeElement(vueloArrastrado);
+                        modeloDestino.addElement(vueloArrastrado);
 
-                    //Ordeno los vuelos en orden de llegada
-                    Comparator<Vuelo> comparator = new ComparadorFechaVuelos();
-                    ordenarVuelos(modeloDestino, comparator);
+                        //Ordeno los vuelos en orden de llegada
+                        Comparator<Vuelo> comparator = new ComparadorFechaVuelos();
+                        ordenarVuelos(modeloDestino, comparator);
 
-                    break;
+                        break;
+                    }
                 }
             }
 
@@ -123,6 +158,7 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
             vueloArrastrado = null;
             indiceArrastrado = -1;
             punto = null;
+            borrarResaltados();
         }
     }
 
@@ -144,6 +180,68 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
     @Override
     public void mouseClicked(MouseEvent e) {
 
+    }
+
+    private void configurarVentanaFlotante() {
+        String origen = vueloArrastrado.getOrigen().getCiudad();
+        String destino = vueloArrastrado.getDestino().getCiudad();
+        String textoTratecto = origen + " -> " + destino;
+
+        //Establezco el texto de ambos labels
+        labelCodigo.setText(vueloArrastrado.getCodigo());
+        labelRuta.setText(textoTratecto);
+
+        ventanaFlotante.pack();
+    }
+
+    private void setResaltados(Point posicion) {
+        for (JList<Vuelo> lista : listasDestino) {
+            Point puntoRelativo = new Point(posicion);
+            SwingUtilities.convertPointFromScreen(puntoRelativo, lista);
+            if (lista.contains(puntoRelativo)) {
+                lista.setBorder(BorderFactory.createLineBorder(
+                        new Color(70, 130, 180), 3
+                ));
+            } else {
+                lista.setBorder(null);
+            }
+        }
+    }
+
+    private void borrarResaltados() {
+        listaOrigen.setBorder(null);
+        for (JList lista : listasDestino) {
+            lista.setBorder(null);
+        }
+    }
+
+    //IAG (herramienta: Claude)
+    private void inicializarTimer() {
+        // Timer que lee la posición global del mouse y actualiza la ventana
+        timerActualizacion = new Timer(INTERVALO_ACTUALIZACION, e -> {
+            if (vueloArrastrado != null && ventanaFlotante.isVisible()) {
+                try {
+                    // Obtener posición GLOBAL del mouse
+                    PointerInfo pointerInfo = MouseInfo.getPointerInfo();
+                    if (pointerInfo != null) {
+                        Point posicionMouse = pointerInfo.getLocation();
+
+                        // Actualizar posición de ventana flotante
+                        ventanaFlotante.setLocation(
+                                posicionMouse.x,
+                                posicionMouse.y
+                        );
+
+                        // Actualizar resaltado de listas
+                        setResaltados(posicionMouse);
+                    }
+                } catch (Exception ex) {
+                    // En caso de error, continuar
+                }
+            }
+        });
+        timerActualizacion.setRepeats(true);
+        timerActualizacion.setCoalesce(true);
     }
 
     private void ordenarVuelos(DefaultListModel<Vuelo> modeloVuelos, Comparator<Vuelo> comparator) {

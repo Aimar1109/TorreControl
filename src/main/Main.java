@@ -1,8 +1,7 @@
 package main;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 
 import javax.swing.SwingUtilities;
 
@@ -15,8 +14,6 @@ import domain.Vuelo;
 import gui.JFramePrincipal;
 import domain.*;
 import java.util.ArrayList;
-import java.util.Random;
-import java.util.Set;
 
 public class Main {
 
@@ -25,10 +22,11 @@ public class Main {
     	AeropuertoGenerador ag = new AeropuertoGenerador();
         ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(50, ag);
         Set<Aeropuerto> aeroEjemplo = ag.devolverA();
+        List<Avion> avionesPrueba = crearAvionesPrueba();
         
 
         // Lanzar interfaz con los vuelos
-        SwingUtilities.invokeLater(() -> new JFramePrincipal(vuelosEjemplo, new ArrayList<Aeropuerto>(aeroEjemplo)));
+        SwingUtilities.invokeLater(() -> new JFramePrincipal(vuelosEjemplo, new ArrayList<Aeropuerto>(aeroEjemplo), avionesPrueba));
     }
 
     private static ArrayList<Vuelo> generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag) {
@@ -147,5 +145,22 @@ public class Main {
     	public Set<Aeropuerto> devolverA(){
     		return this.aeropuertos;
     	}
+    }
+
+    public static List<Avion> crearAvionesPrueba() {
+        List<Avion> aviones = new ArrayList<>();
+        Random random = new Random();
+
+        for (int i = 1; i <= 5; i++) {
+            int x = random.nextInt(900) + 50;
+            int y = random.nextInt(600) + 50;
+            double angulo = random.nextDouble() * 2 * Math.PI;
+
+            Avion avion = new Avion("" + i, "" + i, i, x, y, angulo);
+
+            aviones.add(avion);
+        }
+
+        return aviones;
     }
 }

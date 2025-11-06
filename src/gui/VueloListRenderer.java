@@ -5,12 +5,14 @@ import domain.Vuelo;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo> {
     private JLabel cod;
     private JLabel or_des;
     private JLabel info;
-    private JLabel estado;
+    private JLabel llegada;
 
     public VueloListRenderer() {
         setLayout(new BorderLayout(10, 0));
@@ -36,7 +38,7 @@ public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo>
         or_des.setVerticalAlignment(SwingConstants.CENTER);
         panelCentral.add(or_des);
 
-        //Label Información
+        //Label info
         info = new JLabel();
         info.setFont(new Font("Arial", Font.BOLD, 13));
         info.setOpaque(false);
@@ -46,10 +48,10 @@ public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo>
         add(panelCentral, BorderLayout.CENTER);
 
         //Label Estado
-        estado = new JLabel();
-        estado.setOpaque(false);
-        estado.setFont(new Font("Arial", Font.BOLD, 13));
-        add(estado, BorderLayout.EAST);
+        llegada = new JLabel();
+        llegada.setOpaque(false);
+        llegada.setFont(new Font("Arial", Font.BOLD, 13));
+        add(llegada, BorderLayout.EAST);
     }
 
     @Override
@@ -69,30 +71,30 @@ public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo>
             String ciudadDestino = value.getDestino().getCiudad();
             info.setText(ciudadOrigen + " → " + ciudadDestino);
 
-            //Estado
-            if (value.isEmergencia()) {
-                estado.setText("⚠ EMERGENCIA");
-                estado.setForeground(new Color(238, 75, 43));
-            } else if (value.getDelayed() > 0) {
-                estado.setText("⏱ " + value.getDelayed() + " min");
-                estado.setForeground(new Color(225, 150, 0));
-            } else {
-                estado.setText("✔ A tiempo");
-                estado.setForeground(new Color(147, 197, 114));
-            }
+            //Llegada
+            LocalDateTime intermedio = value.getFechaHoraProgramada();
+            LocalDateTime real = intermedio.plusMinutes(value.getDelayed());
+            String textoLabel = real.format(DateTimeFormatter.ofPattern("HH:mm"));
+            llegada.setText(textoLabel);
         }
 
         //Colores
+        cod.setForeground(Color.BLACK);
+        or_des.setForeground(Color.BLACK);
+        info.setForeground(Color.BLACK);
+        llegada.setForeground(Color.BLACK);
+
         if (isSelected) {
-            setBackground(new Color(220,220,220));
-            cod.setForeground(Color.BLACK);
-            or_des.setForeground(Color.BLACK);
-            info.setForeground(Color.BLACK);
-        } else {
-            setBackground(Color.WHITE);
-            cod.setForeground(Color.BLACK);
-            or_des.setForeground(Color.BLACK);
-            info.setForeground(Color.BLACK);
+            setBackground(new Color(173, 216, 230));
+        }
+        else {
+            if (value.getDelayed() > 0) {
+                setBackground(new Color(255, 248, 228));
+            } else if (value.isEmergencia()) {
+                setBackground(new Color(255, 240, 240));
+            } else {
+                setBackground(new Color(240, 248, 255));
+            }
         }
 
         return this;
