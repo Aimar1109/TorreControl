@@ -20,16 +20,17 @@ public class Main {
     public static void main(String[] args) {
         // Generar vuelos de ejemplo
     	AeropuertoGenerador ag = new AeropuertoGenerador();
-        ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(50, ag);
+    	ArrayList<Aerolinea> aers = generadorAerolinea();
+        ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(50, ag, aers);
         Set<Aeropuerto> aeroEjemplo = ag.devolverA();
         List<Avion> avionesPrueba = crearAvionesPrueba();
         
 
         // Lanzar interfaz con los vuelos
-        SwingUtilities.invokeLater(() -> new JFramePrincipal(vuelosEjemplo, new ArrayList<Aeropuerto>(aeroEjemplo), avionesPrueba));
+        SwingUtilities.invokeLater(() -> new JFramePrincipal(vuelosEjemplo, new ArrayList<Aeropuerto>(aeroEjemplo), avionesPrueba, aers));
     }
 
-    private static ArrayList<Vuelo> generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag) {
+    private static ArrayList<Vuelo> generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag, ArrayList<Aerolinea> aer) {
         ArrayList<Vuelo> vuelos = new ArrayList<>();
         Random random = new Random();
 
@@ -44,7 +45,6 @@ public class Main {
         int targetDeparturesFromBIO = cantidad - targetArrivalsToBIO;
         int remainingArrivals = targetArrivalsToBIO;
         int remainingDepartures = targetDeparturesFromBIO;
-        Aerolinea aerolinea = new Aerolinea("AE", "Aer");
 
         for (int i = 0; i < cantidad; i++) {
             int codigo = 1000 + i;
@@ -124,7 +124,7 @@ public class Main {
                 remainingDepartures--;
             }
 
-            Vuelo vuelo = new Vuelo( codigo,  origen,  destino,  aerolinea,  pista,
+            Vuelo vuelo = new Vuelo( codigo,  origen,  destino,  aer.get(0),  pista,
         			 puerta,  estado,  ahora.plusHours(i),  duracion,  avion,
         			 emergencia,  pasajeros,  tripulacion,  delayed);
             vuelos.add(vuelo);
@@ -145,6 +145,42 @@ public class Main {
     	public Set<Aeropuerto> devolverA(){
     		return this.aeropuertos;
     	}
+    }
+    
+    public static ArrayList<Aerolinea> generadorAerolinea() {
+    	String[] nombresAerolineas = { //IAG
+    		    "Iberia",
+    		    "Vueling",
+    		    "Air Europa",
+    		    "Ryanair",
+    		    "Lufthansa",
+    		    "Air France",
+    		    "British Airways",
+    		    "KLM",
+    		    "Emirates",
+    		    "Qatar Airways"
+    		};
+
+    		String[] codigosAerolineas = { //IAG
+    		    "IB",   // Iberia
+    		    "VY",   // Vueling
+    		    "UX",   // Air Europa
+    		    "FR",   // Ryanair
+    		    "LH",   // Lufthansa
+    		    "AF",   // Air France
+    		    "BA",   // British Airways
+    		    "KL",   // KLM
+    		    "EK",   // Emirates
+    		    "QR"    // Qatar Airways
+    		};
+    		
+    		ArrayList<Aerolinea> aer = new ArrayList<Aerolinea>();
+    		
+    		for(int i=0; i<nombresAerolineas.length; i++) {
+    			Aerolinea a = new Aerolinea(codigosAerolineas[i], nombresAerolineas[i]);
+    			aer.add(a);
+    		}
+    		return aer;
     }
 
     public static List<Avion> crearAvionesPrueba() {

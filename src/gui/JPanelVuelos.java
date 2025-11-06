@@ -45,6 +45,7 @@ import javax.swing.table.TableCellRenderer;
 
 import com.toedter.calendar.JDateChooser;
 
+import domain.Aerolinea;
 import domain.Aeropuerto;
 import domain.Vuelo;
 
@@ -54,7 +55,7 @@ public class JPanelVuelos extends JPanel {
 	
 	private ArrayList<Vuelo> vuelos;
 	
-	public JPanelVuelos(ArrayList<Vuelo> vuelos, ArrayList<Aeropuerto> aeropuertos) {
+	public JPanelVuelos(ArrayList<Vuelo> vuelos, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers) {
 		
 		setLayout(new BorderLayout());
 		
@@ -114,8 +115,8 @@ public class JPanelVuelos extends JPanel {
 		panelCentral.setBorder(new EmptyBorder(10, 30, 30, 30));
 		
 		// crear tablas
-		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", llegadas, true, aeropuertos);
-		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", salidas, false, aeropuertos);
+		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", llegadas, true, aeropuertos, aers);
+		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", salidas, false, aeropuertos, aers);
         
 		// MAIN
         panelCentral.add(mainLlegadas);
@@ -126,7 +127,7 @@ public class JPanelVuelos extends JPanel {
 		add(mainVuelos);		
 	}
 	
-	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada, ArrayList<Aeropuerto> aeropuertos) {
+	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers) {
 		// Funcion para crear tabla de Vuelos tanto llegadas como salidas
 		
 		
@@ -400,7 +401,7 @@ public class JPanelVuelos extends JPanel {
         	
         	@Override
         	public void mouseClicked(MouseEvent e) {
-        		abrirDialogoNuevoVuelo(esLlegada, aeropuertos);
+        		abrirDialogoNuevoVuelo(esLlegada, aeropuertos, aers);
         	}
         });
         
@@ -443,7 +444,7 @@ public class JPanelVuelos extends JPanel {
 		return mainPanel;
 	}
 	
-	private void abrirDialogoNuevoVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos) {
+	private void abrirDialogoNuevoVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers) {
 	    // Crear el diálogo
 	    JDialog dialog = new JDialog();
 	    dialog.setTitle(esLlegada ? "Nuevo Vuelo - Llegada" : "Nuevo Vuelo - Salida");
@@ -463,6 +464,7 @@ public class JPanelVuelos extends JPanel {
 	    JTextField txtNumero = new JTextField();
 	    panelCampos.add(txtNumero);
 	    
+	    //Aeropuerto
 	    JLabel tituAeropuerto;
 	    JComboBox<Aeropuerto> boxAeropuerto = new JComboBox<Aeropuerto>(aeropuertos.toArray(new Aeropuerto[0])); // IAG
 	    
@@ -475,6 +477,10 @@ public class JPanelVuelos extends JPanel {
 	    panelCampos.add(tituAeropuerto);
 	    panelCampos.add(boxAeropuerto);
 	    
+	    //Aerolinea
+	    panelCampos.add(new JLabel("Aerolinea:"));
+	    JComboBox<Aerolinea> boxAerolinea = new JComboBox<Aerolinea>(aers.toArray(new Aerolinea[0]));
+	    panelCampos.add(boxAerolinea);
 	    
 	    // Fecha y Hora
 	    
