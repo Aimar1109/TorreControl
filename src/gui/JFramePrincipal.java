@@ -65,6 +65,9 @@ public class JFramePrincipal extends JFrame {
 		//
 		JPanelPrincipal jpPrincipal = new JPanelPrincipal(vuelos);
 		
+		
+		JPanelClima panelClima = new JPanelClima();
+		
 		// Seleccionar por defecto el botón Salesman
 		boton1.setSelected(true);
 		mainPanel.add(jpPrincipal, BorderLayout.CENTER);
@@ -100,12 +103,26 @@ public class JFramePrincipal extends JFrame {
 			mainPanel.repaint();
 		});
 		
+		boton4.addActionListener(e -> {
+			Component center = ((BorderLayout) mainPanel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+			if (center != null) {
+			    mainPanel.remove(center);
+			}
+			mainPanel.add(panelClima, BorderLayout.CENTER);
+			mainPanel.revalidate();
+			mainPanel.repaint();
+		});
+
+		
+		
 		// CONFIGURACION DE LA VENTANA
 		this.add(mainPanel);
+
 
 		this.setTitle("Torre de Control");
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		this.setSize(1200, 800);
+
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);
 	}
