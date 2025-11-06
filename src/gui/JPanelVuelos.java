@@ -26,6 +26,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -44,6 +45,7 @@ import javax.swing.table.TableCellRenderer;
 
 import com.toedter.calendar.JDateChooser;
 
+import domain.Aeropuerto;
 import domain.Vuelo;
 
 public class JPanelVuelos extends JPanel {
@@ -52,7 +54,7 @@ public class JPanelVuelos extends JPanel {
 	
 	private ArrayList<Vuelo> vuelos;
 	
-	public JPanelVuelos(ArrayList<Vuelo> vuelos) {
+	public JPanelVuelos(ArrayList<Vuelo> vuelos, ArrayList<Aeropuerto> aeropuertos) {
 		
 		setLayout(new BorderLayout());
 		
@@ -112,8 +114,8 @@ public class JPanelVuelos extends JPanel {
 		panelCentral.setBorder(new EmptyBorder(10, 30, 30, 30));
 		
 		// crear tablas
-		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", llegadas, true);
-		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", salidas, false);
+		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", llegadas, true, aeropuertos);
+		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", salidas, false, aeropuertos);
         
 		// MAIN
         panelCentral.add(mainLlegadas);
@@ -124,7 +126,7 @@ public class JPanelVuelos extends JPanel {
 		add(mainVuelos);		
 	}
 	
-	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada) {
+	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada, ArrayList<Aeropuerto> aeropuertos) {
 		// Funcion para crear tabla de Vuelos tanto llegadas como salidas
 		
 		
@@ -398,7 +400,7 @@ public class JPanelVuelos extends JPanel {
         	
         	@Override
         	public void mouseClicked(MouseEvent e) {
-        		abrirDialogoNuevoVuelo(esLlegada);
+        		abrirDialogoNuevoVuelo(esLlegada, aeropuertos);
         	}
         });
         
@@ -441,12 +443,12 @@ public class JPanelVuelos extends JPanel {
 		return mainPanel;
 	}
 	
-	private void abrirDialogoNuevoVuelo(boolean esLlegada) {
+	private void abrirDialogoNuevoVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos) {
 	    // Crear el diálogo
 	    JDialog dialog = new JDialog();
 	    dialog.setTitle(esLlegada ? "Nuevo Vuelo - Llegada" : "Nuevo Vuelo - Salida");
 	    dialog.setModal(true); // Bloquea la ventana principal hasta que se cierre
-	    dialog.setSize(400, 400);
+	    dialog.setSize(400, 800);
 	    dialog.setLocationRelativeTo(this); // Centrar en la ventana principal
 	    
 	    // Panel principal del diálogo
@@ -454,34 +456,25 @@ public class JPanelVuelos extends JPanel {
 	    panelFormulario.setBorder(new EmptyBorder(20, 20, 20, 20));
 	    
 	    // Panel de campos del formulario
-	    JPanel panelCampos = new JPanel(new GridLayout(6, 2, 10, 10));
+	    JPanel panelCampos = new JPanel(new GridLayout(8, 2, 10, 10));
 	    
 	    // Código del vuelo
-	    panelCampos.add(new JLabel("Código:"));
-	    JTextField txtCodigo = new JTextField();
-	    panelCampos.add(txtCodigo);
+	    panelCampos.add(new JLabel("Numero:"));
+	    JTextField txtNumero = new JTextField();
+	    panelCampos.add(txtNumero);
 	    
-	    // Origen
-	    panelCampos.add(new JLabel("Origen:"));
-	    JTextField txtOrigen = new JTextField();
+	    JLabel tituAeropuerto;
+	    JComboBox<Aeropuerto> boxAeropuerto = new JComboBox<Aeropuerto>(aeropuertos.toArray(new Aeropuerto[0])); // IAG
+	    
 	    if (esLlegada) {
-	        txtOrigen.setEnabled(true);
+	    	tituAeropuerto = new JLabel("Origen");
 	    } else {
-	        txtOrigen.setText("Bilbo");
-	        txtOrigen.setEnabled(false); // Bloqueado si es salida
+	    	tituAeropuerto = new JLabel("Destino");
 	    }
-	    panelCampos.add(txtOrigen);
 	    
-	    // Destino
-	    panelCampos.add(new JLabel("Destino:"));
-	    JTextField txtDestino = new JTextField();
-	    if (!esLlegada) {
-	        txtDestino.setEnabled(true);
-	    } else {
-	        txtDestino.setText("Bilbo");
-	        txtDestino.setEnabled(false); // Bloqueado si es llegada
-	    }
-	    panelCampos.add(txtDestino);
+	    panelCampos.add(tituAeropuerto);
+	    panelCampos.add(boxAeropuerto);
+	    
 	    
 	    // Fecha y Hora
 	    

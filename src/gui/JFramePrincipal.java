@@ -15,6 +15,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.WindowConstants;
+
+import domain.Aeropuerto;
 import domain.Vuelo;
 
 public class JFramePrincipal extends JFrame {
@@ -23,7 +25,7 @@ public class JFramePrincipal extends JFrame {
 	private ArrayList<Vuelo> vuelos;
 	private ButtonGroup buttonGroup;
 	
-	public JFramePrincipal(ArrayList<Vuelo> vuelos) {
+	public JFramePrincipal(ArrayList<Vuelo> vuelos, ArrayList<Aeropuerto> aeropuertos) {
 		
 		// PANEL PRINCIPAL
 		JPanel mainPanel = new JPanel(new BorderLayout());
@@ -57,7 +59,7 @@ public class JFramePrincipal extends JFrame {
 		mainPanel.add(menuPanel, BorderLayout.NORTH);
 		
 		// PANEL CENTRAL VUELOS
-		JPanelVuelos jpvuelos = new JPanelVuelos(vuelos);
+		JPanelVuelos jpvuelos = new JPanelVuelos(vuelos, aeropuertos);
 		
 		// AGREGAR JPanelSalesman con los vuelos
 		JPanelSalesman panelSalesman = new JPanelSalesman(vuelos);

@@ -8,8 +8,8 @@ public class Vuelo {
 	// ATRIBUTOS
 	final private String codigo;
 	private Integer numero;
-	private Aereopuerto origen;
-	private Aereopuerto destino;
+	private Aeropuerto origen;
+	private Aeropuerto destino;
 	private Aerolinea aereolinea;
 	private Pista pista;
 	private PuertaEmbarque puerta;
@@ -22,8 +22,32 @@ public class Vuelo {
 	private ArrayList<String> tripulacion;
 	private int delayed;
 		
-	// CONSTRUCTOR	
-	public Vuelo(Integer numero, Aereopuerto origen, Aereopuerto destino, Aerolinea aereolinea, Pista pista,
+	// CONSTRUCTOR
+	public Vuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aereolinea, Pista pista,
+			PuertaEmbarque puerta, LocalDateTime fechaHoraProgramada, float duracion, Avion avion) {
+		super();
+		if (numero.toString().length() != 4) {
+			throw new IllegalArgumentException("El numero de vuelo tiene que tener 4 digitos");
+		} else {
+			this.numero = numero;
+		}
+		this.codigo = aereolinea.getCodigo() + numero.toString();
+		this.origen = origen;
+		this.destino = destino;
+		this.aereolinea = aereolinea;
+		this.pista = pista;
+		this.puerta = puerta;
+		this.estado = false;
+		this.fechaHoraProgramada = fechaHoraProgramada;
+		this.duracion = duracion;
+		this.avion = avion;
+		this.emergencia = false;
+		this.pasajeros = new ArrayList<String>();
+		this.tripulacion = new ArrayList<String>();
+		this.delayed = 0;
+	}
+	
+	public Vuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aereolinea, Pista pista,
 			PuertaEmbarque puerta, boolean estado, LocalDateTime fechaHoraProgramada, float duracion, Avion avion,
 			boolean emergencia, ArrayList<String> pasajeros, ArrayList<String> tripulacion, int delayed) {
 		super();
@@ -65,19 +89,19 @@ public class Vuelo {
 		}
 	}
 
-	public Aereopuerto getOrigen() {
+	public Aeropuerto getOrigen() {
 		return origen;
 	}
 
-	public void setOrigen(Aereopuerto origen) {
+	public void setOrigen(Aeropuerto origen) {
 		this.origen = origen;
 	}
 
-	public Aereopuerto getDestino() {
+	public Aeropuerto getDestino() {
 		return destino;
 	}
 
-	public void setDestino(Aereopuerto destino) {
+	public void setDestino(Aeropuerto destino) {
 		this.destino = destino;
 	}
 

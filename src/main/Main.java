@@ -2,10 +2,11 @@ package main;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import javax.swing.SwingUtilities;
 
-import domain.Aereopuerto;
+import domain.Aeropuerto;
 import domain.Aerolinea;
 import domain.Avion;
 import domain.Pista;
@@ -15,18 +16,22 @@ import gui.JFramePrincipal;
 import domain.*;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Set;
 
 public class Main {
 
     public static void main(String[] args) {
         // Generar vuelos de ejemplo
-        ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(50);
+    	AeropuertoGenerador ag = new AeropuertoGenerador();
+        ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(50, ag);
+        Set<Aeropuerto> aeroEjemplo = ag.devolverA();
+        
 
         // Lanzar interfaz con los vuelos
-        SwingUtilities.invokeLater(() -> new JFramePrincipal(vuelosEjemplo));
+        SwingUtilities.invokeLater(() -> new JFramePrincipal(vuelosEjemplo, new ArrayList<Aeropuerto>(aeroEjemplo)));
     }
 
-    private static ArrayList<Vuelo> generarVuelosAleatorios(int cantidad) {
+    private static ArrayList<Vuelo> generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag) {
         ArrayList<Vuelo> vuelos = new ArrayList<>();
         Random random = new Random();
 
@@ -88,8 +93,8 @@ public class Main {
             int delayed = random.nextInt(10) < 7 ? 0 : random.nextInt(120);
 
             // Construcción de origen/destino según el tipo
-            Aereopuerto origen;
-            Aereopuerto destino;
+            Aeropuerto origen;
+            Aeropuerto destino;
             Pista pista;
             
             PuertaEmbarque puerta;
@@ -98,27 +103,29 @@ public class Main {
             if (makeArrivalToBIO) {
                 // Vuelo que LLEGA a BIO: origen = otra ciudad, destino = BIO
                 String ciudadOrigen = otrasCiudades[random.nextInt(otrasCiudades.length)];
-                origen = new Aereopuerto("AER" + random.nextInt(100), "Aeropuerto " + ciudadOrigen, ciudadOrigen);
-                destino = new Aereopuerto("BIO", "Aeropuerto de Bilbao", "Bilbao");
+                origen = new Aeropuerto("AER" + random.nextInt(100), "Aeropuerto " + ciudadOrigen, ciudadOrigen);
+                destino = new Aeropuerto("BIO", "Aeropuerto de Bilbao", "Bilbao");
 
                 // Pista y puerta: asignadas en Bilbao (destino)
                 pista = new Pista("Pista BIO " + (i % 3 + 1), false);
                 puerta = new PuertaEmbarque("Puerta BIO " + (i % 10 + 1), false);
-
+                
+                ag.añadirA(origen);
                 remainingArrivals--;
             } else {
                 // Vuelo que SALE desde BIO: origen = BIO, destino = otra ciudad
-                origen = new Aereopuerto("BIO", "Aeropuerto de Bilbao", "Bilbao");
+                origen = new Aeropuerto("BIO", "Aeropuerto de Bilbao", "Bilbao");
                 String ciudadDestino = otrasCiudades[random.nextInt(otrasCiudades.length)];
-                destino = new Aereopuerto("AER" + random.nextInt(100), "Aeropuerto " + ciudadDestino, ciudadDestino);
+                destino = new Aeropuerto("AER" + random.nextInt(100), "Aeropuerto " + ciudadDestino, ciudadDestino);
 
                 // Pista y puerta: asignadas en Bilbao (origen)
                 pista = new Pista("Pista BIO " + (i % 3 + 1), false);
                 puerta = new PuertaEmbarque("Puerta BIO " + (i % 10 + 1), false);
-
+                
+                ag.añadirA(destino);
                 remainingDepartures--;
             }
-            
+
             Vuelo vuelo = new Vuelo( codigo,  origen,  destino,  aerolinea,  pista,
         			 puerta,  estado,  ahora.plusHours(i),  duracion,  avion,
         			 emergencia,  pasajeros,  tripulacion,  delayed);
@@ -126,5 +133,19 @@ public class Main {
         }
 
         return vuelos;
+    }
+    
+    public static class AeropuertoGenerador {
+    	private Set<Aeropuerto> aeropuertos;
+    	
+    	public AeropuertoGenerador() {
+    		this.aeropuertos = new HashSet<Aeropuerto>();
+    	}
+    	public void añadirA(Aeropuerto a) {
+    		this.aeropuertos.add(a);
+    	}
+    	public Set<Aeropuerto> devolverA(){
+    		return this.aeropuertos;
+    	}
     }
 }
