@@ -36,6 +36,7 @@ public class JDialogNVuelo extends 	JDialog {
 	private JSpinner spinnerHora;
 	private boolean guardado = false;
 	private LocalDateTime fechaHoraSeleccionada;
+	private JTextField txtDuracion;
 	
 	public JDialogNVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, JPanel panel) {
 		this.setTitle(esLlegada ? "Nuevo Vuelo - Llegada" : "Nuevo Vuelo - Salida");
@@ -78,7 +79,7 @@ public class JDialogNVuelo extends 	JDialog {
 	    //Fecha
 	    panelCampos.add(new JLabel("Fecha:"));
         
-        // Fecha
+        // Fecha JDateChoser
         dateChooser = new JDateChooser();
         dateChooser.setDateFormatString("dd/MM/yyyy"); // formato de fecha
         panelCampos.add(dateChooser);
@@ -96,6 +97,12 @@ public class JDialogNVuelo extends 	JDialog {
         panelCampos.add(spinnerHora);
 	    
 	    panelFormulario.add(panelCampos, BorderLayout.CENTER);
+	    
+	    // Duracion
+	    panelCampos.add(new JLabel("Duracion:"));
+	    txtDuracion = new JTextField();
+	    panelCampos.add(txtDuracion);	    
+	    
 	    
 	    // Panel de botones
 	    JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
