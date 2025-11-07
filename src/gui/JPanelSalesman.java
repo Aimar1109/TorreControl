@@ -19,9 +19,12 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +35,7 @@ public class JPanelSalesman extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
+    private int filaHoverDinamica = -1; 
     
     private ArrayList<Vuelo> vuelos;
     
@@ -62,6 +66,7 @@ public class JPanelSalesman extends JPanel {
         initComponents();
         initTables();
         attachListeners();
+        attachHoverListeners();
         cargarVuelosReales();
     }
     
@@ -207,7 +212,7 @@ public class JPanelSalesman extends JPanel {
         boton.addItemListener(e -> {
             if (boton.isSelected()) {
                 boton.setBackground(new Color(70, 130, 180)); // Azul
-                boton.setForeground(Color.WHITE);
+                boton.setForeground(Color.WHITE); 
             } else {
                 boton.setBackground(new Color(240, 240, 240));
                 boton.setForeground(Color.BLACK);
@@ -313,7 +318,7 @@ public class JPanelSalesman extends JPanel {
             }
 
             // Si está seleccionado, prioridad al color de selección
-            if (isSelected) {
+            if (isSelected || (table == tablaDinamica && row == filaHoverDinamica)) {
                 lbl.setBackground(new Color(70, 130, 180));
                 lbl.setForeground(Color.WHITE);
                 return lbl;
@@ -381,20 +386,15 @@ public class JPanelSalesman extends JPanel {
             if (!e.getValueIsAdjusting()) {
                 int filaSeleccionada = tablaVuelos.getSelectedRow();
                 if (filaSeleccionada >= 0) {
-                    Vuelo vueloSeleccionado = vuelos.get(filaSeleccionada);
-                    
-                    // Lógica para auto-seleccionar la pestaña Seatmap al hacer clic en un vuelo, 
-                    // proporcionando una vista de ocupación inmediata.
-                    if (!btnSeatmap.isSelected()) {
-                        btnSeatmap.setSelected(true);
-                    }
+                	int modelRow = tablaVuelos.convertRowIndexToModel(filaSeleccionada);
+                    Vuelo vueloSeleccionado = vuelos.get(modelRow);
                     
                     actualizarPanelDinamico(vueloSeleccionado);
                 } else {
-                    // Si se deselecciona, limpiar el panel dinámico para no mostrar datos antiguos
-                    panelDinamico.removeAll(); 
-                    panelDinamico.revalidate();
-                    panelDinamico.repaint();
+//                    // Si se deselecciona, limpiar el panel dinámico para no mostrar datos antiguos
+//                    panelDinamico.removeAll(); 
+//                    panelDinamico.revalidate();
+//                    panelDinamico.repaint();
                 }
             }
         });
@@ -432,6 +432,60 @@ public class JPanelSalesman extends JPanel {
             if (filaSeleccionada >= 0) {
                 Vuelo vueloSeleccionado = vuelos.get(filaSeleccionada);
                 actualizarPanelDinamico(vueloSeleccionado);
+            }
+        });
+    }
+    
+    /**
+     * NUEVO MÉTODO: Añade los MouseMotionListeners para la funcionalidad de 'hover'
+     */
+    private void attachHoverListeners() {
+        // ----------------------------------------------------
+        // HOVER EN LA TABLA DE VUELOS (Izquierda)
+        tablaVuelos.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                Point p = e.getPoint();
+                int row = tablaVuelos.rowAtPoint(p);
+                if (row != tablaVuelos.getSelectedRow()) {
+                    if (row >= 0) {
+                        tablaVuelos.setRowSelectionInterval(row, row);
+                    } else {
+                        tablaVuelos.clearSelection();
+                    }
+                }
+            }
+        });
+        // Asegurar deselección al salir de la tabla
+        tablaVuelos.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent e) {
+//                tablaVuelos.clearSelection();
+            }
+        });
+
+        // ----------------------------------------------------
+        // HOVER EN LA TABLA DINÁMICA (Derecha)
+        tablaDinamica.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                Point p = e.getPoint();
+                int row = tablaDinamica.rowAtPoint(p);
+                if (row != filaHoverDinamica) {
+                    filaHoverDinamica = row;
+                    tablaDinamica.repaint(); 
+                }
+            }
+        });
+
+        // Restablecer la variable al salir
+        tablaDinamica.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (filaHoverDinamica != -1) {
+                    filaHoverDinamica = -1;
+                    tablaDinamica.repaint();
+                }
             }
         });
     }
@@ -486,6 +540,7 @@ public class JPanelSalesman extends JPanel {
     // Actualiza el panel dinámico según el botón seleccionado
     private void actualizarPanelDinamico(Vuelo vuelo) {
         panelDinamico.removeAll();
+        filaHoverDinamica = -1;
         
         if (btnSeatmap.isSelected()) {
             // Mostrar seatmap
