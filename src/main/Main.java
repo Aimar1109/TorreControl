@@ -20,17 +20,19 @@ public class Main {
     public static void main(String[] args) {
         // Generar vuelos de ejemplo
     	AeropuertoGenerador ag = new AeropuertoGenerador();
+    	AvionGenerador av = new AvionGenerador();
     	ArrayList<Aerolinea> aers = generadorAerolinea();
-        ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(50, ag, aers);
+        ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(50, ag, aers, av);
         Set<Aeropuerto> aeroEjemplo = ag.devolverA();
+        Set<Avion> avEjemplo = av.devolverA();
         List<Avion> avionesPrueba = crearAvionesPrueba();
         
 
         // Lanzar interfaz con los vuelos
-        SwingUtilities.invokeLater(() -> new JFramePrincipal(vuelosEjemplo, new ArrayList<Aeropuerto>(aeroEjemplo), avionesPrueba, aers));
+        SwingUtilities.invokeLater(() -> new JFramePrincipal(vuelosEjemplo, new ArrayList<Aeropuerto>(aeroEjemplo), avionesPrueba, aers, new ArrayList<Avion>(avEjemplo)));
     }
 
-    private static ArrayList<Vuelo> generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag, ArrayList<Aerolinea> aer) {
+    private static ArrayList<Vuelo> generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag, ArrayList<Aerolinea> aer, AvionGenerador av) {
         ArrayList<Vuelo> vuelos = new ArrayList<>();
         Random random = new Random();
 
@@ -67,10 +69,17 @@ public class Main {
             String matricula = "EC-" + (char)('A' + random.nextInt(26)) +
                                        (char)('A' + random.nextInt(26)) +
                                        (char)('A' + random.nextInt(26));
+            while (Avion.existeMatricula(matricula)) {
+            		matricula = "EC-" + (char)('A' + random.nextInt(26)) +
+                    (char)('A' + random.nextInt(26)) +
+                    (char)('A' + random.nextInt(26));
+            }
             int capacidad = 150 + random.nextInt(200);
             Avion avion = new Avion(modelo, matricula, capacidad);
+            av.añadirA(avion);
+            
             boolean emergencia = random.nextInt(10) == 0;
-
+            
             // Pasajeros
             int numPasajeros = 50 + random.nextInt(Math.max(1, Math.min(capacidad, 150)));
             ArrayList<String> pasajeros = new ArrayList<>();
@@ -144,6 +153,20 @@ public class Main {
     	}
     	public Set<Aeropuerto> devolverA(){
     		return this.aeropuertos;
+    	} 
+    }
+    
+    public static class AvionGenerador {
+    	private Set<Avion> aviones;
+    	
+    	public AvionGenerador() {
+    		this.aviones = new HashSet<Avion>();
+    	}
+    	public void añadirA(Avion a) {
+    		this.aviones.add(a);
+    	}
+    	public Set<Avion> devolverA(){
+    		return this.aviones;
     	}
     }
     

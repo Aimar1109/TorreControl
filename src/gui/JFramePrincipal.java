@@ -27,7 +27,7 @@ public class JFramePrincipal extends JFrame {
 	private ArrayList<Vuelo> vuelos;
 	private ButtonGroup buttonGroup;
 	
-	public JFramePrincipal(ArrayList<Vuelo> vuelos, ArrayList<Aeropuerto> aeropuertos, List<Avion> aviones, ArrayList<Aerolinea> aers) {
+	public JFramePrincipal(ArrayList<Vuelo> vuelos, ArrayList<Aeropuerto> aeropuertos, List<Avion> aviones, ArrayList<Aerolinea> aers, ArrayList<Avion> avs) {
 		
 		// PANEL PRINCIPAL
 		JPanel mainPanel = new JPanel(new BorderLayout());
@@ -61,7 +61,7 @@ public class JFramePrincipal extends JFrame {
 		mainPanel.add(menuPanel, BorderLayout.NORTH);
 		
 		// PANEL CENTRAL VUELOS
-		JPanelVuelos jpvuelos = new JPanelVuelos(vuelos, aeropuertos, aers);
+		JPanelVuelos jpvuelos = new JPanelVuelos(vuelos, aeropuertos, aers, avs);
 		
 		// AGREGAR JPanelSalesman con los vuelos
 		JPanelSalesman panelSalesman = new JPanelSalesman(vuelos);

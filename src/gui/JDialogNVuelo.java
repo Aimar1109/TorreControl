@@ -26,19 +26,20 @@ import com.toedter.calendar.JDateChooser;
 
 import domain.Aerolinea;
 import domain.Aeropuerto;
+import domain.Avion;
 
 public class JDialogNVuelo extends 	JDialog {
 	
-	private JTextField txtNumero;
+	private JTextField txtNumero, txtDuracion;
 	private JComboBox<Aeropuerto> boxAeropuerto;
 	private JComboBox<Aerolinea> boxAerolinea;
 	private JDateChooser dateChooser;
 	private JSpinner spinnerHora;
 	private boolean guardado = false;
 	private LocalDateTime fechaHoraSeleccionada;
-	private JTextField txtDuracion;
+	private JComboBox<Avion> boxAvion;
 	
-	public JDialogNVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, JPanel panel) {
+	public JDialogNVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, JPanel panel, ArrayList<Avion> avs) {
 		this.setTitle(esLlegada ? "Nuevo Vuelo - Llegada" : "Nuevo Vuelo - Salida");
 	    this.setModal(true); // Bloquea la ventana principal hasta que se cierre
 	    this.setSize(400, 600);
@@ -101,7 +102,12 @@ public class JDialogNVuelo extends 	JDialog {
 	    // Duracion
 	    panelCampos.add(new JLabel("Duracion:"));
 	    txtDuracion = new JTextField();
-	    panelCampos.add(txtDuracion);	    
+	    panelCampos.add(txtDuracion);
+	    
+	    // Avion
+	    panelCampos.add(new JLabel("Avion:"));
+	    boxAvion = new JComboBox<Avion>(avs.toArray(new Avion[0]));
+	    panelCampos.add(boxAvion);
 	    
 	    
 	    // Panel de botones

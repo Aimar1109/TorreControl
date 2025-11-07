@@ -47,6 +47,7 @@ import com.toedter.calendar.JDateChooser;
 
 import domain.Aerolinea;
 import domain.Aeropuerto;
+import domain.Avion;
 import domain.Vuelo;
 
 public class JPanelVuelos extends JPanel {
@@ -57,7 +58,7 @@ public class JPanelVuelos extends JPanel {
 	private JDialogNVuelo dialogNVuelo;
 	private JPanel panelVuelos = this;
 	
-	public JPanelVuelos(ArrayList<Vuelo> vuelos, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers) {
+	public JPanelVuelos(ArrayList<Vuelo> vuelos, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, ArrayList<Avion> avs) {
 		
 		setLayout(new BorderLayout());
 		
@@ -117,8 +118,8 @@ public class JPanelVuelos extends JPanel {
 		panelCentral.setBorder(new EmptyBorder(10, 30, 30, 30));
 		
 		// crear tablas
-		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", llegadas, true, aeropuertos, aers);
-		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", salidas, false, aeropuertos, aers);
+		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", llegadas, true, aeropuertos, aers, avs);
+		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", salidas, false, aeropuertos, aers, avs);
         
 		// MAIN
         panelCentral.add(mainLlegadas);
@@ -129,7 +130,7 @@ public class JPanelVuelos extends JPanel {
 		add(mainVuelos);		
 	}
 	
-	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers) {
+	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, ArrayList<Avion> avs) {
 		// Funcion para crear tabla de Vuelos tanto llegadas como salidas
 		
 		
@@ -403,7 +404,7 @@ public class JPanelVuelos extends JPanel {
         	
         	@Override
         	public void mouseClicked(MouseEvent e) {
-        		dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos);
+        		dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos, avs);
         	}
         });
         

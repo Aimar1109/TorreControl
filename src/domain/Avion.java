@@ -1,6 +1,9 @@
 package domain;
 
 import java.awt.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 public class Avion {
 
@@ -16,6 +19,9 @@ public class Avion {
     private int futureY;
     //Speed en pixels/Frame
     private double speed;
+    private String regex = "^(?:[A-Z]{1,2}-[A-Z0-9]{3,4}|N\\d{1,5}[A-Z]{0,2})$"; //IAG
+    
+    private static Set<String> matriculasRegistradas = new HashSet<>();
 
     public Avion() {
         this.modelo = "";
@@ -25,10 +31,15 @@ public class Avion {
     }
 
     public Avion(String modelo, String matricula, int capacidad) {
+    	if (matricula == null || matricula.trim().isEmpty() || !matricula.matches(regex)) {
+    		throw new IllegalArgumentException("La matricula no puede estar vacio y tiene que cumplir la condicion");
+    	}
         this.modelo = modelo;
         this.matricula = matricula;
         this.capacidad = capacidad;
         this.speed = 1.0;
+        
+        matriculasRegistradas.add(matricula);
     }
 
     public Avion(String modelo, String matricula, int capacidad, int x, int y, double angulo) {
@@ -56,7 +67,12 @@ public class Avion {
     }
 
     public void setMatricula(String matricula) {
+    	if (matricula == null || matricula.trim().isEmpty() || !matricula.matches(regex)) {
+    		throw new IllegalArgumentException("La matricula no puede estar vacio y tiene que cumplir la condicion");
+    	}
         this.matricula = matricula;
+        
+        matriculasRegistradas.add(matricula);
     }
 
     public int getCapacidad() {
@@ -168,5 +184,38 @@ public class Avion {
 
     public void setSpeed(double speed) {
         this.speed = speed;
+    }
+    
+    public static boolean existeMatricula(String matricula) {
+    	if(matricula==null) return false;
+    	return matriculasRegistradas.contains(matricula.trim().toUpperCase());
+    }
+    
+    public static Set<String> getMatriculasRegistradas() {
+    	return new HashSet<>(matriculasRegistradas);
+    }
+    
+    public static void clear() {
+    	matriculasRegistradas.clear();
+    }
+    
+    
+    @Override
+    public boolean equals(Object o) {
+    	 if (this == o) return true;
+         if (o == null || getClass() != o.getClass()) return false;
+         Avion that = (Avion) o;
+         return matricula.equals(that.matricula);
+    	
+    }
+    
+    @Override
+    public int hashCode() {
+    	return Objects.hash(matricula);
+    }
+    
+    @Override
+    public String toString() {
+    	return modelo + " - " + matricula;
     }
 }
