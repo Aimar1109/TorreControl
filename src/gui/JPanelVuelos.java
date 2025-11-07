@@ -11,6 +11,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.time.Instant;
@@ -111,8 +113,8 @@ public class JPanelVuelos extends JPanel {
 		panelCentral.setBorder(new EmptyBorder(10, 30, 30, 30));
 		
 		// crear tablas
-		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", vuelos, true, aeropuertos, aers, avs, puertas);
-		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", vuelos, false, aeropuertos, aers, avs, puertas);
+		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", vuelos, true, aeropuertos, aers, avs, puertas, vg);
+		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", vuelos, false, aeropuertos, aers, avs, puertas, vg);
         
 		// MAIN
         panelCentral.add(mainLlegadas);
@@ -124,7 +126,7 @@ public class JPanelVuelos extends JPanel {
 	}
 	
 	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada, ArrayList<Aeropuerto> aeropuertos,
-									  ArrayList<Aerolinea> aers, ArrayList<Avion> avs, ArrayList<PuertaEmbarque> puertas) {
+									  ArrayList<Aerolinea> aers, ArrayList<Avion> avs, ArrayList<PuertaEmbarque> puertas, VueloGenerador vg) {
 		// Funcion para crear tabla de Vuelos tanto llegadas como salidas
 		
 		
@@ -403,7 +405,7 @@ public class JPanelVuelos extends JPanel {
         	
         	@Override
         	public void mouseClicked(MouseEvent e) {
-        		dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos, avs, puertas);
+        		dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos, avs, puertas, vg, modelo);
         	}
         });
         

@@ -61,6 +61,7 @@ public class Main {
         ArrayList<Aeropuerto> aeropuertos = new ArrayList<Aeropuerto>(ag.devolverA());
         
         Aeropuerto bilbao = new Aeropuerto("LEBB", "Bilbao Airport", "Bilbao");
+        ag.añadirA(bilbao);
         
         for (int i=1; i<10; i++) {
         	pe.añadirP(new PuertaEmbarque(false));

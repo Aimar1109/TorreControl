@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -21,6 +22,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
 import com.toedter.calendar.JDateChooser;
 
@@ -30,6 +32,7 @@ import domain.Avion;
 import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
+import main.Main.VueloGenerador;
 
 public class JDialogNVuelo extends 	JDialog {
 	
@@ -44,7 +47,7 @@ public class JDialogNVuelo extends 	JDialog {
 	private JComboBox<PuertaEmbarque> boxPuerta;
 	
 	public JDialogNVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, JPanel panel, ArrayList<Avion> avs,
-						 ArrayList<PuertaEmbarque> puertas) {
+						 ArrayList<PuertaEmbarque> puertas, VueloGenerador vg, DefaultTableModel modelo) {
 		this.setTitle(esLlegada ? "Nuevo Vuelo - Llegada" : "Nuevo Vuelo - Salida");
 	    this.setModal(true); // Bloquea la ventana principal hasta que se cierre
 	    this.setSize(400, 400);
@@ -63,13 +66,20 @@ public class JDialogNVuelo extends 	JDialog {
 	    panelCampos.add(txtNumero);
 	    
 	    //Aeropuerto
+	    Aeropuerto origen;
+	    Aeropuerto destino;
 	    JLabel tituAeropuerto;
 	    boxAeropuerto = new JComboBox<Aeropuerto>(aeropuertos.toArray(new Aeropuerto[0])); // IAG
+	    Aeropuerto aeOtro = aeropuertos.get(aeropuertos.size()-1);
 	    
 	    if (esLlegada) {
 	    	tituAeropuerto = new JLabel("Origen");
+	    	destino = aeOtro;
+	    	origen = (Aeropuerto) boxAeropuerto.getSelectedItem();
 	    } else {
 	    	tituAeropuerto = new JLabel("Destino");
+	    	destino = (Aeropuerto) boxAeropuerto.getSelectedItem();
+	    	origen =  aeOtro;
 	    }
 	    
 	    panelCampos.add(tituAeropuerto);
@@ -127,17 +137,14 @@ public class JDialogNVuelo extends 	JDialog {
 	    btnGuardar.setPreferredSize(new Dimension(100, 30));
 	    btnGuardar.addActionListener(ev -> {
 	        // Validar y guardar
-	        if (validarFormulario()) {
+	        if (validarFormulario(txtNumero, txtDuracion, dateChooser, (Aerolinea)boxAerolinea.getSelectedItem(), vg)) {
 	        	LocalDateTime fechaHora = creadorLDTdeSpinner(dateChooser, spinnerHora);
 	        	
-	        	System.out.println(fechaHora);
+	        	guardarVuelo(Integer.parseInt(txtNumero.getText().toString().trim()), origen, destino, (Aerolinea)boxAerolinea.getSelectedItem(),
+	        				 (PuertaEmbarque)boxPuerta.getSelectedItem(), fechaHora, Float.parseFloat(txtDuracion.getText().toString()), (Avion) boxAvion.getSelectedItem(),
+	        				 vg, modelo);
 	        	
-	            this.dispose(); // Cerrar el diálogo
-	        } else {
-	            JOptionPane.showMessageDialog(this, 
-	                "Por favor, completa todos los campos correctamente", 
-	                "Error", 
-	                JOptionPane.ERROR_MESSAGE);
+	            this.dispose();
 	        }
 	    });
 	    
@@ -155,14 +162,91 @@ public class JDialogNVuelo extends 	JDialog {
 	    
 	}
 	
-	private boolean validarFormulario() {
-	    return true;
+	private boolean validarFormulario(JTextField txtNumero, JTextField txtDuracion, JDateChooser dateChoseer,
+									  Aerolinea aerolinea, VueloGenerador vg) {
+	    if (txtNumero.getText().toString().trim().isEmpty()) {
+	    	JOptionPane.showMessageDialog(this, 
+	                "Por favor, rellene el numero", 
+	                "Error", 
+	                JOptionPane.ERROR_MESSAGE);
+	    	return false;
+	    }
+	    if (txtDuracion.getText().toString().trim().isEmpty()) {
+	    	JOptionPane.showMessageDialog(this, 
+	                "Por favor, rellene la duracion", 
+	                "Error", 
+	                JOptionPane.ERROR_MESSAGE);
+	    	return false;
+	    }
+	    if (dateChooser.getDate() == null) {
+	    	JOptionPane.showMessageDialog(this, 
+	                "Por favor, rellene la fecha", 
+	                "Error", 
+	                JOptionPane.ERROR_MESSAGE);
+	    	return false;
+	    } else {
+	    	Date fechaSeleccionada = dateChooser.getDate();
+	    	LocalDate fecha = fechaSeleccionada.toInstant()
+	                .atZone(ZoneId.systemDefault())
+	                .toLocalDate();
+
+	        if (fecha.isBefore(LocalDate.now())) {
+	        	JOptionPane.showMessageDialog(this, 
+		                "Por favor, ponga la fecha de hoy en adelante", 
+		                "Error", 
+		                JOptionPane.ERROR_MESSAGE);
+	        	return false;
+	        }
+	    }
+	    try {
+	    	Integer.parseInt(txtNumero.getText().toString().trim());
+	    	Float.parseFloat(txtDuracion.getText().toString().trim());
+	    } catch (NumberFormatException e) {
+	    	JOptionPane.showMessageDialog(this, 
+	                "Por favor, en el numero y en la duracion no escriba caracteres", 
+	                "Error", 
+	                JOptionPane.ERROR_MESSAGE);
+	    	return false;
+	    }
+	    if (txtNumero.getText().toString().trim().length() != 4) {
+	    	JOptionPane.showMessageDialog(this, 
+	                "Por favor, el numero tiene que ser de 4 digitos", 
+	                "Error", 
+	                JOptionPane.ERROR_MESSAGE);
+	    	return false;
+	    }
+	    if (Vuelo.existeCodigo(aerolinea.getCodigo()+txtNumero.getText().toString().trim())) {
+	    	JOptionPane.showMessageDialog(this, 
+	                "Por favor, el vuelo ya esta creado", 
+	                "Error", 
+	                JOptionPane.ERROR_MESSAGE);
+	    	return false;
+	    }
+	    return true;	    
 	}
 	
-	private void guardarVuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aerolinea,
-			PuertaEmbarque puerta, LocalDateTime fechaHoraProgramada, float duracion, Avion avion) {
-			Vuelo v = new Vuelo(numero, origen, destino, aerolinea, puerta, fechaHoraProgramada, duracion, avion);
+	private void guardarVuelo(int numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aerolinea,
+			PuertaEmbarque puerta, LocalDateTime fechaHoraProgramada, float duracion, Avion avion, VueloGenerador vg,
+			DefaultTableModel modelo) {
 			
+			DateTimeFormatter formatterFecha = DateTimeFormatter.ofPattern("dd:MM:yyyy");
+			DateTimeFormatter formatterHora = DateTimeFormatter.ofPattern("HH:mm");
+			
+			Vuelo v = new Vuelo(numero, origen, destino, aerolinea, puerta, fechaHoraProgramada, duracion, avion);
+			vg.añadirA(v);
+			Aeropuerto ciudad;
+			if (origen.getCiudad() == "Bilbao") {
+				ciudad = destino;
+			} else {
+				ciudad = origen;
+			}
+        	modelo.addRow(new Object[] {
+        			v.getCodigo(),
+        			ciudad,
+        			v.getFechaHoraProgramada().format(formatterFecha),
+        			v.getFechaHoraProgramada().format(formatterHora),
+        			v.getDelayed()
+        			});
 		}
 	
 	private LocalDateTime creadorLDTdeSpinner(JDateChooser dateChooser, JSpinner sHora) {

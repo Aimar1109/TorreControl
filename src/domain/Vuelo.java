@@ -2,9 +2,13 @@ package domain;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class Vuelo {
+	
+	public static Set<String> codigosRegistrados = new HashSet<>();
 	
 	// ATRIBUTOS
 	final private String codigo;
@@ -46,6 +50,8 @@ public class Vuelo {
 		this.pasajeros = new ArrayList<String>();
 		this.tripulacion = new ArrayList<String>();
 		this.delayed = 0;
+		
+		codigosRegistrados.add(codigo);
 	}
 	
 	public Vuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aereolinea, Pista pista,
@@ -71,6 +77,8 @@ public class Vuelo {
 		this.pasajeros = pasajeros;
 		this.tripulacion = tripulacion;
 		this.delayed = delayed;
+		
+		codigosRegistrados.add(codigo);
 	}
 
 	
@@ -193,6 +201,20 @@ public class Vuelo {
 	public void setDelayed(int delayed) {
 		this.delayed = delayed;
 	}
+	
+	// Codigos
+	public static boolean existeCodigo(String codigo) {
+        if (codigo == null) return false;
+        return codigosRegistrados.contains(codigo.trim().toUpperCase());
+    }
+    
+    public static Set<String> getCodigosRegistrados() {
+        return new HashSet<>(codigosRegistrados);
+    }
+    
+    public static void limpiarRegistros() {
+        codigosRegistrados.clear();
+    }
 	
     @Override
     public boolean equals(Object o) {
