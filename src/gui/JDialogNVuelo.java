@@ -29,6 +29,7 @@ import domain.Aeropuerto;
 import domain.Avion;
 import domain.Pista;
 import domain.PuertaEmbarque;
+import domain.Vuelo;
 
 public class JDialogNVuelo extends 	JDialog {
 	
@@ -158,8 +159,9 @@ public class JDialogNVuelo extends 	JDialog {
 	    return true;
 	}
 	
-	private void guardarVuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aereolinea, Pista pista,
+	private void guardarVuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aerolinea,
 			PuertaEmbarque puerta, LocalDateTime fechaHoraProgramada, float duracion, Avion avion) {
+			Vuelo v = new Vuelo(numero, origen, destino, aerolinea, puerta, fechaHoraProgramada, duracion, avion);
 			
 		}
 	

@@ -50,6 +50,7 @@ import domain.Aeropuerto;
 import domain.Avion;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
+import main.Main.VueloGenerador;
 
 public class JPanelVuelos extends JPanel {
 	
@@ -59,23 +60,13 @@ public class JPanelVuelos extends JPanel {
 	private JDialogNVuelo dialogNVuelo;
 	private JPanel panelVuelos = this;
 	
-	public JPanelVuelos(ArrayList<Vuelo> vuelos, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, ArrayList<Avion> avs,
+	public JPanelVuelos(VueloGenerador vg, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, ArrayList<Avion> avs,
 						ArrayList<PuertaEmbarque> puertas) {
 		
 		setLayout(new BorderLayout());
 		
 		// Datos necesarios
-		this.vuelos = vuelos;
-		
-		ArrayList<Vuelo> llegadas = new ArrayList<Vuelo>();
-		ArrayList<Vuelo> salidas = new ArrayList<Vuelo>();
-		for (Vuelo v: this.vuelos) {
-			if (v.getOrigen().getCiudad().equals("Bilbao")) {
-				salidas.add(v);
-			} else {
-				llegadas.add(v);
-			}
-		}
+		this.vuelos = new ArrayList<Vuelo>(vg.devolverA());
 		
 		// Creacion del main panel
 		JPanel mainVuelos = new JPanel(new BorderLayout());
@@ -120,8 +111,8 @@ public class JPanelVuelos extends JPanel {
 		panelCentral.setBorder(new EmptyBorder(10, 30, 30, 30));
 		
 		// crear tablas
-		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", llegadas, true, aeropuertos, aers, avs, puertas);
-		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", salidas, false, aeropuertos, aers, avs, puertas);
+		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", vuelos, true, aeropuertos, aers, avs, puertas);
+		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", vuelos, false, aeropuertos, aers, avs, puertas);
         
 		// MAIN
         panelCentral.add(mainLlegadas);
@@ -253,6 +244,11 @@ public class JPanelVuelos extends JPanel {
 		
         
         for(Vuelo v: vuelos) {
+        	if (esLlegada && v.getOrigen().getCiudad().equals("Bilbao")) {
+        		continue;
+        	} else if (!esLlegada && v.getDestino().getCiudad().equals("Bilbao")) {
+        		continue;
+        	}
         	String ciudad = esLlegada ? v.getOrigen().getCiudad() : v.getDestino().getCiudad();
         	modelo.addRow(new Object[] {
         			v.getCodigo(),

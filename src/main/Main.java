@@ -19,11 +19,12 @@ public class Main {
 
     public static void main(String[] args) {
         // Generar vuelos de ejemplo
+    	VueloGenerador vg = new VueloGenerador();
     	AeropuertoGenerador ag = new AeropuertoGenerador();
     	AvionGenerador av = new AvionGenerador();
     	PuertaGenerador pe = new PuertaGenerador();
     	ArrayList<Aerolinea> aers = generadorAerolinea();
-        ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(50, ag, aers, av, pe);
+        generarVuelosAleatorios(50, ag, aers, av, pe, vg);
         Set<Aeropuerto> aeroEjemplo = ag.devolverA();
         Set<Avion> avEjemplo = av.devolverA();
         List<Avion> avionesPrueba = crearAvionesPrueba();
@@ -31,12 +32,12 @@ public class Main {
         
 
         // Lanzar interfaz con los vuelos
-        SwingUtilities.invokeLater(() -> new JFramePrincipal(vuelosEjemplo, new ArrayList<Aeropuerto>(aeroEjemplo), avionesPrueba,
+        SwingUtilities.invokeLater(() -> new JFramePrincipal(vg, new ArrayList<Aeropuerto>(aeroEjemplo), avionesPrueba,
         													 aers, new ArrayList<Avion>(avEjemplo), new ArrayList<PuertaEmbarque>(puertasEjemplo)));
     }
 
-    private static ArrayList<Vuelo> generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag, ArrayList<Aerolinea> aer, AvionGenerador av, PuertaGenerador pe) {
-        ArrayList<Vuelo> vuelos = new ArrayList<>();
+    private static void generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag, ArrayList<Aerolinea> aer,
+    														AvionGenerador av, PuertaGenerador pe, VueloGenerador vg) {
         Random random = new Random();
 
         // Ciudades disponibles (incluye BIO en la lista si quieres, pero lo gestionamos a parte)
@@ -129,8 +130,7 @@ public class Main {
             Aeropuerto origen;
             Aeropuerto destino;
             Pista pista;
-            
-            PuertaEmbarque puerta;
+
             LocalDateTime ahora = LocalDateTime.now();
 
             if (makeArrivalToBIO) {
@@ -157,10 +157,23 @@ public class Main {
             Vuelo vuelo = new Vuelo( codigo,  origen,  destino,  aer.get(0),  pista,
         			 puertas.get(random.nextInt(puertas.size())),  estado,  ahora.plusHours(i),  duracion,  avion,
         			 emergencia,  pasajeros,  tripulacion,  delayed);
-            vuelos.add(vuelo);
+            vg.añadirA(vuelo);
+            
         }
-
-        return vuelos;
+    }
+    
+    public static class VueloGenerador {
+    	private Set<Vuelo> vuelos;
+    	
+    	public VueloGenerador() {
+    		this.vuelos = new HashSet<Vuelo>();
+    	}
+    	public void añadirA(Vuelo v) {
+    		this.vuelos.add(v);
+    	}
+    	public Set<Vuelo> devolverA(){
+    		return this.vuelos;
+    	} 
     }
     
     public static class AeropuertoGenerador {
