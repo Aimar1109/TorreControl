@@ -54,6 +54,8 @@ public class JPanelVuelos extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
 	private ArrayList<Vuelo> vuelos;
+	private JDialogNVuelo dialogNVuelo;
+	private JPanel panelVuelos = this;
 	
 	public JPanelVuelos(ArrayList<Vuelo> vuelos, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers) {
 		
@@ -401,7 +403,7 @@ public class JPanelVuelos extends JPanel {
         	
         	@Override
         	public void mouseClicked(MouseEvent e) {
-        		abrirDialogoNuevoVuelo(esLlegada, aeropuertos, aers);
+        		dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos);
         	}
         });
         
@@ -444,133 +446,6 @@ public class JPanelVuelos extends JPanel {
 		return mainPanel;
 	}
 	
-	private void abrirDialogoNuevoVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers) {
-	    // Crear el diálogo
-	    JDialog dialog = new JDialog();
-	    dialog.setTitle(esLlegada ? "Nuevo Vuelo - Llegada" : "Nuevo Vuelo - Salida");
-	    dialog.setModal(true); // Bloquea la ventana principal hasta que se cierre
-	    dialog.setSize(400, 800);
-	    dialog.setLocationRelativeTo(this); // Centrar en la ventana principal
-	    
-	    // Panel principal del diálogo
-	    JPanel panelFormulario = new JPanel(new BorderLayout(10, 10));
-	    panelFormulario.setBorder(new EmptyBorder(20, 20, 20, 20));
-	    
-	    // Panel de campos del formulario
-	    JPanel panelCampos = new JPanel(new GridLayout(8, 2, 10, 10));
-	    
-	    // Código del vuelo
-	    panelCampos.add(new JLabel("Numero:"));
-	    JTextField txtNumero = new JTextField();
-	    panelCampos.add(txtNumero);
-	    
-	    //Aeropuerto
-	    JLabel tituAeropuerto;
-	    JComboBox<Aeropuerto> boxAeropuerto = new JComboBox<Aeropuerto>(aeropuertos.toArray(new Aeropuerto[0])); // IAG
-	    
-	    if (esLlegada) {
-	    	tituAeropuerto = new JLabel("Origen");
-	    } else {
-	    	tituAeropuerto = new JLabel("Destino");
-	    }
-	    
-	    panelCampos.add(tituAeropuerto);
-	    panelCampos.add(boxAeropuerto);
-	    
-	    //Aerolinea
-	    panelCampos.add(new JLabel("Aerolinea:"));
-	    JComboBox<Aerolinea> boxAerolinea = new JComboBox<Aerolinea>(aers.toArray(new Aerolinea[0]));
-	    panelCampos.add(boxAerolinea);
-	    
-	    // Fecha y Hora
-	    
-	    //Fecha
-	    panelCampos.add(new JLabel("Fecha:"));
-        
-        // Fecha
-        JDateChooser dateChooser = new JDateChooser();
-        dateChooser.setDateFormatString("dd/MM/yyyy"); // formato de fecha
-        panelCampos.add(dateChooser);
-	    
-	    
-        // Hora
-	    panelCampos.add(new JLabel("Hora:"));
-	    
-	    // Spinner Hora
-	    JSpinner spinnerHora = new JSpinner(new SpinnerDateModel());
-        
-        // Configurar el formato de hora
-        JSpinner.DateEditor editorHora = new JSpinner.DateEditor(spinnerHora, "HH:mm");
-        spinnerHora.setEditor(editorHora);
-        panelCampos.add(spinnerHora);
-	    
-	    // Retraso
-	    panelCampos.add(new JLabel("Retraso (min):"));
-	    JTextField txtRetraso = new JTextField("0");
-	    panelCampos.add(txtRetraso);
-	    
-	    panelFormulario.add(panelCampos, BorderLayout.CENTER);
-	    
-	    // Panel de botones
-	    JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-	    
-	    JButton btnGuardar = new JButton("Guardar");
-	    btnGuardar.setPreferredSize(new Dimension(100, 30));
-	    btnGuardar.addActionListener(ev -> {
-	        // Validar y guardar
-	        if (validarFormulario()) {
-	        	LocalDateTime fechaHora = creadorLDTdeSpinner(dateChooser, spinnerHora);
-	        	
-	        	System.out.println(fechaHora);
-	        	
-	            dialog.dispose(); // Cerrar el diálogo
-	        } else {
-	            JOptionPane.showMessageDialog(dialog, 
-	                "Por favor, completa todos los campos correctamente", 
-	                "Error", 
-	                JOptionPane.ERROR_MESSAGE);
-	        }
-	    });
-	    
-	    JButton btnCancelar = new JButton("Cancelar");
-	    btnCancelar.setPreferredSize(new Dimension(100, 30));
-	    btnCancelar.addActionListener(ev -> dialog.dispose());
-	    
-	    panelBotones.add(btnCancelar);
-	    panelBotones.add(btnGuardar);
-	    
-	    panelFormulario.add(panelBotones, BorderLayout.SOUTH);
-	    
-	    dialog.add(panelFormulario);
-	    dialog.setVisible(true); // Mostrar el diálogo
-	}
-
-	private boolean validarFormulario() {
-	    return true;
-	}
-
-	private void guardarVuelo(String codigo, String origen, String destino, 
-	                         String fecha, String hora, String retraso, boolean esLlegada) {
-	    // Aquí implementas la lógica para crear y guardar el vuelo
-	    System.out.println("Guardando vuelo:");
-	    System.out.println("Código: " + codigo);
-	    System.out.println("Origen: " + origen);
-	    System.out.println("Destino: " + destino);
-	    System.out.println("Fecha: " + fecha);
-	    System.out.println("Hora: " + hora);
-	    System.out.println("Retraso: " + retraso);
-	    
-	    // TODO: Crear objeto Vuelo y añadirlo a la lista
-	    // TODO: Actualizar la tabla
-	}
-	
-	private LocalDateTime creadorLDTdeSpinner(JDateChooser dateChooser, JSpinner sHora) {
-		// Funcion para crear un Local Date Time apartir dos spinners de fecha y de hora
-		LocalDate localDate = dateChooseraLocalDate(dateChooser);
-    	LocalTime localHora = spinnerToLocalTime(sHora);
-    	LocalDateTime fechaHora = LocalDateTime.of(localDate, localHora);
-    	return fechaHora;		
-	}
 	
 	private LocalDate dateChooseraLocalDate(JDateChooser dateChooser) {
 		return dateChooser.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();		
