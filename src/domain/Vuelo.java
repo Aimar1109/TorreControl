@@ -23,7 +23,7 @@ public class Vuelo {
 	private int delayed;
 		
 	// CONSTRUCTOR
-	public Vuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aereolinea, Pista pista,
+	public Vuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aereolinea,
 			PuertaEmbarque puerta, LocalDateTime fechaHoraProgramada, float duracion, Avion avion) {
 		super();
 		if (numero.toString().length() != 4) {
@@ -35,7 +35,7 @@ public class Vuelo {
 		this.origen = origen;
 		this.destino = destino;
 		this.aereolinea = aereolinea;
-		this.pista = pista;
+		this.pista = null;
 		this.puerta = puerta;
 		this.estado = false;
 		this.fechaHoraProgramada = fechaHoraProgramada;

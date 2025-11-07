@@ -21,18 +21,21 @@ public class Main {
         // Generar vuelos de ejemplo
     	AeropuertoGenerador ag = new AeropuertoGenerador();
     	AvionGenerador av = new AvionGenerador();
+    	PuertaGenerador pe = new PuertaGenerador();
     	ArrayList<Aerolinea> aers = generadorAerolinea();
-        ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(50, ag, aers, av);
+        ArrayList<Vuelo> vuelosEjemplo = generarVuelosAleatorios(50, ag, aers, av, pe);
         Set<Aeropuerto> aeroEjemplo = ag.devolverA();
         Set<Avion> avEjemplo = av.devolverA();
         List<Avion> avionesPrueba = crearAvionesPrueba();
+        Set<PuertaEmbarque> puertasEjemplo = pe.devolverP();
         
 
         // Lanzar interfaz con los vuelos
-        SwingUtilities.invokeLater(() -> new JFramePrincipal(vuelosEjemplo, new ArrayList<Aeropuerto>(aeroEjemplo), avionesPrueba, aers, new ArrayList<Avion>(avEjemplo)));
+        SwingUtilities.invokeLater(() -> new JFramePrincipal(vuelosEjemplo, new ArrayList<Aeropuerto>(aeroEjemplo), avionesPrueba,
+        													 aers, new ArrayList<Avion>(avEjemplo), new ArrayList<PuertaEmbarque>(puertasEjemplo)));
     }
 
-    private static ArrayList<Vuelo> generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag, ArrayList<Aerolinea> aer, AvionGenerador av) {
+    private static ArrayList<Vuelo> generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag, ArrayList<Aerolinea> aer, AvionGenerador av, PuertaGenerador pe) {
         ArrayList<Vuelo> vuelos = new ArrayList<>();
         Random random = new Random();
 
@@ -58,6 +61,11 @@ public class Main {
         
         Aeropuerto bilbao = new Aeropuerto("LEBB", "Bilbao Airport", "Bilbao");
         
+        for (int i=1; i<10; i++) {
+        	pe.añadirP(new PuertaEmbarque(false));
+        }
+        
+        ArrayList<PuertaEmbarque> puertas = new ArrayList<PuertaEmbarque>(pe.devolverP());
         
 
         // Queremos aproximadamente la mitad llegadas a BIO y la mitad salidas desde BIO
@@ -133,7 +141,6 @@ public class Main {
 
                 // Pista y puerta: asignadas en Bilbao (destino)
                 pista = new Pista("Pista BIO " + (i % 3 + 1), false);
-                puerta = new PuertaEmbarque("Puerta BIO " + (i % 10 + 1), false);
                 
                 remainingArrivals--;
             } else {
@@ -143,13 +150,12 @@ public class Main {
 
                 // Pista y puerta: asignadas en Bilbao (origen)
                 pista = new Pista("Pista BIO " + (i % 3 + 1), false);
-                puerta = new PuertaEmbarque("Puerta BIO " + (i % 10 + 1), false);
 
                 remainingDepartures--;
             }
 
             Vuelo vuelo = new Vuelo( codigo,  origen,  destino,  aer.get(0),  pista,
-        			 puerta,  estado,  ahora.plusHours(i),  duracion,  avion,
+        			 puertas.get(random.nextInt(puertas.size())),  estado,  ahora.plusHours(i),  duracion,  avion,
         			 emergencia,  pasajeros,  tripulacion,  delayed);
             vuelos.add(vuelo);
         }
@@ -182,6 +188,20 @@ public class Main {
     	}
     	public Set<Avion> devolverA(){
     		return this.aviones;
+    	}
+    }
+    
+    public static class PuertaGenerador {
+    	private Set<PuertaEmbarque> puertas;
+    	
+    	public PuertaGenerador() {
+    		this.puertas = new HashSet<PuertaEmbarque>();
+    	}
+    	public void añadirP(PuertaEmbarque p) {
+    		this.puertas.add(p);
+    	}
+    	public Set<PuertaEmbarque> devolverP(){
+    		return this.puertas;
     	}
     }
     

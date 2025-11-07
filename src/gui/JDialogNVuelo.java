@@ -27,6 +27,8 @@ import com.toedter.calendar.JDateChooser;
 import domain.Aerolinea;
 import domain.Aeropuerto;
 import domain.Avion;
+import domain.Pista;
+import domain.PuertaEmbarque;
 
 public class JDialogNVuelo extends 	JDialog {
 	
@@ -38,8 +40,10 @@ public class JDialogNVuelo extends 	JDialog {
 	private boolean guardado = false;
 	private LocalDateTime fechaHoraSeleccionada;
 	private JComboBox<Avion> boxAvion;
+	private JComboBox<PuertaEmbarque> boxPuerta;
 	
-	public JDialogNVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, JPanel panel, ArrayList<Avion> avs) {
+	public JDialogNVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, JPanel panel, ArrayList<Avion> avs,
+						 ArrayList<PuertaEmbarque> puertas) {
 		this.setTitle(esLlegada ? "Nuevo Vuelo - Llegada" : "Nuevo Vuelo - Salida");
 	    this.setModal(true); // Bloquea la ventana principal hasta que se cierre
 	    this.setSize(400, 400);
@@ -109,6 +113,11 @@ public class JDialogNVuelo extends 	JDialog {
 	    boxAvion = new JComboBox<Avion>(avs.toArray(new Avion[0]));
 	    panelCampos.add(boxAvion);
 	    
+	    // Avion
+	    panelCampos.add(new JLabel("Puerta:"));
+	    boxPuerta = new JComboBox<PuertaEmbarque>(puertas.toArray(new PuertaEmbarque[0]));
+	    panelCampos.add(boxPuerta);
+	    
 	    
 	    // Panel de botones
 	    JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
@@ -149,16 +158,9 @@ public class JDialogNVuelo extends 	JDialog {
 	    return true;
 	}
 	
-	private void guardarVuelo(String codigo, String origen, String destino, 
-			String fecha, String hora, String retraso, boolean esLlegada) {
-		// Aquí implementas la lógica para crear y guardar el vuelo
-		System.out.println("Guardando vuelo:");
-		System.out.println("Código: " + codigo);
-		System.out.println("Origen: " + origen);
-		System.out.println("Destino: " + destino);
-		System.out.println("Fecha: " + fecha);
-		System.out.println("Hora: " + hora);
-		System.out.println("Retraso: " + retraso);
+	private void guardarVuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aereolinea, Pista pista,
+			PuertaEmbarque puerta, LocalDateTime fechaHoraProgramada, float duracion, Avion avion) {
+			
 		}
 	
 	private LocalDateTime creadorLDTdeSpinner(JDateChooser dateChooser, JSpinner sHora) {

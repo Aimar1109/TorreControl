@@ -1,29 +1,53 @@
 package domain;
 
-public class PuertaEmbarque {
+import java.util.Objects;
 
-    
-    private String numero;
+public class PuertaEmbarque {
+	
+	public static int contador = 1;
+	
+	private String codigo;
+    private Integer numero;
     private boolean ocupada;
     
-    public PuertaEmbarque(String numero, boolean ocupada) {
-        this.numero = numero;
+    public PuertaEmbarque(boolean ocupada) {
+
+    	this.numero = contador++;
+    	this.codigo = "BIO" + this.numero;
         this.ocupada = ocupada;
     }
+
+	public String getCodigo() {
+		return codigo;
+	}
+
+	public Integer getNumero() {
+		return numero;
+	}
+	
+	public boolean isOcupada() {
+		return ocupada;
+	}
+
+	public void setOcupada(boolean ocupada) {
+		this.ocupada = ocupada;
+	}
     
-    public String getNumero() {
-        return numero;
+    @Override
+    public String toString() {
+    	return codigo;
     }
     
-    public void setNumero(String numero) {
-        this.numero = numero;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PuertaEmbarque that = (PuertaEmbarque) o;
+        return codigo.equals(that.codigo); // La igualdad se basa solo en el código
     }
     
-    public boolean isOcupada() {
-        return ocupada;
-    }
-    
-    public void setOcupada(boolean ocupada) {
-        this.ocupada = ocupada;
+    @Override
+    public int hashCode() {
+        return Objects.hash(codigo);
     }
 }
