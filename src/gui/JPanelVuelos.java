@@ -22,7 +22,9 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -37,6 +39,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.RowSorter;
+import javax.swing.SortOrder;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
@@ -44,6 +48,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableRowSorter;
+import javax.swing.table.TableModel;
 
 import com.toedter.calendar.JDateChooser;
 
@@ -240,7 +246,16 @@ public class JPanelVuelos extends JPanel {
         String ae = esLlegada ? "ORIGEN": "DESTINO";
         String[] columnas = {"VUELO", ae, "FECHA", "HORA", "RETRASO"};
          
-        DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
+        DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
+        	@Override
+            public Class<?> getColumnClass(int columnIndex) { //IAG
+                // Importante para que el sorter sepa qué tipo de dato es
+                if (columnIndex == 2) return LocalDate.class;
+                if (columnIndex == 3) return LocalTime.class;
+                return String.class;
+            }
+        };
+        
         JTable tabla = new JTable(modelo);
         tabla.setFillsViewportHeight(true);
 		
@@ -261,9 +276,20 @@ public class JPanelVuelos extends JPanel {
         	});
         }
         
-        for (int i=0; i<tabla.getColumnCount(); i++) {
-        	tabla.getColumnModel().getColumn(i).setMinWidth(80);
-        }
+        // Creamos el sorter -- IAG
+        TableRowSorter<TableModel> sorter = new TableRowSorter<>(modelo);
+        tabla.setRowSorter(sorter);
+
+        // Comparadores personalizados para cada columna
+        sorter.setComparator(2, Comparator.naturalOrder()); // Fecha
+        sorter.setComparator(3, Comparator.naturalOrder()); // Hora
+
+        // Ordenar automáticamente por fecha (columna 0) y luego por hora (columna 1)
+        List<RowSorter.SortKey> clavesOrden = new ArrayList<>();
+        clavesOrden.add(new RowSorter.SortKey(2, SortOrder.ASCENDING)); // Fecha ascendente
+        clavesOrden.add(new RowSorter.SortKey(3, SortOrder.ASCENDING)); // Hora ascendente
+        sorter.setSortKeys(clavesOrden);
+        sorter.sort(); // ¡Ordena automáticamente!
         
         // Tamaño minimo de las columnas
         int anchoMinimoTotal = 80*tabla.getModel().getColumnCount();
