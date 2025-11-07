@@ -37,10 +37,28 @@ public class Main {
         Random random = new Random();
 
         // Ciudades disponibles (incluye BIO en la lista si quieres, pero lo gestionamos a parte)
-        String[] otrasCiudades = {"Madrid", "Barcelona", "Valencia", "Sevilla", "Málaga", "Palma", "Lisboa", "París", "Londres"};
+        String[] nombresAeropuertos = {"John F. Kennedy International Airport", "Los Angeles International Airport", "Heathrow Airport", //IAG
+        							   "Charles de Gaulle Airport", "Tokyo Haneda Airport", "Dubai International Airport", "Frankfurt Airport", //IAG
+        							   "Sydney Kingsford Smith Airport", "Toronto Pearson International Airport", "Adolfo Suárez Madrid-Barajas Airport"}; //IAG
+        String[] ciudades = {"New York", "Los Angeles", "London", "Paris", "Tokyo", "Dubai", "Frankfurt", "Sydney", "Toronto", "Madrid"}; //IAG
+        String[] codigosAeropuertos = {"KJFK", "KLAX", "EGLL", "LFPG", "RJTT", "OMDB", "EDDF", "YSSY", "CYYZ", "LEMD"}; //IAG
         String[] nombres = {"Juan", "María", "Carlos", "Ana", "Pedro", "Laura", "José", "Carmen", "Miguel", "Isabel"};
         String[] apellidos = {"García", "Rodríguez", "González", "Fernández", "López", "Martínez", "Sánchez", "Pérez", "Ruiz", "Díaz"};
         String[] modelos = {"Boeing 737", "Airbus A320", "Boeing 787", "Airbus A350"};
+        
+        for(int i=0; i<nombresAeropuertos.length; i++) {
+        	String codigo = codigosAeropuertos[i];
+        	String nombre = nombresAeropuertos[i];
+        	String ciudad = ciudades[i];
+        	Aeropuerto aeropuerto = new Aeropuerto(codigo, nombre, ciudad);
+        	ag.añadirA(aeropuerto);
+        }
+        
+        ArrayList<Aeropuerto> aeropuertos = new ArrayList<Aeropuerto>(ag.devolverA());
+        
+        Aeropuerto bilbao = new Aeropuerto("LEBB", "Bilbao Airport", "Bilbao");
+        
+        
 
         // Queremos aproximadamente la mitad llegadas a BIO y la mitad salidas desde BIO
         int targetArrivalsToBIO = cantidad / 2;
@@ -109,27 +127,24 @@ public class Main {
 
             if (makeArrivalToBIO) {
                 // Vuelo que LLEGA a BIO: origen = otra ciudad, destino = BIO
-                String ciudadOrigen = otrasCiudades[random.nextInt(otrasCiudades.length)];
-                origen = new Aeropuerto("AER" + random.nextInt(100), "Aeropuerto " + ciudadOrigen, ciudadOrigen);
-                destino = new Aeropuerto("BIO", "Aeropuerto de Bilbao", "Bilbao");
+                
+                origen = aeropuertos.get(random.nextInt(aeropuertos.size()));
+                destino = bilbao;
 
                 // Pista y puerta: asignadas en Bilbao (destino)
                 pista = new Pista("Pista BIO " + (i % 3 + 1), false);
                 puerta = new PuertaEmbarque("Puerta BIO " + (i % 10 + 1), false);
                 
-                ag.añadirA(origen);
                 remainingArrivals--;
             } else {
                 // Vuelo que SALE desde BIO: origen = BIO, destino = otra ciudad
-                origen = new Aeropuerto("BIO", "Aeropuerto de Bilbao", "Bilbao");
-                String ciudadDestino = otrasCiudades[random.nextInt(otrasCiudades.length)];
-                destino = new Aeropuerto("AER" + random.nextInt(100), "Aeropuerto " + ciudadDestino, ciudadDestino);
+                origen = bilbao;
+                destino = aeropuertos.get(random.nextInt(aeropuertos.size()));
 
                 // Pista y puerta: asignadas en Bilbao (origen)
                 pista = new Pista("Pista BIO " + (i % 3 + 1), false);
                 puerta = new PuertaEmbarque("Puerta BIO " + (i % 10 + 1), false);
-                
-                ag.añadirA(destino);
+
                 remainingDepartures--;
             }
 

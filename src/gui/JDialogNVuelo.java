@@ -42,7 +42,7 @@ public class JDialogNVuelo extends 	JDialog {
 	public JDialogNVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, JPanel panel, ArrayList<Avion> avs) {
 		this.setTitle(esLlegada ? "Nuevo Vuelo - Llegada" : "Nuevo Vuelo - Salida");
 	    this.setModal(true); // Bloquea la ventana principal hasta que se cierre
-	    this.setSize(400, 600);
+	    this.setSize(400, 400);
 	    this.setLocationRelativeTo(panel);
 	    
 	 // Panel principal del diálogo
