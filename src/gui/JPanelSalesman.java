@@ -224,7 +224,13 @@ public class JPanelSalesman extends JPanel {
         // -----------------
         // TABLA VUELOS
         String[] columnasVuelos = {"Estado", "Código", "Origen", "Destino", "Duración", "Delayed"};
-        modeloVuelos = new DefaultTableModel(columnasVuelos, 0);
+        modeloVuelos = new DefaultTableModel(columnasVuelos, 0) {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tablaVuelos.setModel(modeloVuelos);
         
         tablaVuelos.setBorder(null);
@@ -258,7 +264,13 @@ public class JPanelSalesman extends JPanel {
         
         // -----------------
         // TABLA DINÁMICA (inicialmente vacía)
-        modeloDinamico = new DefaultTableModel();
+        modeloDinamico = new DefaultTableModel(){
+            private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tablaDinamica.setModel(modeloDinamico);
         tablaDinamica.getTableHeader().setReorderingAllowed(false);
         tablaDinamica.getTableHeader().setResizingAllowed(false);
