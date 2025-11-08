@@ -1,11 +1,14 @@
 package gui;
 
 import domain.Avion;
+import domain.Pista;
 import domain.Vuelo;
 
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.*;
@@ -21,6 +24,10 @@ public class JPanelPrincipal extends JPanel {
 	private DefaultListModel<Vuelo> modeloVuelosCercanos;
 	private DefaultListModel<Vuelo> modeloVuelosPista1;
 	private DefaultListModel<Vuelo> modeloVuelosPista2;
+
+	//Pistas
+	private Pista pista1 = new Pista("1", true);
+	private Pista pista2 = new Pista("2", true);
 
 
 	public JPanelPrincipal(ArrayList<Vuelo> vuelos) {
@@ -80,6 +87,10 @@ public class JPanelPrincipal extends JPanel {
 		configuraciónDraglistaVuelosCercanos();
 		configuraciónDraglistaVuelos1();
 		configuraciónDraglistaVuelos2();
+		asignarPorTeclado();
+		efectoHover(listaVuelosCercanos);
+		efectoHover(listaVuelosPista1);
+		efectoHover(listaVuelosPista2);
 	}
 
 	private JPanel crearPanelListaOrigen(String titulo, List<Vuelo> vuelos) {
@@ -92,6 +103,7 @@ public class JPanelPrincipal extends JPanel {
 		}
 
 		listaVuelosCercanos = new JList<>(modeloVuelosCercanos);
+		listaVuelosCercanos.setName("Vuelos Cercanos");
 		listaVuelosCercanos.setCellRenderer(new VueloListRenderer());
 		listaVuelosCercanos.setFixedCellHeight(60);
 
@@ -107,6 +119,7 @@ public class JPanelPrincipal extends JPanel {
 
 		modeloVuelosPista1 = new DefaultListModel<>();
 		listaVuelosPista1 = new JList<>(modeloVuelosPista1);
+		listaVuelosPista1.setName("Pista 1");
 		listaVuelosPista1.setCellRenderer(new VueloListRenderer());
 		listaVuelosPista1.setFixedCellHeight(60);
 
@@ -122,6 +135,7 @@ public class JPanelPrincipal extends JPanel {
 
 		modeloVuelosPista2 = new DefaultListModel<>();
 		listaVuelosPista2 = new JList<>(modeloVuelosPista2);
+		listaVuelosPista2.setName("Pista 2");
 		listaVuelosPista2.setCellRenderer(new VueloListRenderer());
 		listaVuelosPista2.setFixedCellHeight(60);
 
@@ -136,7 +150,7 @@ public class JPanelPrincipal extends JPanel {
 		destinos.add(listaVuelosPista1);
 		destinos.add(listaVuelosPista2);
 
-		PistasDragListener listener = new PistasDragListener(listaVuelosCercanos, destinos);
+		PistasDragListener listener = new PistasDragListener(listaVuelosCercanos, destinos, pista1, pista2);
 
 		listaVuelosCercanos.addMouseListener(listener);
 		listaVuelosCercanos.addMouseMotionListener(listener);
@@ -147,7 +161,7 @@ public class JPanelPrincipal extends JPanel {
 		destinos.add(listaVuelosCercanos);
 		destinos.add(listaVuelosPista2);
 
-		PistasDragListener listener = new PistasDragListener(listaVuelosPista1, destinos);
+		PistasDragListener listener = new PistasDragListener(listaVuelosPista1, destinos, pista1, pista2);
 
 		listaVuelosPista1.addMouseListener(listener);
 		listaVuelosPista1.addMouseMotionListener(listener);
@@ -158,7 +172,7 @@ public class JPanelPrincipal extends JPanel {
 		destinos.add(listaVuelosPista1);
 		destinos.add(listaVuelosCercanos);
 
-		PistasDragListener listener = new PistasDragListener(listaVuelosPista2, destinos);
+		PistasDragListener listener = new PistasDragListener(listaVuelosPista2, destinos, pista1, pista2);
 
 		listaVuelosPista2.addMouseListener(listener);
 		listaVuelosPista2.addMouseMotionListener(listener);
@@ -167,26 +181,74 @@ public class JPanelPrincipal extends JPanel {
 	public MapPanel getMapa() {
 		return mapa;
 	}
-	
-	private void estilizarBotonToggle(JToggleButton boton) {
-		boton.setFont(new Font("Arial", Font.BOLD, 12));
-		boton.setFocusPainted(false);
-		boton.setBorderPainted(true);
-		boton.setBackground(new Color(240, 240, 240));
-		boton.setForeground(Color.BLACK);
-		boton.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(new Color(180, 180, 180), 1),
-			BorderFactory.createEmptyBorder(8, 15, 8, 15)
-		));
 
-		// Cambiar apariencia cuando está seleccionado
-		boton.addItemListener(e -> {
-			if (boton.isSelected()) {
-				boton.setBackground(new Color(70, 130, 180)); // Azul
-				boton.setForeground(Color.WHITE);
-			} else {
-				boton.setBackground(new Color(240, 240, 240));
-				boton.setForeground(Color.BLACK);
+	private void asignarPorTeclado() {
+		this.setFocusable(true);
+
+		this.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_P) {
+					abrirDialogoAsinacion();
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				super.keyReleased(e);
+			}
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+				super.keyTyped(e);
+			}
+		});
+
+		//IAG (herramienta: Claude)
+		this.addMouseListener(new java.awt.event.MouseAdapter() {
+			@Override
+			public void mouseClicked(java.awt.event.MouseEvent e) {
+				requestFocusInWindow();
+			}
+		});
+	}
+	
+	private void abrirDialogoAsinacion() {
+		Frame parent = (Frame) SwingUtilities.getWindowAncestor(this);
+		ArrayList<Vuelo> listaVuelosCercanos = new ArrayList<>();
+		for (int i = 0; i < modeloVuelosCercanos.size(); i++) {
+			Vuelo vuelo = modeloVuelosCercanos.get(i);
+			listaVuelosCercanos.add(vuelo);
+		}
+
+		DialogoAsignarPista dialogo = new DialogoAsignarPista(parent, listaVuelosCercanos, modeloVuelosPista1, modeloVuelosPista2, pista1, pista2);
+		dialogo.setVisible(true);
+
+		this.revalidate();
+		this.repaint();
+	}
+
+	private void efectoHover(JList<Vuelo> lista) {
+		lista.addMouseMotionListener(new MouseMotionAdapter() {
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				Point punto = e.getPoint();
+				int index = lista.locationToIndex(punto);
+				if (index != -1) {
+					lista.setSelectedIndex(index);
+				}
+			}
+
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				//No necesario
+			}
+		});
+
+		lista.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseExited(MouseEvent e) {
+				lista.clearSelection();
 			}
 		});
 	}

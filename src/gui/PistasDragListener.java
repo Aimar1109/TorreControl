@@ -1,6 +1,7 @@
 package gui;
 
 import domain.ComparadorFechaVuelos;
+import domain.Pista;
 import domain.Vuelo;
 
 import javax.swing.*;
@@ -30,22 +31,30 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
     private JLabel labelCodigo;
     private JLabel labelRuta;
 
+    //Pistas
+    private Pista pista1;
+    private Pista pista2;
+
     //Constructor una única lista destino
-    public PistasDragListener(JList<Vuelo> listaOrigen, JList<Vuelo> listaDestino) {
+    public PistasDragListener(JList<Vuelo> listaOrigen, JList<Vuelo> listaDestino, Pista pista1, Pista pista2) {
         this.listaOrigen = listaOrigen;
         this.listasDestino = new ArrayList<>();
         this.listasDestino.add(listaDestino);
         this.ventanaPrincipal = ventanaPrincipal;
+        this.pista1 = pista1;
+        this.pista2 = pista2;
 
         inicializarVentanaFlotante();
         inicializarTimer();
     }
 
     //Constructor multiples listas destino
-    public PistasDragListener(JList<Vuelo> listaOrigen, List<JList<Vuelo>> listasDestino) {
+    public PistasDragListener(JList<Vuelo> listaOrigen, List<JList<Vuelo>> listasDestino, Pista pista1, Pista pista2) {
         this.listaOrigen = listaOrigen;
         this.listasDestino = listasDestino;
         this.ventanaPrincipal = ventanaPrincipal;
+        this.pista1 = pista1;
+        this.pista2 = pista2;
 
         inicializarVentanaFlotante();
         inicializarTimer();
@@ -138,6 +147,15 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
 
                     //Si esta en la lista destino se actua
                     if (listaDestino.contains(puntoRelativo)) {
+                        //Asigno la pista al vuelo
+                        if (listaDestino.getName().equals("Pista 1")) {
+                            vueloArrastrado.setPista(pista1);
+                        } else if (listaDestino.getName().equals("Pista 2")) {
+                            vueloArrastrado.setPista(pista2);
+                        } else {
+                            vueloArrastrado.setPista(null);
+                        }
+
                         DefaultListModel<Vuelo> modeloOrigen = (DefaultListModel<Vuelo>) this.listaOrigen.getModel();
                         DefaultListModel<Vuelo> modeloDestino = (DefaultListModel<Vuelo>) listaDestino.getModel();
 
