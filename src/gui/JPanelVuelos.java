@@ -340,6 +340,12 @@ public class JPanelVuelos extends JPanel {
         		LocalDateTime fechaHora = v.getFechaHoraProgramada();
         
         		boolean coincide = true;
+        		if (esLlegada && v.getOrigen().getCiudad().equals("Bilbao")) {
+        			coincide = false;
+        		}
+        		if (!esLlegada && v.getDestino().getCiudad().equals("Bilbao")) {
+        			coincide = false;
+        		}
         		if (!filtroVueloC.isBlank() && !v.getCodigo().contains(filtroVueloC)) {
         			coincide = false;
         		}
