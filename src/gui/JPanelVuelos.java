@@ -64,6 +64,18 @@ public class JPanelVuelos extends JPanel {
 	
 	private static final long serialVersionUID = 1L;
 	
+	// Paleta de colores moderna
+	private static final Color COLOR_PRIMARIO = new Color(41, 128, 185);      // Azul profesional
+	private static final Color COLOR_SECUNDARIO = new Color(52, 73, 94);      // Azul oscuro
+	private static final Color COLOR_FONDO = new Color(236, 240, 241);        // Gris claro
+	private static final Color COLOR_BLANCO = Color.WHITE;
+	private static final Color COLOR_TEXTO = new Color(44, 62, 80);           // Gris oscuro
+	private static final Color COLOR_TEXTO_SUAVE = new Color(127, 140, 141);  // Gris medio
+	private static final Color COLOR_ACENTO = new Color(230, 126, 34);        // Naranja
+	private static final Color COLOR_EXITO = new Color(39, 174, 96);          // Verde
+	private static final Color COLOR_HOVER = new Color(52, 152, 219);         // Azul claro
+	private static final Color COLOR_FILA_ALT = new Color(250, 250, 250);     // Blanco alternado
+	
 	private ArrayList<Vuelo> vuelos;
 	private JDialogNVuelo dialogNVuelo;
 	private JPanel panelVuelos = this;
@@ -117,6 +129,7 @@ public class JPanelVuelos extends JPanel {
 		// Panel Central
 		JPanel panelCentral = new JPanel(new GridLayout(1, 2, 5, 5));
 		panelCentral.setBorder(new EmptyBorder(10, 30, 30, 30));
+		panelCentral.setBackground(COLOR_FONDO);
 		
 		// crear tablas
 		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", vuelos, true, aeropuertos, aers, avs, puertas, vg);
@@ -151,12 +164,14 @@ public class JPanelVuelos extends JPanel {
 					result.setHorizontalAlignment(JLabel.LEFT);
 			}
 			
-			result.setBackground(table.getBackground());
-			result.setForeground(table.getForeground());
-			
+			result.setBackground(COLOR_SECUNDARIO);
+			result.setForeground(COLOR_BLANCO);
 			result.setOpaque(true);
-			
-			result.setFont(new Font("Arial", Font.BOLD, 14));
+			result.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			result.setBorder(BorderFactory.createCompoundBorder(
+				result.getBorder(),
+				BorderFactory.createEmptyBorder(8, 5, 8, 5)
+			));
 			
 			return result;
 		};
@@ -167,9 +182,24 @@ public class JPanelVuelos extends JPanel {
 			
 			if (column == 0 || column == 2 || column == 3) {
 				result.setHorizontalAlignment(JLabel.CENTER);
+			} else {
+				result.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0));
 			}
 			
 			result.setFont(new Font("Arial", Font.PLAIN, 12));
+			result.setForeground(COLOR_TEXTO);
+			
+			if (row % 2 == 0) {
+				result.setBackground(COLOR_BLANCO);
+			} else {
+				result.setBackground(COLOR_FILA_ALT);
+			}
+			
+			result.setOpaque(true);
+			result.setBorder(BorderFactory.createCompoundBorder(
+				result.getBorder(),
+				BorderFactory.createEmptyBorder(5, 5, 5, 5)
+			));
 			
 			return result;
 		};	
@@ -177,17 +207,26 @@ public class JPanelVuelos extends JPanel {
 		
 		//Panel de la tabla
 		JPanel mainPanel = new JPanel(new BorderLayout());
+		mainPanel.setBackground(COLOR_BLANCO);
+		mainPanel.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+				BorderFactory.createEmptyBorder(0, 0, 0, 0)
+				));
 	     
         // Panel superior de la tabla
 		JPanel tablaPSuperior = new JPanel(new BorderLayout());
+		tablaPSuperior.setBackground(COLOR_BLANCO);
 		
 		// JPanel para titulos y imagenes parte de arriba
 		JPanel panelSdeTPS = new JPanel(new BorderLayout());
+		panelSdeTPS.setBackground(COLOR_BLANCO);
+		panelSdeTPS.setBorder(BorderFactory.createEmptyBorder(15, 15, 10, 15));
 		
 		// Titulo Parte Izquierda
         JLabel tituT = new JLabel(titulo, SwingConstants.LEFT);
         tituT.setFont(new Font("Arial", Font.BOLD, 24));
         tituT.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        tituT.setForeground(COLOR_SECUNDARIO);
         
         panelSdeTPS.add(tituT, BorderLayout.WEST);
         
@@ -195,44 +234,84 @@ public class JPanelVuelos extends JPanel {
         JPanel panelFiltros = new JPanel(new GridLayout(1, 4, 10, 10));
         panelFiltros.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         panelFiltros.setVisible(false);
+        panelFiltros.setBackground(COLOR_BLANCO);
         
         // Campos filtro
         
         // Filtro vuelo
         JTextField txtFiltroVuelo = new JTextField();
-        txtFiltroVuelo.setBorder(BorderFactory.createTitledBorder("VUELO"));
+        estilizarTextField(txtFiltroVuelo);
+        txtFiltroVuelo.setBorder(BorderFactory.createTitledBorder( //IAG
+        	BorderFactory.createLineBorder(COLOR_PRIMARIO, 1),
+        	"VUELO",
+        	0,
+        	0,
+        	new Font("Segoe UI", Font.BOLD, 10),
+        	COLOR_TEXTO_SUAVE
+        ));
         panelFiltros.add(txtFiltroVuelo);
         
         // Filtro para Destino/Origen
-        JTextField txtFiltroDO = new JTextField(); // Luego sera JCombobox
+        JTextField txtFiltroDO = new JTextField();
+        estilizarTextField(txtFiltroDO);
         String tituloFDO = esLlegada ? "ORIGEN": "DESTINO";
-        txtFiltroDO.setBorder(BorderFactory.createTitledBorder(tituloFDO));
+        txtFiltroDO.setBorder(BorderFactory.createTitledBorder(
+        	BorderFactory.createLineBorder(COLOR_PRIMARIO, 1),
+        	tituloFDO,
+        	0,
+        	0,
+        	new Font("Segoe UI", Font.BOLD, 10),
+        	COLOR_TEXTO_SUAVE
+        ));
         panelFiltros.add(txtFiltroDO);
         
         // Filtro Fecha
         JPanel panelFecha = new JPanel(new BorderLayout());
+        panelFecha.setBackground(COLOR_BLANCO);
+        panelFecha.setBorder(BorderFactory.createTitledBorder(
+        	BorderFactory.createLineBorder(COLOR_PRIMARIO, 1),
+        	"FECHA",
+        	0,
+        	0,
+        	new Font("Segoe UI", Font.BOLD, 10),
+        	COLOR_TEXTO_SUAVE
+        ));
         // JDateChooser para fecha
         JDateChooser dateChooserFiltro = new JDateChooser();
         dateChooserFiltro.setDateFormatString("dd/MM/yyyy"); // formato de fecha
         panelFecha.add(dateChooserFiltro, BorderLayout.CENTER);
+        dateChooserFiltro.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         // Boton para borrar
         ImageIcon xIcon = new ImageIcon("resources\\img\\x.png");
         Image xImg = xIcon.getImage().getScaledInstance(15, 15, Image.SCALE_SMOOTH);
         JLabel xLabel = new JLabel(new ImageIcon(xImg));
+        xLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR)); // IAG
         panelFecha.add(xLabel, BorderLayout.EAST);
         panelFiltros.add(panelFecha);
         
         // Filtro Hora
         JPanel panelHora = new JPanel(new BorderLayout());
+        panelHora.setBackground(COLOR_BLANCO);
+        panelHora.setBorder(BorderFactory.createTitledBorder(
+        	BorderFactory.createLineBorder(COLOR_PRIMARIO, 1),
+        	"HORA",
+        	0,
+        	0,
+        	new Font("Segoe UI", Font.BOLD, 10),
+        	COLOR_TEXTO_SUAVE
+        ));
         // CheckBox para hora
         JCheckBox chkFiltroHora = new JCheckBox();
-        chkFiltroHora.setFont(new Font("Arial", Font.BOLD, 10));
+        chkFiltroHora.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        chkFiltroHora.setBackground(COLOR_BLANCO);
         panelHora.add(chkFiltroHora, BorderLayout.WEST);
+        chkFiltroHora.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         // Spinner para la hora
         JSpinner spinnerFiltroHora = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor editorFiltroHora = new JSpinner.DateEditor(spinnerFiltroHora, "HH:mm");
         spinnerFiltroHora.setEditor(editorFiltroHora);
         spinnerFiltroHora.setEnabled(false);
+        spinnerFiltroHora.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         
         chkFiltroHora.addActionListener(e -> {
         	spinnerFiltroHora.setEnabled(chkFiltroHora.isSelected());
@@ -258,6 +337,12 @@ public class JPanelVuelos extends JPanel {
         
         JTable tabla = new JTable(modelo);
         tabla.setFillsViewportHeight(true);
+        tabla.setShowGrid(false);
+        tabla.setIntercellSpacing(new Dimension(0, 0));
+        tabla.setBackground(COLOR_BLANCO);
+        tabla.setSelectionBackground(COLOR_HOVER);
+        tabla.setSelectionForeground(COLOR_BLANCO);
+        tabla.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		
         
         for(Vuelo v: vuelos) {
@@ -299,6 +384,8 @@ public class JPanelVuelos extends JPanel {
         JScrollPane scrollTabla = new JScrollPane(tabla);
         scrollTabla.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollTabla.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollTabla.setBorder(BorderFactory.createEmptyBorder());
+        scrollTabla.getViewport().setBackground(COLOR_BLANCO);
         
         // Ponerle un component listener a la tabla para que salga el scroll cuando la tabla no entre
         scrollTabla.addComponentListener(new ComponentAdapter() {
@@ -318,6 +405,7 @@ public class JPanelVuelos extends JPanel {
         
         // Imagenes Parte Derecha
         JPanel panelDerecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
+        panelDerecha.setBackground(COLOR_BLANCO);
         
         // cargar imagenes
         ImageIcon lupaIcon = new ImageIcon("resources\\img\\lupa.png");
@@ -336,7 +424,6 @@ public class JPanelVuelos extends JPanel {
         	// Filtrar y agregar filar
         	for(Vuelo v: vuelos) {
         		String ciudad = (esLlegada ? v.getOrigen().getCiudad() : v.getDestino().getCiudad());
-        		String codigo = v.getCodigo();
         		LocalDateTime fechaHora = v.getFechaHoraProgramada();
         
         		boolean coincide = true;
@@ -408,6 +495,8 @@ public class JPanelVuelos extends JPanel {
         
         // Lupa Label
         JLabel lupaLabel = new JLabel(new ImageIcon(lupaImg));
+        lupaLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        lupaLabel.setToolTipText("Filtrar vuelos");
         // Añadiendo un mouse listener para filtrar
         lupaLabel.addMouseListener(new MouseAdapter() {
         	
@@ -428,16 +517,38 @@ public class JPanelVuelos extends JPanel {
                 mainPanel.revalidate();
                 mainPanel.repaint();
         	}
+        	@Override
+        	public void mouseEntered(MouseEvent e) {
+        		lupaLabel.setOpaque(true);
+        		lupaLabel.setBackground(COLOR_FONDO);
+        	}
+        	
+        	@Override
+        	public void mouseExited(MouseEvent e) {
+        		lupaLabel.setOpaque(false);
+        	}
         });
         
         // Plus Label
         JLabel plusLabel = new JLabel(new ImageIcon(plusImg));
+        plusLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        plusLabel.setToolTipText("Crear nuevo vuelo");
         // Añadiendo un mouse listener para Crear Vuelos
         plusLabel.addMouseListener(new MouseAdapter() {
         	
         	@Override
         	public void mouseClicked(MouseEvent e) {
         		dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos, avs, puertas, vg, modelo);
+        	}
+        	@Override
+        	public void mouseEntered(MouseEvent e) {
+        		plusLabel.setOpaque(true);
+        		plusLabel.setBackground(COLOR_FONDO);
+        	}
+        	
+        	@Override
+        	public void mouseExited(MouseEvent e) {
+        		plusLabel.setOpaque(false);
         	}
         });
         
@@ -488,4 +599,12 @@ public class JPanelVuelos extends JPanel {
 	private LocalTime spinnerToLocalTime(JSpinner sHora) {
 		return ((((Date) sHora.getValue()).toInstant()).atZone(java.time.ZoneId.systemDefault())).toLocalTime().withSecond(0).withNano(0);
 	}
+	
+	// Método auxiliar para estilizar TextFields
+		private void estilizarTextField(JTextField textField) { //IAG
+			textField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+			textField.setForeground(COLOR_TEXTO);
+			textField.setBackground(COLOR_BLANCO);
+			textField.setCaretColor(COLOR_PRIMARIO);
+		}	
 }
