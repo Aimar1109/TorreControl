@@ -5,6 +5,9 @@ import domain.Clima;
 import javax.swing.*;
 import java.awt.*;
 import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
+import java.awt.event.MouseEvent;
 
 public class GraficoPrecipitacion extends JPanel{
 
@@ -13,6 +16,8 @@ public class GraficoPrecipitacion extends JPanel{
 	// --- Datos del Gráfico ---
     private LinkedList<Clima> datosClima;
     private int horaBase;
+    
+    private List<Rectangle> areasBarras;
     
  // --- Márgenes ---
     private final int MARGEN = 30; // Margen alrededor del gráfico
@@ -28,6 +33,9 @@ public class GraficoPrecipitacion extends JPanel{
     public GraficoPrecipitacion() {
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY)); 
+        this.areasBarras = new ArrayList<>();
+        
+        ToolTipManager.sharedInstance().registerComponent(this);
     }
     
     public void setDatos(LinkedList<Clima> datosClima, int horaActual) {
@@ -78,6 +86,7 @@ public class GraficoPrecipitacion extends JPanel{
 
         g2d.setFont(new Font("Arial", Font.BOLD, 12));
         g2d.setColor(COLOR_BARRA_PRECIP);
+        areasBarras.clear();
 
         for (int i = 0; i < NUM_HORAS_A_MOSTRAR; i++) {
             Clima clima = datosClima.get(i);
@@ -92,6 +101,7 @@ public class GraficoPrecipitacion extends JPanel{
             
             // Dibujar la barra
             g2d.fillRect(xBarra, yBarra, ANCHO_BARRA_PX, alturaBarra);
+            areasBarras.add(new Rectangle(xBarra, yBarra, ANCHO_BARRA_PX, alturaBarra));
 
             // Etiqueta de la hora
             g2d.setColor(COLOR_TEXTO);
@@ -99,5 +109,17 @@ public class GraficoPrecipitacion extends JPanel{
             g2d.drawString(etiquetaHora, xCentro - 15, y0 + altoDibujo + 20); // Posición debajo del gráfico
             g2d.setColor(COLOR_BARRA_PRECIP);
         }
+    }
+    
+    public String getToolTipText(MouseEvent event) {
+        Point p = event.getPoint();
+
+        for (int i = 0; i < areasBarras.size(); i++) {
+            if (areasBarras.get(i).contains(p)) {
+                int probabilidad = datosClima.get(i).getProbabilidadPrecipitacion();
+                return "Probabilidad: " + probabilidad + "%"; // Esto es lo que se mostrará
+            }
+        }
+        return null; // Si no está sobre ninguna barra, no muestra nada
     }
 }

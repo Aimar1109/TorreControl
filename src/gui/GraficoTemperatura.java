@@ -5,14 +5,27 @@ import domain.Clima;
 import javax.swing.*;
 import java.awt.*;
 import java.util.LinkedList;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GraficoTemperatura extends JPanel{
 	
 	private static final long serialVersionUID = 1L;
 	
+	public interface OnHoverListener {
+		void onPuntoHover(Clima climaHovered, int indiceOffset); // Se llama cuando el ratón se pone sobre un punto
+		void onPuntoExit(); // Se llama cuando el ratón se quita del punto
+	}
+	
 	// --- Datos del Gráfico ---
     private LinkedList<Clima> datosClima; // La lista de 6 pronósticos
     private int horaBase; // La hora actual para etiquetar el eje X correctamente
+    
+    private OnHoverListener hoverListener;
+    private List<Point> puntosGraficados;
+    private int ultimoIndiceHovered = -1;
     
     // --- Márgenes y Escala ---
     private final int MARGEN = 30; // Margen alrededor del gráfico
@@ -34,13 +47,53 @@ public class GraficoTemperatura extends JPanel{
         // Establecemos un color de fondo por defecto
         setBackground(Color.WHITE);
         // Borde para diferenciarlo visualmente en el layout principal
-        setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY)); 
+        setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        this.puntosGraficados= new ArrayList<>();        
+        // --- Detector de movimiento del ratón ---
+        addMouseMotionListener(new MouseMotionAdapter() {
+        	@Override
+            public void mouseMoved(MouseEvent e) {
+                chequearHover(e.getPoint());
+            }
+        });
+    }
+    
+    public void setHoverListener(OnHoverListener listener) {
+    	this.hoverListener = listener;
     }
     
     public void setDatos(LinkedList<Clima> datosClima, int horaActual) {
         this.datosClima = datosClima;
         this.horaBase = horaActual;
         repaint(); // Vuelve a pintar el componente con los nuevos datos
+    }
+    
+    private void chequearHover(Point mousePoint) {
+        if (puntosGraficados.isEmpty() || hoverListener == null) return;
+
+        int radioSensible = 15; // Distancia en píxeles para activar el hover
+        int indiceEncontrado = -1;
+
+        for (int i = 0; i < puntosGraficados.size(); i++) {
+            if (mousePoint.distance(puntosGraficados.get(i)) <= radioSensible) {
+                indiceEncontrado = i;
+                break;
+            }
+        }
+
+        // Si el estado ha cambiado, avisamos al listener
+        if (indiceEncontrado != ultimoIndiceHovered) {
+            if (indiceEncontrado != -1) {
+                // Entró en un punto nuevo
+                hoverListener.onPuntoHover(datosClima.get(indiceEncontrado), indiceEncontrado);
+                setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // Cambiar cursor
+            } else {
+                // Salió de cualquier punto
+                hoverListener.onPuntoExit();
+                setCursor(Cursor.getDefaultCursor()); // Restaurar cursor
+            }
+            ultimoIndiceHovered = indiceEncontrado;
+        }
     }
     
     @Override
@@ -84,42 +137,41 @@ public class GraficoTemperatura extends JPanel{
         
         
         // --- Dibujar etiquetas del eje X (Horas) y las líneas verticales ---
-        double espaciadoX = (double) anchoDibujo / (NUM_HORAS_A_MOSTRAR - 1); // Espacio entre puntos de datos
-
+        double espaciadoX = (double) anchoDibujo / (NUM_HORAS_A_MOSTRAR - 1);
         g2d.setFont(new Font("Arial", Font.BOLD, 12));
-        for (int i = 0; i < NUM_HORAS_A_MOSTRAR; i++) {
-            int x = (int) (x0 + i * espaciadoX);
-            g2d.drawLine(x, y0, x, y0 + altoDibujo); // Línea vertical
-            
-            // Etiqueta de la hora
-            g2d.setColor(COLOR_TEXTO);
-            String etiquetaHora = String.format("%02d:00", (horaBase + i) % 24); // T+1, T+2...
-            g2d.drawString(etiquetaHora, x - 15, y0 + altoDibujo + 20); // Posición debajo del gráfico
-            g2d.setColor(COLOR_GRID_LINEAS);
-        }
-        
-        // --- Dibujar la línea de temperatura ---
         g2d.setColor(COLOR_LINEA_TEMPERATURA);
-        g2d.setStroke(new BasicStroke(2)); // Grosor de la línea
-        
+        g2d.setStroke(new BasicStroke(2));
+
+        puntosGraficados.clear();
+
         int prevX = -1;
         int prevY = -1;
         
         for (int i = 0; i < NUM_HORAS_A_MOSTRAR; i++) {
             Clima clima = datosClima.get(i);
             double temp = clima.getTemperatura();
-
-            // Calcular las coordenadas X e Y para este punto
             int x = (int) (x0 + i * espaciadoX);
-            int y = (int) (y0 + altoDibujo - ((temp - MIN_TEMP) / (MAX_TEMP - MIN_TEMP) * altoDibujo));
+            // Aseguramos que 'temp' no se salga visualmente de los límites MIN/MAX
+            double tempClamp = Math.max(MIN_TEMP, Math.min(MAX_TEMP, temp));
+            int y = (int) (y0 + altoDibujo - ((tempClamp - MIN_TEMP) / (MAX_TEMP - MIN_TEMP) * altoDibujo));
 
+            // Líneas verticales y etiquetas hora
+            g2d.setColor(COLOR_GRID_LINEAS);
+            g2d.setStroke(new BasicStroke(1));
+            g2d.drawLine(x, y0, x, y0 + altoDibujo);
+            g2d.setColor(COLOR_TEXTO);
+            String etiquetaHora = String.format("%02d:00", (horaBase + i) % 24);
+            g2d.drawString(etiquetaHora, x - 15, y0 + altoDibujo + 20);
+
+            // Línea de temperatura
+            g2d.setColor(COLOR_LINEA_TEMPERATURA);
+            g2d.setStroke(new BasicStroke(2));
             if (prevX != -1) {
-                g2d.drawLine(prevX, prevY, x, y); // Dibujar segmento de línea
+                g2d.drawLine(prevX, prevY, x, y);
             }
-            
-            // Dibujar un pequeño círculo en cada punto de dato
-            g2d.fillOval(x - 3, y - 3, 6, 6); 
+            g2d.fillOval(x - 3, y - 3, 6, 6);
 
+            puntosGraficados.add(new Point(x, y));
             prevX = x;
             prevY = y;
         }

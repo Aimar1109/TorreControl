@@ -142,31 +142,18 @@ public class JPanelClima extends JPanel {
         panelHoraActual.add(tablaDatos, BorderLayout.CENTER);
         
         // Creamos el panel que contendrá nuestros gráficos. 
-        // Inicialmente pondremos solo el de temperatura.
         JPanel panelGraficosPronostico = new JPanel(new GridBagLayout());
         panelGraficosPronostico.setBorder(BorderFactory.createTitledBorder("Pronóstico Próximas 6 Horas"));
-        
-        // Constraints para el gráfico de Temperatura (60% del alto)
+        graficoTemperatura = new GraficoTemperatura();
+        graficoPrecipitacion = new GraficoPrecipitacion();
+
         GridBagConstraints cTemp = new GridBagConstraints();
-        cTemp.gridx = 0;
-        cTemp.gridy = 0;
-        cTemp.weightx = 1.0; // Ocupa todo el ancho
-        cTemp.weighty = 0.6; // Ocupa el 60% del alto
-        cTemp.fill = GridBagConstraints.BOTH; // Rellena el espacio
-        
-        graficoTemperatura = new GraficoTemperatura(); // Instanciamos nuestro gráfico de temperatura
-        panelGraficosPronostico.add(graficoTemperatura, cTemp); // Lo añadimos al panel de gráficos
-        
-        // Constraints para el gráfico de Precipitación (40% del alto)
+        cTemp.gridx = 0; cTemp.gridy = 0; cTemp.weightx = 1.0; cTemp.weighty = 0.6; cTemp.fill = GridBagConstraints.BOTH;
+        panelGraficosPronostico.add(graficoTemperatura, cTemp);
+
         GridBagConstraints cPrecip = new GridBagConstraints();
-        cPrecip.gridx = 0;
-        cPrecip.gridy = 1;
-        cPrecip.weightx = 1.0; // Ocupa todo el ancho
-        cPrecip.weighty = 0.4; // Ocupa el 40% del alto
-        cPrecip.fill = GridBagConstraints.BOTH; // Rellena el espacio
-        
-        graficoPrecipitacion = new GraficoPrecipitacion(); // Instanciamos el gráfico real
-        panelGraficosPronostico.add(graficoPrecipitacion, cPrecip); // Añadimos el gráfico
+        cPrecip.gridx = 0; cPrecip.gridy = 1; cPrecip.weightx = 1.0; cPrecip.weighty = 0.4; cPrecip.fill = GridBagConstraints.BOTH;
+        panelGraficosPronostico.add(graficoPrecipitacion, cPrecip);
         
         // Panel de Contenido Principal (Izquierda + Derecha)
         JPanel panelWrapperIzquierdo = new JPanel(new BorderLayout());
@@ -177,9 +164,23 @@ public class JPanelClima extends JPanel {
         mainContentPanel.add(panelGraficosPronostico, BorderLayout.CENTER); // ¡Añadimos el panel de gráficos aquí!
         add(mainContentPanel, BorderLayout.CENTER);
         
+        graficoTemperatura.setHoverListener(new GraficoTemperatura.OnHoverListener() {
+            @Override
+            public void onPuntoHover(Clima climaHovered, int indiceOffset) {
+                int horaHovered = (horaActual + indiceOffset) % 24;
+                actualizarPanelHoraActual(climaHovered, horaHovered);
+            }
+            @Override
+            public void onPuntoExit() {
+                actualizarPanelHoraActual();
+            }
+        });
+        
+        
+        
         
      
-        // 6. Añadir Listeners a los botones
+        // Añadir Listeners a los botones
         btnPausarReanudar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -241,35 +242,31 @@ public class JPanelClima extends JPanel {
         return label;
     }
 	
-	private void actualizarPanelHoraActual() {
-        if (climaHoraActual == null) return;
+	private void actualizarPanelHoraActual(Clima climaForzado, int horaForzada) {
+        Clima climaAMostrar = (climaForzado != null) ? climaForzado : this.climaHoraActual;
+        int horaAMostrar = (climaForzado != null) ? horaForzada : this.horaActual;
+        if (climaAMostrar == null) return;
 
-        // Actualizamos el título del panel
-        lblTituloClima.setText(String.format("Clima Actual (Hora %02d:00)", (horaActual % 24)));
-        
-        // Actualizamos los valores (solo el texto)
-        valTemp.setText(String.format("%.1f", climaHoraActual.getTemperatura()));
-        valViento.setText(String.format("%.1f", climaHoraActual.getVelocidadViento()));
-        valNiebla.setText(String.format("%.1f", climaHoraActual.getVisibilidadKm()));
-        
-        valNubes.setText(climaHoraActual.getTechoNubesMetros() >= 10000 ? 
-            "N/A" : String.format("%d", climaHoraActual.getTechoNubesMetros()));
-
-        // Lógica para Lluvia/Nieve
-        double precipitacion = climaHoraActual.getPrecipitacion();
-        
-        if (climaHoraActual instanceof ClimaNevado) {
+        lblTituloClima.setText(String.format("Clima (Hora %02d:00)", (horaAMostrar % 24)));
+        valTemp.setText(String.format("%.1f", climaAMostrar.getTemperatura()));
+        valViento.setText(String.format("%.1f", climaAMostrar.getVelocidadViento()));
+        valNiebla.setText(String.format("%.1f", climaAMostrar.getVisibilidadKm()));
+        valNubes.setText(climaAMostrar.getTechoNubesMetros() >= 10000 ? "N/A" : String.format("%d", climaAMostrar.getTechoNubesMetros()));
+        double precipitacion = climaAMostrar.getPrecipitacion();
+        if (climaAMostrar instanceof ClimaNevado) {
             valLluvia.setText("0.0");
             valNieve.setText(String.format("%.1f", precipitacion));
-        } else if (precipitacion > 0) { // Lluvioso
+        } else if (precipitacion > 0) {
             valLluvia.setText(String.format("%.1f", precipitacion));
             valNieve.setText("0.0");
-        } else { // Despejado o Nublado
+        } else {
             valLluvia.setText("0.0");
             valNieve.setText("0.0");
         }
-        
-        // (La alineación ya está definida en la creación de los JLabels)
+    }
+	
+	private void actualizarPanelHoraActual() {
+        actualizarPanelHoraActual(null, -1);
     }
 	
 	/**
