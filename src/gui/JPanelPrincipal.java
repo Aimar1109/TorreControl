@@ -215,13 +215,9 @@ public class JPanelPrincipal extends JPanel {
 	
 	private void abrirDialogoAsinacion() {
 		Frame parent = (Frame) SwingUtilities.getWindowAncestor(this);
-		ArrayList<Vuelo> listaVuelosCercanos = new ArrayList<>();
-		for (int i = 0; i < modeloVuelosCercanos.size(); i++) {
-			Vuelo vuelo = modeloVuelosCercanos.get(i);
-			listaVuelosCercanos.add(vuelo);
-		}
 
-		DialogoAsignarPista dialogo = new DialogoAsignarPista(parent, listaVuelosCercanos, modeloVuelosPista1, modeloVuelosPista2, pista1, pista2);
+
+		DialogoAsignarPista dialogo = new DialogoAsignarPista(parent, modeloVuelosCercanos, modeloVuelosPista1, modeloVuelosPista2, pista1, pista2);
 		dialogo.setVisible(true);
 
 		this.revalidate();

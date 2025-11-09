@@ -31,6 +31,7 @@ public class DialogoAsignarPista extends JDialog {
     private JToggleButton btnCancelar;
 
     //Listas
+    private DefaultListModel<Vuelo> modeloVuelosRecientes;
     private ArrayList<Vuelo> vuelosDisponibles;
     private DefaultListModel<Vuelo> modeloPista1;
     private DefaultListModel<Vuelo> modeloPista2;
@@ -39,13 +40,19 @@ public class DialogoAsignarPista extends JDialog {
     private Pista pista1;
     private Pista pista2;
 
-    DialogoAsignarPista(Frame parent, ArrayList<Vuelo> listaVuelosCercanos, DefaultListModel<Vuelo> modeloVuelosPista1, DefaultListModel<Vuelo> modeloVuelosPista2, Pista pista1, Pista pista2) {
+    DialogoAsignarPista(Frame parent, DefaultListModel<Vuelo> modeloVuelosRecientes, DefaultListModel<Vuelo> modeloVuelosPista1, DefaultListModel<Vuelo> modeloVuelosPista2, Pista pista1, Pista pista2) {
         super(parent, "Asignacion pistas");
-        this.vuelosDisponibles = listaVuelosCercanos;
+        this.modeloVuelosRecientes = modeloVuelosRecientes;
         this.modeloPista1 = modeloVuelosPista1;
         this.modeloPista2 = modeloVuelosPista2;
         this.pista1 = pista1;
         this.pista2 = pista2;
+
+        vuelosDisponibles = new ArrayList<>();
+        for (int i = 0; i < modeloVuelosRecientes.size(); i++) {
+            Vuelo vuelo = modeloVuelosRecientes.get(i);
+            vuelosDisponibles.add(vuelo);
+        }
 
         initComponents();
         setLayout();
@@ -201,9 +208,11 @@ public class DialogoAsignarPista extends JDialog {
         if (pista == 1) {
             modeloPista1.addElement(vuelo);
             vuelo.setPista(pista1);
+            modeloVuelosRecientes.removeElement(vuelo);
         } else if (pista == 2) {
             modeloPista2.addElement(vuelo);
             vuelo.setPista(pista2);
+            modeloVuelosRecientes.removeElement(vuelo);
         } else {
 
         }
