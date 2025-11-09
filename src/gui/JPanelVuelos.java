@@ -86,25 +86,26 @@ public class JPanelVuelos extends JPanel {
 						ArrayList<PuertaEmbarque> puertas) {
 		
 		setLayout(new BorderLayout());
+		setBackground(COLOR_FONDO);
 		
 		// Datos necesarios
 		this.vuelos = new ArrayList<Vuelo>(vg.devolverA());
 		
 		// Creacion del main panel
 		JPanel mainVuelos = new JPanel(new BorderLayout());
-		
+		mainVuelos.setBackground(COLOR_FONDO);		
 		
 		// Panel Superior
 		JPanel panelSuperior = new JPanel(new BorderLayout());
 		
 		// Titulo VUELOS
 		JLabel titu = new JLabel("VUELOS", SwingConstants.CENTER);
-        titu.setFont(new Font("Arial", Font.BOLD, 24));
+		titu.setFont(new Font("Segoe UI", Font.BOLD, 28));
         
         panelSuperior.add(titu, BorderLayout.CENTER);
         
         // Reloj - A la izquierda
-        int widthLados = 100;
+        int widthLados = 120;
         JLabel relojLabel = new JLabel("12:34 AM");
         relojLabel.setPreferredSize(new Dimension(widthLados, 0));
         relojLabel.setFont(new Font("Arial", Font.PLAIN, 16));
@@ -115,7 +116,7 @@ public class JPanelVuelos extends JPanel {
         // Derecha vacio para vuelos centrado
         JLabel vacioD = new JLabel("");
         vacioD.setPreferredSize(new Dimension(widthLados, 0));
-        vacioD.setFont(new Font("Arial", Font.PLAIN, 16));
+        vacioD.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         vacioD.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 15)); // margen a la izquierda
         
         panelSuperior.add(vacioD, BorderLayout.EAST);
@@ -151,6 +152,8 @@ public class JPanelVuelos extends JPanel {
 		// Funcion para crear tabla de Vuelos tanto llegadas como salidas
 		
 		
+		final int[] filaHover = {-1};
+		
 		// Formater para que solo aparezca la hora
 		DateTimeFormatter formatterFecha = DateTimeFormatter.ofPattern("dd:MM:yyyy");
 		DateTimeFormatter formatterHora = DateTimeFormatter.ofPattern("HH:mm");
@@ -164,6 +167,8 @@ public class JPanelVuelos extends JPanel {
 				case "ORIGEN":
 				case "DESTINO":
 					result.setHorizontalAlignment(JLabel.LEFT);
+					result.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0));
+					break;
 			}
 			
 			result.setBackground(COLOR_SECUNDARIO);
@@ -188,10 +193,14 @@ public class JPanelVuelos extends JPanel {
 				result.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0));
 			}
 			
-			result.setFont(new Font("Arial", Font.PLAIN, 12));
+			result.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 			result.setForeground(COLOR_TEXTO);
 			
-			if (row % 2 == 0) {
+			// Color de fondo según si es la fila hover o no
+			if (row == filaHover[0]) {
+				// Fila con hover - color más oscuro
+				result.setBackground(new Color(230, 235, 240));
+			} else if (row % 2 == 0) {
 				result.setBackground(COLOR_BLANCO);
 			} else {
 				result.setBackground(COLOR_FILA_ALT);
@@ -226,7 +235,7 @@ public class JPanelVuelos extends JPanel {
 		
 		// Titulo Parte Izquierda
         JLabel tituT = new JLabel(titulo, SwingConstants.LEFT);
-        tituT.setFont(new Font("Arial", Font.BOLD, 24));
+        tituT.setFont(new Font("Segoe UI", Font.BOLD, 22));
         tituT.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         tituT.setForeground(COLOR_SECUNDARIO);
         
@@ -345,7 +354,27 @@ public class JPanelVuelos extends JPanel {
         tabla.setSelectionBackground(COLOR_HOVER);
         tabla.setSelectionForeground(COLOR_BLANCO);
         tabla.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		
+        
+        // Añadir MouseMotionListener para detectar hover
+        tabla.addMouseMotionListener(new MouseAdapter() {
+        	@Override
+        	public void mouseMoved(MouseEvent e) {
+        		int row = tabla.rowAtPoint(e.getPoint());
+        		if (row != filaHover[0]) {
+        			filaHover[0] = row;
+        			tabla.repaint();
+        		}
+        	}
+        });
+        
+        // Añadir MouseListener para detectar cuando el ratón sale de la tabla
+        tabla.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseExited(MouseEvent e) {
+        		filaHover[0] = -1;
+        		tabla.repaint();
+        	}
+        });		
         
         for(Vuelo v: vuelos) {
         	if (esLlegada && v.getOrigen().getCiudad().equals("Bilbao")) {
