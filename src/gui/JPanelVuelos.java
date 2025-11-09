@@ -9,6 +9,8 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -402,6 +404,17 @@ public class JPanelVuelos extends JPanel {
                 }
         	}
         });
+        
+        tabla.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                // Comprobar si se presiona Ctrl + +
+                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_PLUS) {
+                	dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos, avs, puertas, vg, modelo);
+                }
+            }
+        });        
+        
         
         // Imagenes Parte Derecha
         JPanel panelDerecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));

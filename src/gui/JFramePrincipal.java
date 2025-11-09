@@ -5,9 +5,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,21 +64,6 @@ public class JFramePrincipal extends JFrame {
 		menuPanel.add(boton4);
 		
 		mainPanel.add(menuPanel, BorderLayout.NORTH);
-		
-		// KEY LISTENERS
-		
-		getRootPane().addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                // Comprobar si se presiona Ctrl + +
-                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_PLUS) {
-                    JOptionPane.showMessageDialog(null, "Has presionado Ctrl + +");
-                }
-            }
-        });
-		
-		getRootPane().setFocusable(true); // IAG
-		getRootPane().requestFocusInWindow(); //IAG
 
 		// PANEL CENTRAL VUELOS
 		JPanelVuelos jpvuelos = new JPanelVuelos(vg, aeropuertos, aers, avs, puertas);
