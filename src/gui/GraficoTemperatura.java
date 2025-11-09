@@ -38,9 +38,9 @@ public class GraficoTemperatura extends JPanel{
     private final int PASO_TEMP = 5; // Dibujar una línea cada 5 grados
     
     // --- Colores del Gráfico ---
-    private final Color COLOR_LINEA_TEMPERATURA = new Color(70, 130, 180); // Azul acero
-    private final Color COLOR_FONDO_GRID = new Color(240, 240, 240); // Gris claro para el fondo de las líneas
-    private final Color COLOR_GRID_LINEAS = new Color(200, 200, 200); // Gris para las líneas de la cuadrícula
+    private final Color COLOR_LINEA_TEMPERATURA = new Color(0, 85, 165); // El mismo azul de acento
+    private final Color COLOR_FONDO_GRID = Color.WHITE; // Fondo limpio
+    private final Color COLOR_GRID_LINEAS = new Color(230, 230, 230); // Líneas muy suaves
     private final Color COLOR_TEXTO = Color.BLACK;
     
     public GraficoTemperatura() {

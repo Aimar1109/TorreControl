@@ -13,6 +13,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Random;
 import javax.swing.Timer;
+import javax.swing.border.TitledBorder;
+
 import java.util.LinkedList;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -49,6 +51,10 @@ public class JPanelClima extends JPanel {
 	
 	// Color de fondo (como el amarillo de la referencia) ---
     private final Color PANEL_BACKGROUND_COLOR = new Color(210,210,210);
+    
+    private final Color COLOR_ACENTO = new Color(0, 85, 165); 
+    // Blanco para el fondo de las áreas de datos (para que resalten sobre el gris de la ventana)
+    private final Color COLOR_FONDO_DATOS = Color.WHITE;
 	
 	public JPanelClima() {
 		this.horaActual = 0;
@@ -83,8 +89,8 @@ public class JPanelClima extends JPanel {
         // Panel Izquierdo (Tabla "Clima Actual")
         
         // El panel "wrapper" principal
-        panelHoraActual = new JPanel(new BorderLayout(0, 5)); // 0px h-gap, 5px v-gap
-        panelHoraActual.setBackground(PANEL_BACKGROUND_COLOR); // Fondo gris claro
+        panelHoraActual = new JPanel(new BorderLayout(0, 0)); // 0px h-gap, 5px v-gap
+        panelHoraActual.setBackground(COLOR_FONDO_DATOS); // Fondo gris claro
         // (Quitamos el TitledBorder)
 
         // El Título (Centrado, más pequeño)
@@ -94,47 +100,47 @@ public class JPanelClima extends JPanel {
         lblTituloClima.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0)); // Padding superior
         
         // La tabla de datos interna
-        JPanel tablaDatos = new JPanel(new GridLayout(7, 2, 2, 2)); // 7 filas, 2 col, 2px GAPS
-        tablaDatos.setBackground(PANEL_BACKGROUND_COLOR); // El gap será gris claro
-        tablaDatos.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); // Padding exterior
-
+        JPanel tablaDatos = new JPanel(new GridLayout(7, 2, 0, 0)); // 7 filas, 2 col, 2px GAPS
+        tablaDatos.setBackground(Color.LIGHT_GRAY); // El gap será gris claro
+        tablaDatos.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        
         // Definimos las fuentes y alineaciones
         Font headerFont = new Font("Arial", Font.BOLD, 12);
         Font typeFont = new Font("Arial", Font.PLAIN, 12);
         Font valueFont = new Font("Monospaced", Font.PLAIN, 12);
         
         // Fila 1: Cabeceras (Centradas)
-        tablaDatos.add(crearCeldaTabla("Propiedad", SwingConstants.CENTER, headerFont));
-        tablaDatos.add(crearCeldaTabla("Valor", SwingConstants.CENTER, headerFont));
+        tablaDatos.add(crearCeldaTabla("Propiedad", SwingConstants.CENTER, headerFont, true));
+        tablaDatos.add(crearCeldaTabla("Valor", SwingConstants.CENTER, headerFont, true));
 
         // Fila 2: Temperatura (Izquierda, Derecha)
-        tablaDatos.add(crearCeldaTabla("Temperatura [°C]", SwingConstants.LEFT, typeFont));
-        valTemp = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont);
+        tablaDatos.add(crearCeldaTabla("Temperatura [°C]", SwingConstants.LEFT, typeFont, false));
+        valTemp = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
         tablaDatos.add(valTemp);
 
         // Fila 3: Viento (Izquierda, Derecha)
-        tablaDatos.add(crearCeldaTabla("Viento [km/h]", SwingConstants.LEFT, typeFont));
-        valViento = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont);
+        tablaDatos.add(crearCeldaTabla("Viento [km/h]", SwingConstants.LEFT, typeFont, false));
+        valViento = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
         tablaDatos.add(valViento);
 
         // Fila 4: Lluvia (Izquierda, Derecha)
-        tablaDatos.add(crearCeldaTabla("Lluvia [mm/h]", SwingConstants.LEFT, typeFont));
-        valLluvia = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont);
+        tablaDatos.add(crearCeldaTabla("Lluvia [mm/h]", SwingConstants.LEFT, typeFont, false));
+        valLluvia = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
         tablaDatos.add(valLluvia);
 
         // Fila 5: Nieve (Izquierda, Derecha)
-        tablaDatos.add(crearCeldaTabla("Nieve [cm/h]", SwingConstants.LEFT, typeFont));
-        valNieve = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont);
+        tablaDatos.add(crearCeldaTabla("Nieve [cm/h]", SwingConstants.LEFT, typeFont, false));
+        valNieve = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
         tablaDatos.add(valNieve);
 
         // Fila 6: Visibilidad (Izquierda, Derecha)
-        tablaDatos.add(crearCeldaTabla("Visibilidad [km]", SwingConstants.LEFT, typeFont));
-        valNiebla = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont);
+        tablaDatos.add(crearCeldaTabla("Visibilidad [km]", SwingConstants.LEFT, typeFont, false));
+        valNiebla = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
         tablaDatos.add(valNiebla);
 
         // Fila 7: Nubes (Izquierda, Derecha)
-        tablaDatos.add(crearCeldaTabla("Nubes [m]", SwingConstants.LEFT, typeFont));
-        valNubes = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont);
+        tablaDatos.add(crearCeldaTabla("Nubes [m]", SwingConstants.LEFT, typeFont, false));
+        valNubes = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
         tablaDatos.add(valNubes);
 
         // Montamos el panel izquierdo (Título + Tabla)
@@ -143,7 +149,10 @@ public class JPanelClima extends JPanel {
         
         // Creamos el panel que contendrá nuestros gráficos. 
         JPanel panelGraficosPronostico = new JPanel(new GridBagLayout());
-        panelGraficosPronostico.setBorder(BorderFactory.createTitledBorder("Pronóstico Próximas 6 Horas"));
+        TitledBorder borderGraficos = BorderFactory.createTitledBorder("Pronóstico Próximas 6 Horas");
+        borderGraficos.setTitleColor(COLOR_ACENTO); // <-- Acento aquí
+        borderGraficos.setTitleFont(new Font("Arial", Font.BOLD, 12));
+        panelGraficosPronostico.setBorder(borderGraficos);
         graficoTemperatura = new GraficoTemperatura();
         graficoPrecipitacion = new GraficoPrecipitacion();
 
@@ -227,36 +236,62 @@ public class JPanelClima extends JPanel {
 	
 	// --- MÉTODOS ---
 	
-	private JLabel crearCeldaTabla(String texto, int alignment, Font font) {
+	private JLabel crearCeldaTabla(String texto, int alignment, Font font, boolean isHeader) {
         JLabel label = new JLabel(texto);
         label.setFont(font);
         label.setHorizontalAlignment(alignment);
-        
-        // Celdas blancas y opacas
         label.setOpaque(true);
-        label.setBackground(Color.WHITE);
         
-        // Borde vacío (padding interno)
+        if (isHeader) {
+            // ENCABEZADO: Fondo azul, texto blanco
+            label.setBackground(COLOR_ACENTO);
+            label.setForeground(Color.WHITE);
+        } else {
+            // DATO NORMAL: Fondo blanco, texto negro
+            label.setBackground(COLOR_FONDO_DATOS);
+            label.setForeground(Color.BLACK);
+        }
+        
         label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        
         return label;
     }
 	
 	private void actualizarPanelHoraActual(Clima climaForzado, int horaForzada) {
         Clima climaAMostrar = (climaForzado != null) ? climaForzado : this.climaHoraActual;
         int horaAMostrar = (climaForzado != null) ? horaForzada : this.horaActual;
+
         if (climaAMostrar == null) return;
 
         lblTituloClima.setText(String.format("Clima (Hora %02d:00)", (horaAMostrar % 24)));
-        valTemp.setText(String.format("%.1f", climaAMostrar.getTemperatura()));
+        
+        // --- 1. TEMPERATURA (CON ALERTA DE COLOR) ---
+        double temp = climaAMostrar.getTemperatura();
+        valTemp.setText(String.format("%.1f", temp));
+        
+        if (temp > 30) {
+            valTemp.setForeground(Color.RED);   // Alerta de Calor
+        } else if (temp < 0) {
+            valTemp.setForeground(Color.BLUE);  // Alerta de Frío
+        } else {
+            valTemp.setForeground(Color.BLACK); // Normal
+        }
+
+        // --- Resto de valores (Sin cambios de color) ---
         valViento.setText(String.format("%.1f", climaAMostrar.getVelocidadViento()));
+        // Aseguramos que siempre esté negro por si acaso
+        valViento.setForeground(Color.BLACK); 
+
         valNiebla.setText(String.format("%.1f", climaAMostrar.getVisibilidadKm()));
-        valNubes.setText(climaAMostrar.getTechoNubesMetros() >= 10000 ? "N/A" : String.format("%d", climaAMostrar.getTechoNubesMetros()));
+        valNiebla.setForeground(Color.BLACK);
+        
+        valNubes.setText(climaAMostrar.getTechoNubesMetros() >= 10000 ? 
+            "N/A" : String.format("%d", climaAMostrar.getTechoNubesMetros()));
+
         double precipitacion = climaAMostrar.getPrecipitacion();
         if (climaAMostrar instanceof ClimaNevado) {
             valLluvia.setText("0.0");
             valNieve.setText(String.format("%.1f", precipitacion));
-        } else if (precipitacion > 0) {
+        } else if (precipitacion > 0) { // Lluvioso
             valLluvia.setText(String.format("%.1f", precipitacion));
             valNieve.setText("0.0");
         } else {
