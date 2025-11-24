@@ -262,12 +262,11 @@ public class RelojGlobal {
                         //Calculo el tiempo real que depende de la aceleración
                         int factor = getAceleracion();
                         double msExtra = factor * diferencia;
-                        double sExtra = msExtra / 1000;
 
                         //Actualizo el tiempo
                         lock.writeLock().lock();
                         try {
-                            tiempoActual = tiempoActual.plusSeconds((long) sExtra);
+                            tiempoActual = tiempoActual.plusNanos((long) (msExtra * 1_000_000L));
                         } finally {
                             lock.writeLock().unlock();
                         }
