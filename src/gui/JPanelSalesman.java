@@ -35,6 +35,7 @@ import java.util.Map;
 import domain.Vuelo;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
+import threads.PanelTimeline;
 
 public class JPanelSalesman extends JPanel implements ObservadorTiempo{
 
@@ -57,6 +58,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo{
     private JPanel panelSeatmap; 
     private JScrollPane scrollDinamico;
     private JPanel panelInferior;
+    private PanelTimeline panelTimeline;
     
     // Modelos
     private DefaultTableModel modeloVuelos;
@@ -184,8 +186,8 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo{
         
         panelCentral.add(splitPaneHorizontal, BorderLayout.CENTER);
         
-        // -----------------
-        // PANEL INFERIOR: Progress Bar / Threads / Timeline de vuelos
+     // -----------------
+        // PANEL INFERIOR: Timeline
         panelInferior = new JPanel(new BorderLayout());
         panelInferior.setPreferredSize(new Dimension(0, 250));
         panelInferior.setBackground(new Color(245, 245, 245));
@@ -194,20 +196,19 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo{
             BorderFactory.createEmptyBorder(10, 15, 10, 15)
         ));
         
+        // Título del panel inferior
         JLabel lblTimeline = new JLabel("Timeline de Despegues y Aterrizajes", JLabel.CENTER);
         lblTimeline.setFont(new Font("Arial", Font.BOLD, 14));
         panelInferior.add(lblTimeline, BorderLayout.NORTH);
         
-        // Panel para los cuadrados animados
-        JPanel panelAnimacion = new JPanel();
-        panelAnimacion.setBackground(Color.WHITE);
-        panelAnimacion.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        JLabel lblPlaceholder = new JLabel("Espacio para animación de vuelos (threads/timer)", JLabel.CENTER);
-        lblPlaceholder.setForeground(Color.GRAY);
-        lblPlaceholder.setFont(new Font("Arial", Font.ITALIC, 12));
-        panelAnimacion.add(lblPlaceholder);
+        // --- INSTANCIAR TIMELINE ---
+        // Al hacer 'new', el hilo interno arranca automáticamente con start()
+        panelTimeline = new PanelTimeline(vuelos);
         
-        panelInferior.add(panelAnimacion, BorderLayout.CENTER);
+        // Lo añadimos al centro para que ocupe todo el espacio
+        panelInferior.add(panelTimeline, BorderLayout.CENTER);
+        
+        // -----------------
         
         // -----------------
         // JSplitPane VERTICAL para hacer resizable el panel inferior
