@@ -3,8 +3,11 @@ package gui;
 import domain.Avion;
 import domain.Pista;
 import domain.Vuelo;
+import threads.ObservadorTiempo;
+import threads.RelojGlobal;
 
 import java.awt.event.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.awt.*;
 import java.util.ArrayList;
@@ -13,7 +16,7 @@ import java.util.List;
 
 import javax.swing.*;
 
-public class JPanelPrincipal extends JPanel {
+public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
 	//Referencias
 	private JList<Vuelo> listaVuelosCercanos;
 	private JList<Vuelo> listaVuelosPista1;
@@ -91,6 +94,10 @@ public class JPanelPrincipal extends JPanel {
 		efectoHover(listaVuelosCercanos);
 		efectoHover(listaVuelosPista1);
 		efectoHover(listaVuelosPista2);
+
+		//Configurar instancia RelojPrincial
+		RelojGlobal instanciaReloj = RelojGlobal.getInstancia();
+		instanciaReloj.addObservador(this);
 	}
 
 	private JPanel crearPanelListaOrigen(String titulo, List<Vuelo> vuelos) {
@@ -247,5 +254,15 @@ public class JPanelPrincipal extends JPanel {
 				lista.clearSelection();
 			}
 		});
+	}
+
+	@Override
+	public void actualizarTiempo(LocalDateTime nuevoTiempo) {
+
+	}
+
+	@Override
+	public void cambioEstadoPausa(boolean pausa) {
+
 	}
 }

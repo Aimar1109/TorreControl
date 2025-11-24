@@ -13,6 +13,8 @@ import domain.PuertaEmbarque;
 import domain.Vuelo;
 import gui.JFramePrincipal;
 import domain.*;
+import threads.RelojGlobal;
+
 import java.util.ArrayList;
 
 public class Main {
@@ -29,6 +31,10 @@ public class Main {
         Set<Avion> avEjemplo = av.devolverA();
         List<Avion> avionesPrueba = crearAvionesPrueba();
         Set<PuertaEmbarque> puertasEjemplo = pe.devolverP();
+
+        //Configuración RelojGlobal
+        RelojGlobal relojGlobal = new RelojGlobal();
+        relojGlobal.iniciar();
         
 
         // Lanzar interfaz con los vuelos
