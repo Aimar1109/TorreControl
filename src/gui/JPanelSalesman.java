@@ -7,6 +7,7 @@ import javax.swing.JTable;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.border.EmptyBorder;
@@ -25,13 +26,17 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import domain.Vuelo;
+import threads.ObservadorTiempo;
+import threads.RelojGlobal;
 
-public class JPanelSalesman extends JPanel {
+public class JPanelSalesman extends JPanel implements ObservadorTiempo{
 
     private static final long serialVersionUID = 1L;
 
@@ -40,6 +45,7 @@ public class JPanelSalesman extends JPanel {
     private ArrayList<Vuelo> vuelos;
     
     // Componentes visuales
+    private JLabel lblReloj;
     private JTable tablaVuelos;
     private JTable tablaDinamica;
     private JToggleButton btnPasajeros;
@@ -58,6 +64,8 @@ public class JPanelSalesman extends JPanel {
     
     // ScrollPanes
     private JScrollPane scrollVuelos;
+    
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     public JPanelSalesman(ArrayList<Vuelo> vuelos) {
         this.vuelos = vuelos;
@@ -68,14 +76,29 @@ public class JPanelSalesman extends JPanel {
         attachListeners();
         attachHoverListeners();
         cargarVuelosReales();
+        
+        RelojGlobal.getInstancia().addObservador(this);
+        actualizarTiempo(RelojGlobal.getInstancia().getTiempoActual());
     }
     
     private void initComponents() {
-        // Panel superior
-        JPanel panelSuperior = new JPanel();
-        JLabel lblTitulo = new JLabel("Panel Salesman");
+    	// Panel superior
+    	JPanel panelSuperior = new JPanel(new BorderLayout());
+    	panelSuperior.setBorder(new EmptyBorder(10, 15, 10, 15));
+
+    	lblReloj = new JLabel("00:00:00");
+        lblReloj.setFont(new Font("Arial", Font.PLAIN, 16));
+        lblReloj.setForeground(new Color(44, 62, 80));
+        panelSuperior.add(lblReloj, BorderLayout.WEST);
+
+        JLabel lblTitulo = new JLabel("Panel Salesman", JLabel.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 24));
-        panelSuperior.add(lblTitulo);
+        panelSuperior.add(lblTitulo, BorderLayout.CENTER);
+
+        JLabel lblDummy = new JLabel("00:00:00"); 
+        lblDummy.setForeground(new Color(0, 0, 0, 0)); 
+
+        panelSuperior.add(lblDummy, BorderLayout.EAST);
         add(panelSuperior, BorderLayout.NORTH);
         
         // Panel central
@@ -791,6 +814,29 @@ public class JPanelSalesman extends JPanel {
         modeloDinamico.addRow(new Object[]{"Capacidad Avión", vuelo.getAvion().getCapacidad() + " pasajeros"});
         modeloDinamico.addRow(new Object[]{"Total Pasajeros", vuelo.getPasajeros().size()});
         modeloDinamico.addRow(new Object[]{"Total Tripulación", vuelo.getTripulacion().size()});
+    }
+    
+    @Override
+    public void actualizarTiempo(LocalDateTime nuevoTiempo) {
+        SwingUtilities.invokeLater(() -> {
+            if (lblReloj != null) {
+                lblReloj.setText(nuevoTiempo.format(formatter));
+            }
+        });
+    }
+
+    @Override
+    public void cambioEstadoPausa(boolean pausa) {
+        SwingUtilities.invokeLater(() -> {
+            if (lblReloj != null) {
+                if (pausa) {
+                    lblReloj.setForeground(Color.RED);
+                    lblReloj.setText(lblReloj.getText() + " (PAUSA)");
+                } else {
+                    lblReloj.setForeground(Color.DARK_GRAY);
+                }
+            }
+        });
     }
 }
 
