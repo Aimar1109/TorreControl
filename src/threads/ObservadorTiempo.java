@@ -6,5 +6,7 @@ public interface ObservadorTiempo {
 
     void actualizarTiempo(LocalDateTime nuevoTiempo);
 
-    void cambioEstadoPausa(boolean pausa);
+    default void cambioEstadoPausa(boolean pausa) {
+
+    }
 }

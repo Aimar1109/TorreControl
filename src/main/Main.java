@@ -33,7 +33,7 @@ public class Main {
         Set<PuertaEmbarque> puertasEjemplo = pe.devolverP();
 
         //Configuración RelojGlobal
-        RelojGlobal relojGlobal = new RelojGlobal();
+        RelojGlobal relojGlobal = RelojGlobal.getInstancia();
         relojGlobal.iniciar();
         
 

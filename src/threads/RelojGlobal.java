@@ -149,7 +149,7 @@ public class RelojGlobal {
     public void avanzarTiempoMinutos(long minutos) {
         lock.writeLock().lock();
         try {
-            tiempoActual.plusMinutes(minutos);
+            this.tiempoActual = tiempoActual.plusMinutes(minutos);
         } finally {
             lock.writeLock().unlock();
         }
@@ -161,7 +161,7 @@ public class RelojGlobal {
     public void avanzarTiempoHoras(long horas) {
         lock.writeLock().lock();
         try {
-            tiempoActual.plusHours(horas);
+            this.tiempoActual =  tiempoActual.plusHours(horas);
         } finally {
             lock.writeLock().unlock();
         }
@@ -264,8 +264,11 @@ public class RelojGlobal {
 
                         //Actualizo el tiempo
                         lock.writeLock().lock();
-                        tiempoActual = tiempoActual.plusSeconds((long) sExtra);
-                        lock.writeLock().unlock();
+                        try {
+                            tiempoActual = tiempoActual.plusSeconds((long) sExtra);
+                        } finally {
+                            lock.writeLock().unlock();
+                        }
 
                         //Actualizo los observadores
                         notificarObservadores();
