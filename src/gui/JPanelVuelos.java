@@ -61,8 +61,10 @@ import domain.Avion;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import main.Main.VueloGenerador;
+import threads.ObservadorTiempo;
+import threads.RelojGlobal;
 
-public class JPanelVuelos extends JPanel {
+public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -87,6 +89,8 @@ public class JPanelVuelos extends JPanel {
 		
 		setLayout(new BorderLayout());
 		setBackground(COLOR_FONDO);
+		RelojGlobal instanciaReloj = RelojGlobal.getInstancia();
+		instanciaReloj.addObservador(this);
 		
 		// Datos necesarios
 		this.vuelos = new ArrayList<Vuelo>(vg.devolverA());
@@ -155,7 +159,7 @@ public class JPanelVuelos extends JPanel {
 		final int[] filaHover = {-1};
 		
 		// Formater para que solo aparezca la hora
-		DateTimeFormatter formatterFecha = DateTimeFormatter.ofPattern("dd:MM:yyyy");
+		DateTimeFormatter formatterFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 		DateTimeFormatter formatterHora = DateTimeFormatter.ofPattern("HH:mm");
 		
 		// cellRenderer para los Titulos
@@ -187,7 +191,7 @@ public class JPanelVuelos extends JPanel {
 		TableCellRenderer cellRenderer = (table, value, isSelected, hasFocus, row, column) -> {
 			JLabel result = new JLabel(value.toString());
 			
-			if (column == 0 || column == 2 || column == 3) {
+			if (column == 0 || column == 2 || column == 3 || column == 4) {
 				result.setHorizontalAlignment(JLabel.CENTER);
 			} else {
 				result.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0));
@@ -643,10 +647,20 @@ public class JPanelVuelos extends JPanel {
 	}
 	
 	// Método auxiliar para estilizar TextFields
-		private void estilizarTextField(JTextField textField) { //IAG
-			textField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-			textField.setForeground(COLOR_TEXTO);
-			textField.setBackground(COLOR_BLANCO);
-			textField.setCaretColor(COLOR_PRIMARIO);
-		}	
+	private void estilizarTextField(JTextField textField) { //IAG
+		textField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		textField.setForeground(COLOR_TEXTO);
+		textField.setBackground(COLOR_BLANCO);
+		textField.setCaretColor(COLOR_PRIMARIO);
+	}
+	
+	@Override
+	public void actualizarTiempo(LocalDateTime nuevoTiempo) {
+
+	}
+
+	@Override
+	public void cambioEstadoPausa(boolean pausa) {
+
+	}
 }
