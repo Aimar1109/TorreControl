@@ -55,6 +55,8 @@ public class RelojGlobal {
         thread = new threadGlobal();
         thread.setDaemon(true);
         thread.start();
+        
+        notificarObservadores();
     }
 
     //Detiene la ejecución

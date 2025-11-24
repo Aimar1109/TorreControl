@@ -45,6 +45,7 @@ import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -80,17 +81,20 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	private static final Color COLOR_HOVER = new Color(52, 152, 219);         // Azul claro
 	private static final Color COLOR_FILA_ALT = new Color(250, 250, 250);     // Blanco alternado
 	
+	private DateTimeFormatter formatterFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+	private DateTimeFormatter formatterHora = DateTimeFormatter.ofPattern("HH:mm:ss");
+	
 	private ArrayList<Vuelo> vuelos;
 	private JDialogNVuelo dialogNVuelo;
 	private JPanel panelVuelos = this;
+	
+	private JLabel lblreloj = new JLabel();
 	
 	public JPanelVuelos(VueloGenerador vg, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, ArrayList<Avion> avs,
 						ArrayList<PuertaEmbarque> puertas) {
 		
 		setLayout(new BorderLayout());
 		setBackground(COLOR_FONDO);
-		RelojGlobal instanciaReloj = RelojGlobal.getInstancia();
-		instanciaReloj.addObservador(this);
 		
 		// Datos necesarios
 		this.vuelos = new ArrayList<Vuelo>(vg.devolverA());
@@ -110,12 +114,12 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         
         // Reloj - A la izquierda
         int widthLados = 120;
-        JLabel relojLabel = new JLabel("12:34 AM");
-        relojLabel.setPreferredSize(new Dimension(widthLados, 0));
-        relojLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        relojLabel.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0)); // margen a la izquierda
         
-        panelSuperior.add(relojLabel, BorderLayout.WEST);
+        lblreloj.setPreferredSize(new Dimension(widthLados, 0));
+        lblreloj.setFont(new Font("Arial", Font.PLAIN, 16));
+        lblreloj.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0)); // margen a la izquierda
+        
+        panelSuperior.add(lblreloj, BorderLayout.WEST);
         
         // Derecha vacio para vuelos centrado
         JLabel vacioD = new JLabel("");
@@ -124,8 +128,6 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         vacioD.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 15)); // margen a la izquierda
         
         panelSuperior.add(vacioD, BorderLayout.EAST);
-        
-        // Reloj - timer
 
 		// Ajustar tamaño preferido
 		int anchoVentana = mainVuelos.getWidth();
@@ -146,9 +148,20 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         panelCentral.add(mainLlegadas);
         panelCentral.add(mainSalidas);
         
-        
         mainVuelos.add(panelCentral, BorderLayout.CENTER);
-		add(mainVuelos);		
+		add(mainVuelos);
+		
+		// Al final del constructor de JPanelVuelos:
+		RelojGlobal relojGlobal = RelojGlobal.getInstancia();
+		relojGlobal.addObservador(this);
+
+		// Mostrar tiempo inicial inmediatamente
+		lblreloj.setText(relojGlobal.getTiempoActual().format(formatterHora));
+		
+		SwingUtilities.invokeLater(() -> {
+		    lblreloj.setText(relojGlobal.getTiempoActual().format(formatterHora));
+		    lblreloj.setForeground(COLOR_TEXTO);
+		});
 	}
 	
 	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada, ArrayList<Aeropuerto> aeropuertos,
@@ -159,8 +172,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		final int[] filaHover = {-1};
 		
 		// Formater para que solo aparezca la hora
-		DateTimeFormatter formatterFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-		DateTimeFormatter formatterHora = DateTimeFormatter.ofPattern("HH:mm");
+		
 		
 		// cellRenderer para los Titulos
 		TableCellRenderer headerRenderer = (table, value, isSelected, hasFocus, row, column) -> {
@@ -656,11 +668,20 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	
 	@Override
 	public void actualizarTiempo(LocalDateTime nuevoTiempo) {
-
+		SwingUtilities.invokeLater(() -> {
+			lblreloj.setText(nuevoTiempo.format(formatterHora));
+		});
+		
 	}
 
 	@Override
 	public void cambioEstadoPausa(boolean pausa) {
-
+		SwingUtilities.invokeLater(() -> {
+			if (pausa) {
+				lblreloj.setForeground(COLOR_ACENTO);
+			} else {
+				lblreloj.setForeground(COLOR_TEXTO);
+			}
+		});
 	}
 }
