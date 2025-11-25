@@ -3,6 +3,7 @@ package gui;
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
@@ -181,7 +182,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         panelInferior.setBackground(Color.WHITE); 
         
         panelInferior.setBorder(new CompoundBorder(
-                new EmptyBorder(0, 10, 0, 10),
+                new EmptyBorder(5, 10, 5, 10),
                 BorderFactory.createLineBorder(new Color(220, 220, 220), 1)
         ));
 
@@ -257,6 +258,8 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         
         // Estilo moderno reutilizable
         configurarEstiloTabla(tablaVuelos);
+        
+        estilizarScrollPane(scrollVuelos);
 
         // Ajustes de ancho específicos
         tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(40); // Icono
@@ -270,6 +273,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         };
         tablaDinamica.setModel(modeloDinamico);
         configurarEstiloTabla(tablaDinamica);
+        estilizarScrollPane(scrollDinamico);
     }
 
     private void configurarEstiloTabla(JTable tabla) {
@@ -553,8 +557,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         }
 
         JScrollPane scroll = new JScrollPane(grid);
-        scroll.setBorder(null);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        estilizarScrollPane(scroll);
 
         panelSeatmap.add(pnlLeyenda, BorderLayout.NORTH);
         panelSeatmap.add(scroll, BorderLayout.CENTER);
@@ -609,7 +612,64 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
             }
         });
     }
+ // --- MÉTODOS DE ESTILO PARA EL SCROLLBAR  ---
+
+    private void estilizarScrollPane(JScrollPane scroll) {
+        // Estilizar barra vertical
+        scroll.getVerticalScrollBar().setUI(new ModernScrollBarUI());
+        scroll.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0)); // Ancho fino
+        scroll.getVerticalScrollBar().setUnitIncrement(16); // Velocidad scroll
+
+        // Estilizar barra horizontal
+        scroll.getHorizontalScrollBar().setUI(new ModernScrollBarUI());
+        scroll.getHorizontalScrollBar().setPreferredSize(new Dimension(0, 8));
+        
+        // Esquina blanca
+        JPanel corner = new JPanel();
+        corner.setBackground(Color.WHITE);
+        scroll.setCorner(ScrollPaneConstants.LOWER_RIGHT_CORNER, corner);
+        scroll.setBorder(null); 
+    }
+
+    // Clase interna para dibujar la barra personalizada
+    private static class ModernScrollBarUI extends BasicScrollBarUI {
+        @Override
+        protected void configureScrollBarColors() {
+            this.thumbColor = new Color(180, 180, 180); 
+            this.trackColor = Color.WHITE;              
+        }
+
+        @Override
+        protected JButton createDecreaseButton(int orientation) { return createZeroButton(); }
+
+        @Override
+        protected JButton createIncreaseButton(int orientation) { return createZeroButton(); }
+
+        private JButton createZeroButton() {
+            JButton btn = new JButton();
+            btn.setPreferredSize(new Dimension(0, 0));
+            return btn;
+        }
+
+        @Override
+        protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
+            if (thumbBounds.isEmpty() || !scrollbar.isEnabled()) return;
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            // Color: Gris normal o Azul (SECUNDARIO) si pasas el ratón
+            g2.setPaint(isThumbRollover() ? PaletaColor.get(PaletaColor.SECUNDARIO) : new Color(190, 195, 200));
+            g2.fillRoundRect(thumbBounds.x, thumbBounds.y, thumbBounds.width, thumbBounds.height, 8, 8);
+            g2.dispose();
+        }
+
+        @Override
+        protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
+            // Fondo transparente/blanco, no pintamos nada para que se vea limpio
+        }
+    }
 }
+
 
 // --- CLASE AUXILIAR SEATLABEL (Estilo Moderno) ---
 class SeatLabel extends JLabel {
@@ -635,3 +695,4 @@ class SeatLabel extends JLabel {
         }
     }
 }
+

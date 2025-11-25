@@ -9,6 +9,7 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -20,9 +21,13 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 
 import domain.PaletaColor;
 import domain.Vuelo;
@@ -67,6 +72,7 @@ public class PanelTimeline extends JPanel implements ObservadorTiempo {
         }
 
         JScrollPane scroll = new JScrollPane(listPanel);
+        estilizarScrollPane(scroll);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         scroll.getViewport().setBackground(PaletaColor.get(PaletaColor.FONDO_OSCURO));
@@ -102,6 +108,66 @@ public class PanelTimeline extends JPanel implements ObservadorTiempo {
     
     public void detener() {
         RelojGlobal.getInstancia().eliminarObservador(this);
+    }
+
+//--- MÉTODOS DE ESTILO PARA SCROLLBAR (MODO OSCURO) ---
+
+
+private void estilizarScrollPane(JScrollPane scroll) {
+    // 1. Barra Vertical
+    scroll.getVerticalScrollBar().setUI(new ModernScrollBarUI());
+    scroll.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
+    scroll.getVerticalScrollBar().setUnitIncrement(16);
+
+    // 2. Barra Horizontal
+    scroll.getHorizontalScrollBar().setUI(new ModernScrollBarUI());
+    scroll.getHorizontalScrollBar().setPreferredSize(new Dimension(0, 8));
+    
+    // 3. Esquina (Corner) - IMPORTANTE para evitar errores y fondo blanco
+    JPanel corner = new JPanel();
+    corner.setBackground(PaletaColor.get(PaletaColor.FONDO_OSCURO));
+    scroll.setCorner(ScrollPaneConstants.LOWER_RIGHT_CORNER, corner);
+    
+    scroll.setBorder(null);
+}
+
+private static class ModernScrollBarUI extends BasicScrollBarUI {
+    @Override
+    protected void configureScrollBarColors() {
+        // Colores oscuros específicos para este panel
+        this.thumbColor = new Color(80, 85, 90); // Gris oscuro para la barra
+        this.trackColor = PaletaColor.get(PaletaColor.FONDO_OSCURO); // Fondo igual al panel
+    }
+
+    @Override
+    protected JButton createDecreaseButton(int orientation) { return createZeroButton(); }
+
+    @Override
+    protected JButton createIncreaseButton(int orientation) { return createZeroButton(); }
+
+    private JButton createZeroButton() {
+        JButton btn = new JButton();
+        btn.setPreferredSize(new Dimension(0, 0));
+        return btn;
+    }
+
+    @Override
+    protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
+        if (thumbBounds.isEmpty() || !scrollbar.isEnabled()) return;
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        // Color un poco más claro al pasar el ratón
+        g2.setPaint(isThumbRollover() ? new Color(120, 125, 130) : thumbColor);
+        g2.fillRoundRect(thumbBounds.x, thumbBounds.y, thumbBounds.width, thumbBounds.height, 8, 8);
+        g2.dispose();
+    }
+    
+    @Override
+    protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
+        // Pintamos el fondo oscuro para que se funda con el panel
+        g.setColor(trackColor);
+        g.fillRect(trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height);
     }
 }
 
@@ -401,4 +467,4 @@ class RadarTile extends JPanel {
             g2.setComposite(AlphaComposite.SrcOver);
         }
     }
-}
+}}
