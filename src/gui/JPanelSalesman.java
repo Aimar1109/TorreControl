@@ -175,35 +175,46 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 
         panelCentral.add(splitHorizontal, BorderLayout.CENTER);
 
-        // --- 3. PANEL INFERIOR (TIMELINE) ---
+     // --- 3. PANEL INFERIOR (TIMELINE + LEYENDA MODIFICADO) ---
         panelInferior = new JPanel(new BorderLayout());
         panelInferior.setPreferredSize(new Dimension(0, 250));
-        panelInferior.setBackground(Color.WHITE);
-        // Borde superior compuesto (espacio + linea)
+        panelInferior.setBackground(Color.WHITE); 
+        
         panelInferior.setBorder(new CompoundBorder(
-                new EmptyBorder(10, 10, 10, 10),
+                new EmptyBorder(0, 10, 0, 10),
                 BorderFactory.createLineBorder(new Color(220, 220, 220), 1)
         ));
 
-        JLabel lblTimeline = new JLabel("SEGUIMIENTO EN TIEMPO REAL", JLabel.CENTER);
-        lblTimeline.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblTimeline.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
-        lblTimeline.setBorder(new EmptyBorder(10, 0, 10, 0));
-        panelInferior.add(lblTimeline, BorderLayout.NORTH);
+        // --- CABECERA: Fondo Primario ---
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        // AQUI: Cambio a color Primario
+        headerPanel.setBackground(PaletaColor.get(PaletaColor.PRIMARIO)); 
+        headerPanel.setPreferredSize(new Dimension(40,40));
+        headerPanel.setBorder(new EmptyBorder(5, 10, 5, 10)); // Un poco de padding interno
 
-        // Instancia del PanelTimeline (debe estar en el paquete threads)
+        // Título Centrado y Blanco
+        JLabel lblTimeline = new JLabel("SEGUIMIENTO EN TIEMPO REAL", JLabel.CENTER);
+        lblTimeline.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        lblTimeline.setForeground(Color.WHITE); // Texto blanco
+        headerPanel.add(lblTimeline, BorderLayout.CENTER);
+
+        // Añadir cabecera al Norte del panel inferior
+        panelInferior.add(headerPanel, BorderLayout.NORTH);
+
+        // Instancia del PanelTimeline
         panelTimeline = new PanelTimeline(vuelos);
         panelInferior.add(panelTimeline, BorderLayout.CENTER);
 
         // Split Vertical Final
         JSplitPane splitVertical = new JSplitPane(JSplitPane.VERTICAL_SPLIT, panelCentral, panelInferior);
-        splitVertical.setDividerLocation(450);
+        splitVertical.setDividerLocation(350);
         splitVertical.setResizeWeight(0.65);
         splitVertical.setDividerSize(6);
         splitVertical.setBorder(null);
         splitVertical.setBackground(PaletaColor.get(PaletaColor.FONDO));
 
         add(splitVertical, BorderLayout.CENTER);
+        
     }
 
     // --- ESTILIZADO DE COMPONENTES ---
@@ -232,6 +243,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
             }
         });
     }
+    
 
     private void initTables() {
         // Modelo Vuelos

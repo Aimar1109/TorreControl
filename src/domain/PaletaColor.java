@@ -14,7 +14,12 @@ public enum PaletaColor {
     EXITO(39, 174, 96, "Verde"),
     HOVER(220, 240, 255, "Azul claro"),
     FILA_ALT(250, 250, 250, "Blanco alternado"),
-    DELAYED(231, 76, 60, "Rojo");
+    DELAYED(231, 76, 60, "Rojo"),
+	FONDO_OSCURO(30, 35, 40, "Fondo Global Oscuro"),
+    TILE_INICIO(50, 55, 60, "Gradiente Tile Inicio"),
+    TILE_FIN(40, 45, 50, "Gradiente Tile Fin"),
+    TILE_BORDE(60, 65, 70, "Borde Tile"),
+    NEGRO_SUAVE(20, 20, 20, "Negro para barras/iconos");
     
     private final Color color;
     private final String descripcion;
