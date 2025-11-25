@@ -136,7 +136,7 @@ public class JFramePrincipal extends JFrame {
 	}
 	
 	private void estilizarBotonToggle(JToggleButton boton) {
-		boton.setFont(new Font("Arial", Font.BOLD, 12));
+		boton.setFont(new Font("Segoe UI", Font.BOLD, 14));
 		boton.setFocusPainted(false);
 		boton.setBorderPainted(true);
 		boton.setBackground(new Color(240, 240, 240));
