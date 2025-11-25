@@ -26,26 +26,21 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
-// Asegúrate de importar tus clases de dominio y utilidades
 import domain.Vuelo;
-// import utils.RelojGlobal; // Descomenta esto si tu RelojGlobal está en otro paquete
 
-public class PanelTimeline extends JPanel {
+// AHORA IMPLEMENTA TU INTERFAZ ObservadorTiempo
+public class PanelTimeline extends JPanel implements ObservadorTiempo {
 
     private static final long serialVersionUID = 1L;
     
     private JPanel contenedorTarjetas;
     private List<VueloCard> tarjetas;
-    
-    // Variables del hilo
-    private HiloRefresco hilo;
-    private volatile boolean ejecutando = true;
 
     public PanelTimeline(ArrayList<Vuelo> vuelos) {
         setLayout(new BorderLayout());
-        setBackground(new Color(240, 242, 245)); // Fondo gris muy claro moderno
+        setBackground(new Color(240, 242, 245)); 
 
-        // Ordenar vuelos por hora de salida real (Programada + Retraso)
+        // Ordenar vuelos
         Collections.sort(vuelos, new Comparator<Vuelo>() {
             @Override
             public int compare(Vuelo v1, Vuelo v2) {
@@ -59,71 +54,56 @@ public class PanelTimeline extends JPanel {
         contenedorTarjetas = new JPanel();
         contenedorTarjetas.setLayout(new BoxLayout(contenedorTarjetas, BoxLayout.Y_AXIS));
         contenedorTarjetas.setBackground(new Color(240, 242, 245));
-        
-        // Padding para que la línea de tiempo no pegue con los bordes
         contenedorTarjetas.setBorder(new EmptyBorder(20, 10, 20, 10));
 
         // Crear tarjetas
         int totalVuelos = vuelos.size();
         for (int i = 0; i < totalVuelos; i++) {
-            // Pasamos flags para saber si es el primero o último (para dibujar la línea correctamente)
             VueloCard card = new VueloCard(vuelos.get(i), i == 0, i == totalVuelos - 1);
             contenedorTarjetas.add(card);
-            
-            // Espacio entre tarjetas
             contenedorTarjetas.add(Box.createRigidArea(new Dimension(0, 15))); 
             tarjetas.add(card);
         }
 
-        // Quitar el último espacio vacío si existe
         if (totalVuelos > 0 && contenedorTarjetas.getComponentCount() > 0) {
             contenedorTarjetas.remove(contenedorTarjetas.getComponentCount() - 1);
         }
 
-        // Configurar Scroll
         JScrollPane scroll = new JScrollPane(contenedorTarjetas);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         add(scroll, BorderLayout.CENTER);
 
-        // Iniciar Hilo
-        hilo = new HiloRefresco();
-        hilo.start();
+        // --- INTEGRACIÓN CON RELOJ GLOBAL ---
+        // Nos suscribimos como observadores. 
+        // El reloj nos llamará automáticamente cuando cambie el tiempo.
+        RelojGlobal.getInstancia().addObservador(this);
+        
+        // Actualización inicial inmediata para que no salga vacío al arrancar
+        actualizarTiempo(RelojGlobal.getInstancia().getTiempoActual());
     }
     
-    public void detener() {
-        ejecutando = false;
-        if (hilo != null) {
-            hilo.interrupt();
-        }
+    // --- IMPLEMENTACIÓN DE ObservadorTiempo ---
+    @Override
+    public void actualizarTiempo(LocalDateTime nuevoTiempo) {
+        // Importante: El reloj corre en un hilo separado, pero Swing debe
+        // actualizarse en el Event Dispatch Thread (EDT).
+        SwingUtilities.invokeLater(() -> {
+            for (VueloCard card : tarjetas) {
+                card.actualizar(nuevoTiempo);
+            }
+        });
     }
 
-    // --- CLASE INTERNA DEL HILO ---
-    private class HiloRefresco extends Thread {
-        @Override
-        public void run() {
-            while (ejecutando) {
-                try {
-                    // IMPORTANTE: Asegúrate de que esta llamada a tu RelojGlobal sea correcta
-                    // Si no tienes RelojGlobal, usa LocalDateTime.now() para probar.
-                    LocalDateTime ahora = RelojGlobal.getInstancia().getTiempoActual(); 
-                    // LocalDateTime ahora = LocalDateTime.now(); // Descomentar si no usas RelojGlobal para tests
+    @Override
+    public void cambioEstadoPausa(boolean pausa) {
+        // Opcional: Podrías cambiar el color de fondo o mostrar un icono 
+        // si el reloj está pausado.
+    }
 
-                    SwingUtilities.invokeLater(() -> {
-                        for (VueloCard card : tarjetas) {
-                            card.actualizar(ahora);
-                        }
-                    });
-
-                    Thread.sleep(500); // Refresco cada medio segundo
-
-                } catch (InterruptedException e) {
-                    ejecutando = false;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+    // Método para limpiar la suscripción al cerrar el panel
+    public void detener() {
+        RelojGlobal.getInstancia().eliminarObservador(this);
     }
 }
 
@@ -139,7 +119,7 @@ class TimelineNodePanel extends JPanel {
         this.isFirst = isFirst;
         this.isLast = isLast;
         setOpaque(false);
-        setPreferredSize(new Dimension(40, 70)); // Ancho fijo
+        setPreferredSize(new Dimension(40, 70)); 
     }
 
     @Override
@@ -151,27 +131,22 @@ class TimelineNodePanel extends JPanel {
         int centerX = getWidth() / 2;
         int centerY = getHeight() / 2;
         
-        // Color de la línea de tiempo
         Color lineColor = new Color(200, 200, 200);
-        
         g2.setColor(lineColor);
         g2.setStroke(new BasicStroke(2));
 
-        // Dibujar línea superior (si no es el primero)
         if (!isFirst) {
             g2.drawLine(centerX, 0, centerX, centerY);
         }
-        // Dibujar línea inferior (si no es el último)
         if (!isLast) {
             g2.drawLine(centerX, centerY, centerX, getHeight());
         }
 
-        // Dibujar el nodo (círculo central)
         int nodeSize = 12;
         g2.setColor(Color.WHITE);
         g2.fillOval(centerX - nodeSize / 2, centerY - nodeSize / 2, nodeSize, nodeSize);
         
-        g2.setColor(new Color(100, 100, 100)); // Borde del nodo
+        g2.setColor(new Color(100, 100, 100));
         g2.setStroke(new BasicStroke(1.5f));
         g2.drawOval(centerX - nodeSize / 2, centerY - nodeSize / 2, nodeSize, nodeSize);
     }
@@ -196,25 +171,21 @@ class VueloCard extends JPanel {
         setLayout(new BorderLayout(0, 0)); 
         setBackground(Color.WHITE);
         
-        // Borde compuesto: Línea suave + Padding interno
         setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
-            new EmptyBorder(5, 5, 5, 15) // Padding derecho extra
+            new EmptyBorder(5, 5, 5, 15)
         ));
         
-        setPreferredSize(new Dimension(0, 85)); // Altura fija cómoda
+        setPreferredSize(new Dimension(0, 85)); 
         setMaximumSize(new Dimension(9999, 85)); 
 
-        // 1. Panel Izquierdo: Línea de tiempo
         TimelineNodePanel nodePanel = new TimelineNodePanel(isFirst, isLast);
         add(nodePanel, BorderLayout.WEST);
 
-        // 2. Panel Central: Contenido (Info + Barra)
         JPanel centerPanel = new JPanel(new BorderLayout(10, 5));
         centerPanel.setOpaque(false);
         centerPanel.setBorder(new EmptyBorder(5, 0, 5, 0));
 
-        // --- Info Superior (Código y Ruta) ---
         JPanel headerInfo = new JPanel(new BorderLayout());
         headerInfo.setOpaque(false);
         
@@ -232,7 +203,6 @@ class VueloCard extends JPanel {
         titleContainer.add(lblCodigo);
         titleContainer.add(lblRuta);
         
-        // Estado y Horas (Derecha Superior)
         JPanel statusContainer = new JPanel(new GridLayout(2, 1));
         statusContainer.setOpaque(false);
         
@@ -251,9 +221,8 @@ class VueloCard extends JPanel {
         headerInfo.add(titleContainer, BorderLayout.WEST);
         headerInfo.add(statusContainer, BorderLayout.EAST);
         
-        // --- Barra Inferior ---
         barraProgreso = new BarraProgresoVuelo(vuelo);
-        barraProgreso.setPreferredSize(new Dimension(0, 30)); // Altura para la barra
+        barraProgreso.setPreferredSize(new Dimension(0, 30));
 
         centerPanel.add(headerInfo, BorderLayout.NORTH);
         centerPanel.add(barraProgreso, BorderLayout.CENTER);
@@ -267,7 +236,6 @@ class VueloCard extends JPanel {
         LocalDateTime salida = vuelo.getFechaHoraProgramada().plusMinutes(vuelo.getDelayed());
         LocalDateTime llegada = salida.plusMinutes((long)vuelo.getDuracion());
 
-        // Actualizar textos y colores de estado
         if (ahora.isAfter(llegada)) {
             lblEstado.setText("ATERRIZADO");
             lblEstado.setForeground(new Color(127, 140, 141)); 
@@ -284,7 +252,6 @@ class VueloCard extends JPanel {
             }
         }
         
-        // Ajuste visual si el vuelo es al día siguiente
         String textoHora = salida.format(TIME_FMT) + " - " + llegada.format(TIME_FMT);
         if (salida.getDayOfYear() != ahora.getDayOfYear()) {
             int diffDias = salida.getDayOfYear() - ahora.getDayOfYear();
@@ -302,7 +269,6 @@ class BarraProgresoVuelo extends JPanel {
     private Vuelo vuelo;
     private float porcentaje = 0f;
     
-    // Variables para lógica visual
     private long minutosParaSalida = 0;
     private boolean haSalido = false;
     private boolean haLlegado = false;
@@ -352,11 +318,9 @@ class BarraProgresoVuelo extends JPanel {
         int margenLateral = 5;
         int anchoUtil = w - (margenLateral * 2);
 
-        // 1. Fondo de la barra (Track)
         g2.setColor(new Color(236, 240, 241));
         g2.fillRoundRect(margenLateral, yBarra, anchoUtil, alturaBarra, radioEsquina, radioEsquina);
 
-        // CASO A: EN VUELO
         if (haSalido && !haLlegado) {
             Color colorVuelo = (vuelo.getDelayed() > 0) ? new Color(231, 76, 60) : new Color(52, 152, 219);
             
@@ -364,11 +328,9 @@ class BarraProgresoVuelo extends JPanel {
             g2.setColor(colorVuelo);
             g2.fillRoundRect(margenLateral, yBarra, wProgreso, alturaBarra, radioEsquina, radioEsquina);
             
-            // Avión
             int xAvion = margenLateral + wProgreso;
             dibujarAvion(g2, xAvion, h / 2, colorVuelo);
             
-            // Texto Porcentaje
             if (wProgreso > 40) {
                 g2.setColor(Color.WHITE);
                 g2.setFont(new Font("Arial", Font.BOLD, 10));
@@ -376,15 +338,12 @@ class BarraProgresoVuelo extends JPanel {
                 g2.drawString(textoPct, margenLateral + 8, yBarra + 13);
             }
         }
-        
-        // CASO B: ANTES DE SALIR
         else if (!haSalido) {
             String textoEstado;
             Color colorTexto;
             
             if (minutosParaSalida < 60 && minutosParaSalida > 0) {
-                // Embarcando
-                g2.setColor(new Color(243, 156, 18)); // Naranja
+                g2.setColor(new Color(243, 156, 18)); 
                 float urgencia = 1.0f - (Math.max(0.0f, (float)minutosParaSalida / 60.0f));
                 int wUrgencia = (int) (anchoUtil * urgencia);
                 g2.fillRoundRect(margenLateral, yBarra, wUrgencia, alturaBarra, radioEsquina, radioEsquina);
@@ -403,8 +362,6 @@ class BarraProgresoVuelo extends JPanel {
             int textWidth = g2.getFontMetrics().stringWidth(textoEstado);
             g2.drawString(textoEstado, (w - textWidth) / 2, yBarra + 13);
         }
-        
-        // CASO C: LLEGADO
         else {
             g2.setColor(new Color(149, 165, 166)); 
             g2.fillRoundRect(margenLateral, yBarra, anchoUtil, alturaBarra, radioEsquina, radioEsquina);
@@ -421,18 +378,15 @@ class BarraProgresoVuelo extends JPanel {
         var t = g2.getTransform();
         g2.translate(x, y);
         
-        int size = 18; // Avión más grande
+        int size = 18; 
         
-        // Círculo de fondo para que el avión resalte sobre cualquier cosa
         g2.setColor(Color.WHITE); 
         g2.fillOval(-size / 2, -size / 2, size, size);
         
-        // Borde del círculo
         g2.setColor(color); 
         g2.setStroke(new BasicStroke(2f));
         g2.drawOval(-size / 2, -size / 2, size, size);
 
-        // Triángulo simulando avión
         g2.setColor(color.darker()); 
         int[] xp = {-4, 6, -4};
         int[] yp = {-5, 0, 5};
