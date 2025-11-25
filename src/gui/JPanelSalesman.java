@@ -210,6 +210,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 
     private void estilizarBotonToggle(JToggleButton boton) {
         boton.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        boton.setPreferredSize(new Dimension(80, 35));
         boton.setFocusPainted(false);
         boton.setBorderPainted(true);
         boton.setContentAreaFilled(true);
