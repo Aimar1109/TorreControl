@@ -97,7 +97,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 
         // Título (Centro)
         JLabel lblTitulo = new JLabel("CONTROL DE VUELOS", JLabel.CENTER);
-        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblTitulo.setForeground(Color.WHITE);
         panelSuperior.add(lblTitulo, BorderLayout.CENTER);
 

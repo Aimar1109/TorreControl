@@ -70,7 +70,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	private static final long serialVersionUID = 1L;
 	
 	// Paleta de colores moderna
-	private static final Color COLOR_PRIMARIO = new Color(41, 128, 185);      // Azul profesional
+	private static final Color COLOR_PRIMARIO = new Color(44, 62, 80);      // Azul profesional
 	private static final Color COLOR_SECUNDARIO = new Color(52, 73, 94);      // Azul oscuro
 	private static final Color COLOR_FONDO = new Color(236, 240, 241);        // Gris claro
 	private static final Color COLOR_BLANCO = Color.WHITE;
@@ -101,14 +101,17 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		
 		// Creacion del main panel
 		JPanel mainVuelos = new JPanel(new BorderLayout());
-		mainVuelos.setBackground(COLOR_FONDO);		
+		mainVuelos.setBackground(COLOR_FONDO);
 		
 		// Panel Superior
 		JPanel panelSuperior = new JPanel(new BorderLayout());
+		panelSuperior.setBackground(COLOR_PRIMARIO);
+		panelSuperior.setBorder(new EmptyBorder(15, 20, 15, 20));
 		
 		// Titulo VUELOS
 		JLabel titu = new JLabel("VUELOS", SwingConstants.CENTER);
-		titu.setFont(new Font("Segoe UI", Font.BOLD, 28));
+		titu.setFont(new Font("Segoe UI", Font.BOLD, 24));
+		titu.setForeground(COLOR_BLANCO);
         
         panelSuperior.add(titu, BorderLayout.CENTER);
         
@@ -116,22 +119,16 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         int widthLados = 120;
         
         lblreloj.setPreferredSize(new Dimension(widthLados, 0));
-        lblreloj.setFont(new Font("Arial", Font.PLAIN, 16));
-        lblreloj.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0)); // margen a la izquierda
-        
+        lblreloj.setFont(new Font("Consolas", Font.BOLD, 18));
+        lblreloj.setForeground(COLOR_BLANCO);        
         panelSuperior.add(lblreloj, BorderLayout.WEST);
         
         // Derecha vacio para vuelos centrado
         JLabel vacioD = new JLabel("");
         vacioD.setPreferredSize(new Dimension(widthLados, 0));
-        vacioD.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         vacioD.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 15)); // margen a la izquierda
         
         panelSuperior.add(vacioD, BorderLayout.EAST);
-
-		// Ajustar tamaño preferido
-		int anchoVentana = mainVuelos.getWidth();
-		panelSuperior.setPreferredSize(new Dimension(anchoVentana - 50, 40));
 		
 		mainVuelos.add(panelSuperior, BorderLayout.NORTH);
 		
@@ -160,7 +157,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		
 		SwingUtilities.invokeLater(() -> {
 		    lblreloj.setText(relojGlobal.getTiempoActual().format(formatterHora));
-		    lblreloj.setForeground(COLOR_TEXTO);
+		    lblreloj.setForeground(COLOR_BLANCO);
 		});
 	}
 	
@@ -412,16 +409,21 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         TableRowSorter<TableModel> sorter = new TableRowSorter<>(modelo);
         tabla.setRowSorter(sorter);
 
-        // Comparadores personalizados para cada columna
-        sorter.setComparator(2, Comparator.naturalOrder()); // Fecha
-        sorter.setComparator(3, Comparator.naturalOrder()); // Hora
+        // Comparadores para columnas 2(fecha) y 3(hora), naturalOrder=cronologicamente para LocalDate and LocalTime
+        // no es necesario
+        //sorter.setComparator(2, Comparator.naturalOrder()); // Fecha
+        //sorter.setComparator(3, Comparator.naturalOrder()); // Hora
 
-        // Ordenar automáticamente por fecha (columna 0) y luego por hora (columna 1)
+        // clavesOrden es una lista que tendra el orden de las reglas de ordenamiento
         List<RowSorter.SortKey> clavesOrden = new ArrayList<>();
-        clavesOrden.add(new RowSorter.SortKey(2, SortOrder.ASCENDING)); // Fecha ascendente
-        clavesOrden.add(new RowSorter.SortKey(3, SortOrder.ASCENDING)); // Hora ascendente
+        // primera regla ordernar por la segunda columna y de manera ascendente
+        clavesOrden.add(new RowSorter.SortKey(2, SortOrder.ASCENDING));
+        // segunda regla ordenar por la tercera columna de manera ascendente
+        clavesOrden.add(new RowSorter.SortKey(3, SortOrder.ASCENDING));
+        // añadir esta lista de reglas a al sorter
         sorter.setSortKeys(clavesOrden);
-        sorter.sort(); // ¡Ordena automáticamente!
+        // ordenar
+        sorter.sort();
         
         // Tamaño minimo de las columnas
         int anchoMinimoTotal = 80*tabla.getModel().getColumnCount();
@@ -680,7 +682,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 			if (pausa) {
 				lblreloj.setForeground(COLOR_ACENTO);
 			} else {
-				lblreloj.setForeground(COLOR_TEXTO);
+				lblreloj.setForeground(COLOR_BLANCO);
 			}
 		});
 	}
