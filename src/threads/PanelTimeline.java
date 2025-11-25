@@ -1,397 +1,334 @@
 package threads;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GridLayout;
 import java.awt.RenderingHints;
+import java.awt.geom.Arc2D;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
-import javax.swing.border.EmptyBorder;
 
+import domain.PaletaColor; // Importamos tu Enum
 import domain.Vuelo;
 
-// AHORA IMPLEMENTA TU INTERFAZ ObservadorTiempo
 public class PanelTimeline extends JPanel implements ObservadorTiempo {
 
     private static final long serialVersionUID = 1L;
     
-    private JPanel contenedorTarjetas;
-    private List<VueloCard> tarjetas;
+    private JPanel listPanel;
+    private List<RadarTile> tiles;
+
+    // --- COLORES ADAPTADOS A TU PALETA ---
+    // Mantenemos fondo oscuro para el efecto HUD, pero armonizado
+    public static final Color BG_DARK = PaletaColor.get(PaletaColor.PRIMARIO);
+    public static final Color TILE_BG_START = new Color(50, 55, 60);
+    public static final Color TILE_BG_END = new Color(40, 45, 50);
+    
+    // Colores funcionales mapeados a tu Enum PaletaColor
+    public static final Color COLOR_BLUE = PaletaColor.get(PaletaColor.SECUNDARIO); // Azul Oscuro/Brillante
+    public static final Color COLOR_GREEN = PaletaColor.get(PaletaColor.EXITO);     // Verde Éxito
+    public static final Color COLOR_RED = PaletaColor.get(PaletaColor.DELAYED);     // Rojo Retraso
+    public static final Color COLOR_AMBER = PaletaColor.get(PaletaColor.ACENTO);    // Naranja Acento
+    
+    public static final Color TEXT_DIM = PaletaColor.get(PaletaColor.TEXTO_SUAVE); // Gris medio
 
     public PanelTimeline(ArrayList<Vuelo> vuelos) {
         setLayout(new BorderLayout());
-        setBackground(new Color(240, 242, 245)); 
+        setBackground(BG_DARK);
 
-        // Ordenar vuelos
-        Collections.sort(vuelos, new Comparator<Vuelo>() {
-            @Override
-            public int compare(Vuelo v1, Vuelo v2) {
-                LocalDateTime salida1 = v1.getFechaHoraProgramada().plusMinutes(v1.getDelayed());
-                LocalDateTime salida2 = v2.getFechaHoraProgramada().plusMinutes(v2.getDelayed());
-                return salida1.compareTo(salida2);
-            }
+        // Ordenar: Primero los que están volando, luego programados, luego aterrizados
+        Collections.sort(vuelos, (v1, v2) -> {
+            LocalDateTime now = RelojGlobal.getInstancia().getTiempoActual();
+            int score1 = getFlightScore(v1, now);
+            int score2 = getFlightScore(v2, now);
+            return Integer.compare(score1, score2);
         });
 
-        tarjetas = new ArrayList<>();
-        contenedorTarjetas = new JPanel();
-        contenedorTarjetas.setLayout(new BoxLayout(contenedorTarjetas, BoxLayout.Y_AXIS));
-        contenedorTarjetas.setBackground(new Color(240, 242, 245));
-        contenedorTarjetas.setBorder(new EmptyBorder(20, 10, 20, 10));
+        // Usamos BoxLayout en eje Y para que las filas ocupen todo el ancho
+        listPanel = new JPanel();
+        listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
+        listPanel.setBackground(BG_DARK);
+        listPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Crear tarjetas
-        int totalVuelos = vuelos.size();
-        for (int i = 0; i < totalVuelos; i++) {
-            VueloCard card = new VueloCard(vuelos.get(i), i == 0, i == totalVuelos - 1);
-            contenedorTarjetas.add(card);
-            contenedorTarjetas.add(Box.createRigidArea(new Dimension(0, 15))); 
-            tarjetas.add(card);
+        tiles = new ArrayList<>();
+        
+        for (Vuelo v : vuelos) {
+            RadarTile tile = new RadarTile(v);
+            listPanel.add(tile);
+            listPanel.add(Box.createRigidArea(new Dimension(0, 8))); // Espacio entre barras
+            tiles.add(tile);
         }
 
-        if (totalVuelos > 0 && contenedorTarjetas.getComponentCount() > 0) {
-            contenedorTarjetas.remove(contenedorTarjetas.getComponentCount() - 1);
-        }
-
-        JScrollPane scroll = new JScrollPane(contenedorTarjetas);
+        JScrollPane scroll = new JScrollPane(listPanel);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
+        scroll.getViewport().setBackground(BG_DARK);
         add(scroll, BorderLayout.CENTER);
 
-        // --- INTEGRACIÓN CON RELOJ GLOBAL ---
-        // Nos suscribimos como observadores. 
-        // El reloj nos llamará automáticamente cuando cambie el tiempo.
         RelojGlobal.getInstancia().addObservador(this);
-        
-        // Actualización inicial inmediata para que no salga vacío al arrancar
-        actualizarTiempo(RelojGlobal.getInstancia().getTiempoActual());
     }
     
-    // --- IMPLEMENTACIÓN DE ObservadorTiempo ---
+    private int getFlightScore(Vuelo v, LocalDateTime now) {
+        LocalDateTime dep = v.getFechaHoraProgramada().plusMinutes(v.getDelayed());
+        LocalDateTime arr = dep.plusMinutes((long)v.getDuracion());
+        
+        if (now.isAfter(dep) && now.isBefore(arr)) return 1; // Volando
+        if (now.isBefore(dep) && ChronoUnit.MINUTES.between(now, dep) < 60) return 2; // Embarcando
+        if (now.isBefore(dep)) return 3; // Futuro
+        return 4; // Aterrizado
+    }
+
     @Override
     public void actualizarTiempo(LocalDateTime nuevoTiempo) {
-        // Importante: El reloj corre en un hilo separado, pero Swing debe
-        // actualizarse en el Event Dispatch Thread (EDT).
         SwingUtilities.invokeLater(() -> {
-            for (VueloCard card : tarjetas) {
-                card.actualizar(nuevoTiempo);
+            for (RadarTile tile : tiles) {
+                tile.actualizarEstado(nuevoTiempo);
             }
+            listPanel.repaint();
         });
     }
 
     @Override
     public void cambioEstadoPausa(boolean pausa) {
-        // Opcional: Podrías cambiar el color de fondo o mostrar un icono 
-        // si el reloj está pausado.
+        repaint();
     }
-
-    // Método para limpiar la suscripción al cerrar el panel
+    
     public void detener() {
         RelojGlobal.getInstancia().eliminarObservador(this);
     }
 }
 
-// -------------------------------------------------------------------------
-// CLASE VISUAL: Nodo de la línea de tiempo (Línea vertical + Punto)
-// -------------------------------------------------------------------------
-class TimelineNodePanel extends JPanel {
-    private static final long serialVersionUID = 1L;
-    private boolean isFirst;
-    private boolean isLast;
-
-    public TimelineNodePanel(boolean isFirst, boolean isLast) {
-        this.isFirst = isFirst;
-        this.isLast = isLast;
-        setOpaque(false);
-        setPreferredSize(new Dimension(40, 70)); 
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        int centerX = getWidth() / 2;
-        int centerY = getHeight() / 2;
-        
-        Color lineColor = new Color(200, 200, 200);
-        g2.setColor(lineColor);
-        g2.setStroke(new BasicStroke(2));
-
-        if (!isFirst) {
-            g2.drawLine(centerX, 0, centerX, centerY);
-        }
-        if (!isLast) {
-            g2.drawLine(centerX, centerY, centerX, getHeight());
-        }
-
-        int nodeSize = 12;
-        g2.setColor(Color.WHITE);
-        g2.fillOval(centerX - nodeSize / 2, centerY - nodeSize / 2, nodeSize, nodeSize);
-        
-        g2.setColor(new Color(100, 100, 100));
-        g2.setStroke(new BasicStroke(1.5f));
-        g2.drawOval(centerX - nodeSize / 2, centerY - nodeSize / 2, nodeSize, nodeSize);
-    }
-}
-
-// -------------------------------------------------------------------------
-// CLASE VISUAL: Tarjeta de Vuelo
-// -------------------------------------------------------------------------
-class VueloCard extends JPanel {
+/**
+ * Tarjeta estilo HUD Expandible (Responsive).
+ * Se dibuja como una barra horizontal completa.
+ */
+class RadarTile extends JPanel {
     private static final long serialVersionUID = 1L;
     
     private Vuelo vuelo;
-    private BarraProgresoVuelo barraProgreso;
-    private JLabel lblEstado;
-    private JLabel lblHoras;
+    private float progreso = 0f;
+    private Color estadoColor = Color.GRAY;
+    private String estadoTexto = "N/A";
     
-    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
+    private float pulseAlpha = 0f;
+    private boolean isFlying = false;
 
-    public VueloCard(Vuelo vuelo, boolean isFirst, boolean isLast) {
+    // Fuentes cacheadas
+    private static final Font FONT_CODE = new Font("Consolas", Font.BOLD, 22);
+    private static final Font FONT_ROUTE = new Font("Segoe UI", Font.BOLD, 16);
+    private static final Font FONT_DETAILS = new Font("Segoe UI", Font.PLAIN, 12);
+    private static final Font FONT_STATUS = new Font("Consolas", Font.BOLD, 14);
+
+    public RadarTile(Vuelo vuelo) {
         this.vuelo = vuelo;
-        
-        setLayout(new BorderLayout(0, 0)); 
-        setBackground(Color.WHITE);
-        
-        setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
-            new EmptyBorder(5, 5, 5, 15)
-        ));
-        
-        setPreferredSize(new Dimension(0, 85)); 
-        setMaximumSize(new Dimension(9999, 85)); 
-
-        TimelineNodePanel nodePanel = new TimelineNodePanel(isFirst, isLast);
-        add(nodePanel, BorderLayout.WEST);
-
-        JPanel centerPanel = new JPanel(new BorderLayout(10, 5));
-        centerPanel.setOpaque(false);
-        centerPanel.setBorder(new EmptyBorder(5, 0, 5, 0));
-
-        JPanel headerInfo = new JPanel(new BorderLayout());
-        headerInfo.setOpaque(false);
-        
-        JLabel lblCodigo = new JLabel(vuelo.getCodigo());
-        lblCodigo.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        lblCodigo.setForeground(new Color(44, 62, 80));
-        
-        JLabel lblRuta = new JLabel("  " + vuelo.getOrigen().getCodigo() + " ➝ " + vuelo.getDestino().getCodigo());
-        lblRuta.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lblRuta.setForeground(Color.GRAY);
-        
-        JPanel titleContainer = new JPanel();
-        titleContainer.setLayout(new BoxLayout(titleContainer, BoxLayout.X_AXIS));
-        titleContainer.setOpaque(false);
-        titleContainer.add(lblCodigo);
-        titleContainer.add(lblRuta);
-        
-        JPanel statusContainer = new JPanel(new GridLayout(2, 1));
-        statusContainer.setOpaque(false);
-        
-        lblEstado = new JLabel("Pendiente", JLabel.RIGHT);
-        lblEstado.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        
-        LocalDateTime salida = vuelo.getFechaHoraProgramada().plusMinutes(vuelo.getDelayed());
-        LocalDateTime llegada = salida.plusMinutes((long)vuelo.getDuracion());
-        lblHoras = new JLabel(salida.format(TIME_FMT) + " - " + llegada.format(TIME_FMT), JLabel.RIGHT);
-        lblHoras.setFont(new Font("Consolas", Font.PLAIN, 12));
-        lblHoras.setForeground(Color.DARK_GRAY);
-        
-        statusContainer.add(lblEstado);
-        statusContainer.add(lblHoras);
-
-        headerInfo.add(titleContainer, BorderLayout.WEST);
-        headerInfo.add(statusContainer, BorderLayout.EAST);
-        
-        barraProgreso = new BarraProgresoVuelo(vuelo);
-        barraProgreso.setPreferredSize(new Dimension(0, 30));
-
-        centerPanel.add(headerInfo, BorderLayout.NORTH);
-        centerPanel.add(barraProgreso, BorderLayout.CENTER);
-
-        add(centerPanel, BorderLayout.CENTER);
+        setOpaque(false);
+        // Altura fija, Ancho expandible
+        setMinimumSize(new Dimension(400, 85));
+        setPreferredSize(new Dimension(600, 85));
+        setMaximumSize(new Dimension(Integer.MAX_VALUE, 85));
     }
 
-    public void actualizar(LocalDateTime ahora) {
-        barraProgreso.setTiempoActual(ahora);
-        
+    public void actualizarEstado(LocalDateTime now) {
         LocalDateTime salida = vuelo.getFechaHoraProgramada().plusMinutes(vuelo.getDelayed());
         LocalDateTime llegada = salida.plusMinutes((long)vuelo.getDuracion());
+        
+        long totalMin = ChronoUnit.MINUTES.between(salida, llegada);
+        long elapsed = ChronoUnit.MINUTES.between(salida, now);
+        long toGo = ChronoUnit.MINUTES.between(now, salida);
 
-        if (ahora.isAfter(llegada)) {
-            lblEstado.setText("ATERRIZADO");
-            lblEstado.setForeground(new Color(127, 140, 141)); 
-        } else if (ahora.isAfter(salida)) {
-            lblEstado.setText("EN VUELO");
-            lblEstado.setForeground(new Color(39, 174, 96)); 
+        isFlying = false;
+
+        if (now.isAfter(llegada)) {
+            progreso = 1f;
+            estadoColor = PaletaColor.get(PaletaColor.TEXTO_SUAVE); // Gris apagado
+            estadoTexto = "FINALIZADO";
+        } else if (now.isAfter(salida)) {
+            isFlying = true;
+            progreso = (float)elapsed / (float)Math.max(totalMin, 1);
+            // Si tiene retraso, usamos ROJO, si no, VERDE (EXITO)
+            estadoColor = vuelo.getDelayed() > 0 ? PanelTimeline.COLOR_RED : PanelTimeline.COLOR_GREEN;
+            estadoTexto = "EN VUELO";
         } else {
+            progreso = 0f;
+            
+            // 1. Comprobar PRIMERO si hay retraso
             if (vuelo.getDelayed() > 0) {
-                lblEstado.setText("RETRASADO " + vuelo.getDelayed() + "m");
-                lblEstado.setForeground(new Color(192, 57, 43)); 
-            } else {
-                lblEstado.setText("PROGRAMADO");
-                lblEstado.setForeground(new Color(41, 128, 185)); 
+                estadoColor = PanelTimeline.COLOR_RED; // Rojo (DELAYED)
+                estadoTexto = "RETRASADO";            
+            } 
+            // 2. Si no, comprobar si está embarcando (< 60 min)
+            else if (toGo < 60) {
+                estadoColor = PanelTimeline.COLOR_AMBER; // Naranja (ACENTO)
+                estadoTexto = "EMBARCANDO T-" + toGo + "m";
+            } 
+            // 3. Si no, está programado normal
+            else {
+                estadoColor = PanelTimeline.COLOR_BLUE; // Azul (SECUNDARIO)
+                estadoTexto = "PROGRAMADO";
             }
         }
         
-        String textoHora = salida.format(TIME_FMT) + " - " + llegada.format(TIME_FMT);
-        if (salida.getDayOfYear() != ahora.getDayOfYear()) {
-            int diffDias = salida.getDayOfYear() - ahora.getDayOfYear();
-            if (diffDias > 0) textoHora += " (+" + diffDias + "d)";
-        }
-        lblHoras.setText(textoHora);
-    }
-}
-
-// -------------------------------------------------------------------------
-// CLASE VISUAL: Barra de Progreso Personalizada
-// -------------------------------------------------------------------------
-class BarraProgresoVuelo extends JPanel {
-    private static final long serialVersionUID = 1L;
-    private Vuelo vuelo;
-    private float porcentaje = 0f;
-    
-    private long minutosParaSalida = 0;
-    private boolean haSalido = false;
-    private boolean haLlegado = false;
-
-    public BarraProgresoVuelo(Vuelo vuelo) {
-        this.vuelo = vuelo;
-        setOpaque(false);
-    }
-
-    public void setTiempoActual(LocalDateTime ahora) {
-        LocalDateTime salida = vuelo.getFechaHoraProgramada().plusMinutes(vuelo.getDelayed());
-        LocalDateTime llegada = salida.plusMinutes((long)vuelo.getDuracion());
-
-        minutosParaSalida = ChronoUnit.MINUTES.between(ahora, salida);
-        
-        if (ahora.isAfter(llegada)) {
-            haLlegado = true;
-            haSalido = true;
-            porcentaje = 1f;
-        } else if (ahora.isAfter(salida)) {
-            haLlegado = false;
-            haSalido = true;
-            long duracionTotal = ChronoUnit.MINUTES.between(salida, llegada);
-            long tiempoVolado = ChronoUnit.MINUTES.between(salida, ahora);
-            porcentaje = (float) tiempoVolado / (float) (duracionTotal > 0 ? duracionTotal : 1);
+        if (isFlying) {
+            long millis = System.currentTimeMillis();
+            pulseAlpha = (float) (0.3f + 0.2f * Math.sin(millis / 250.0)); 
         } else {
-            haLlegado = false;
-            haSalido = false;
-            porcentaje = 0f;
+            pulseAlpha = 0f;
         }
         repaint();
     }
 
     @Override
     protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         int w = getWidth();
         int h = getHeight();
-        
-        int alturaBarra = 18; 
-        int radioEsquina = 18;
-        
-        int yBarra = (h - alturaBarra) / 2;
-        int margenLateral = 5;
-        int anchoUtil = w - (margenLateral * 2);
 
-        g2.setColor(new Color(236, 240, 241));
-        g2.fillRoundRect(margenLateral, yBarra, anchoUtil, alturaBarra, radioEsquina, radioEsquina);
+        // 1. FONDO CON GRADIENTE (Estilo Barra Metálica Oscura)
+        GradientPaint bgGrad = new GradientPaint(0, 0, PanelTimeline.TILE_BG_START, 0, h, PanelTimeline.TILE_BG_END);
+        g2.setPaint(bgGrad);
+        g2.fillRoundRect(0, 0, w, h, 10, 10);
+        
+        // Borde izquierdo coloreado según estado (Indicador visual rápido)
+        g2.setColor(estadoColor);
+        g2.fillRoundRect(0, 0, 6, h, 10, 10); // "Ribbon" izquierdo
+        
+        // Borde sutil general
+        g2.setColor(new Color(60, 65, 70));
+        g2.setStroke(new BasicStroke(1f));
+        g2.drawRoundRect(0, 0, w-1, h-1, 10, 10);
 
-        if (haSalido && !haLlegado) {
-            Color colorVuelo = (vuelo.getDelayed() > 0) ? new Color(231, 76, 60) : new Color(52, 152, 219);
-            
-            int wProgreso = (int) (anchoUtil * porcentaje);
-            g2.setColor(colorVuelo);
-            g2.fillRoundRect(margenLateral, yBarra, wProgreso, alturaBarra, radioEsquina, radioEsquina);
-            
-            int xAvion = margenLateral + wProgreso;
-            dibujarAvion(g2, xAvion, h / 2, colorVuelo);
-            
-            if (wProgreso > 40) {
-                g2.setColor(Color.WHITE);
-                g2.setFont(new Font("Arial", Font.BOLD, 10));
-                String textoPct = (int)(porcentaje * 100) + "%";
-                g2.drawString(textoPct, margenLateral + 8, yBarra + 13);
-            }
+        // === SECCIÓN 1: RADAR & CÓDIGO (Izquierda) ===
+        int radarX = 25;
+        int radarY = h/2;
+        int radarR = 24;
+
+        // Círculo Radar
+        g2.setColor(new Color(20, 20, 20));
+        g2.fillOval(radarX - radarR, radarY - radarR, radarR*2, radarR*2);
+        g2.setColor(estadoColor.darker());
+        g2.setStroke(new BasicStroke(2f));
+        g2.drawOval(radarX - radarR, radarY - radarR, radarR*2, radarR*2);
+
+        // Arco de progreso radial
+        if (progreso > 0 && progreso < 1) {
+            g2.setColor(estadoColor);
+            g2.setStroke(new BasicStroke(3f));
+            g2.draw(new Arc2D.Float(radarX - radarR + 4, radarY - radarR + 4, (radarR-4)*2, (radarR-4)*2, 90, -360 * progreso, Arc2D.OPEN));
         }
-        else if (!haSalido) {
-            String textoEstado;
-            Color colorTexto;
-            
-            if (minutosParaSalida < 60 && minutosParaSalida > 0) {
-                g2.setColor(new Color(243, 156, 18)); 
-                float urgencia = 1.0f - (Math.max(0.0f, (float)minutosParaSalida / 60.0f));
-                int wUrgencia = (int) (anchoUtil * urgencia);
-                g2.fillRoundRect(margenLateral, yBarra, wUrgencia, alturaBarra, radioEsquina, radioEsquina);
-                
-                textoEstado = "EMBARCANDO | -" + minutosParaSalida + "m";
-                colorTexto = Color.DARK_GRAY;
-            } else {
-                long horas = minutosParaSalida / 60;
-                long mins = minutosParaSalida % 60;
-                textoEstado = (minutosParaSalida < 0) ? "RETRASADO" : "Salida en " + horas + "h " + mins + "m";
-                colorTexto = Color.GRAY;
-            }
-            
-            g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
-            g2.setColor(colorTexto);
-            int textWidth = g2.getFontMetrics().stringWidth(textoEstado);
-            g2.drawString(textoEstado, (w - textWidth) / 2, yBarra + 13);
+        
+        // Efecto Pulse
+        if (isFlying) {
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, pulseAlpha));
+            g2.setColor(estadoColor);
+            g2.fillOval(radarX - 8, radarY - 8, 16, 16);
+            g2.setComposite(AlphaComposite.SrcOver);
+        } else if (estadoTexto.startsWith("EMBARCANDO")) {
+            g2.setColor(PanelTimeline.COLOR_AMBER);
+            g2.fillOval(radarX - 5, radarY - 5, 10, 10);
         }
-        else {
-            g2.setColor(new Color(149, 165, 166)); 
-            g2.fillRoundRect(margenLateral, yBarra, anchoUtil, alturaBarra, radioEsquina, radioEsquina);
+
+        // Código de Vuelo
+        g2.setFont(FONT_CODE);
+        g2.setColor(PaletaColor.get(PaletaColor.BLANCO));
+        g2.drawString(vuelo.getCodigo(), radarX + 40, radarY + 8);
+
+        // === SECCIÓN 2: RUTA (Centro-Izquierda) ===
+        int routeX = radarX + 130;
+        g2.setFont(FONT_ROUTE);
+        g2.setColor(Color.LIGHT_GRAY);
+        g2.drawString(vuelo.getOrigen().getCodigo() + "  ➝  " + vuelo.getDestino().getCodigo(), routeX, radarY - 10);
+        
+        // Ciudad Origen - Destino (Pequeño)
+        g2.setFont(FONT_DETAILS);
+        g2.setColor(PanelTimeline.TEXT_DIM);
+        String rutaFull = vuelo.getOrigen().getCiudad() + " - " + vuelo.getDestino().getCiudad();
+        // Recortar texto si es muy largo
+        if (rutaFull.length() > 30) rutaFull = rutaFull.substring(0, 27) + "...";
+        g2.drawString(rutaFull, routeX, radarY + 10);
+
+        // === SECCIÓN 3: DETALLES TÉCNICOS (Centro expandible) ===
+        // Calculamos posición relativa al ancho para que se expanda
+        int detailsX = w / 2 + 20; 
+        
+        // Iconos simulados con texto
+        drawDetail(g2, "AVIÓN", vuelo.getAvion().getModelo(), detailsX, radarY - 12);
+        drawDetail(g2, "PAX", vuelo.getPasajeros().size() + "/" + vuelo.getAvion().getCapacidad(), detailsX, radarY + 12);
+        
+        int detailsX2 = detailsX + 120;
+        String puerta = (vuelo.getPuerta() != null) ? vuelo.getPuerta().getCodigo() : "TBD";
+        drawDetail(g2, "GATE", puerta, detailsX2, radarY - 12);
+        drawDetail(g2, "MATR", vuelo.getAvion().getMatricula(), detailsX2, radarY + 12);
+
+        // === SECCIÓN 4: ESTADO Y TIEMPO (Derecha) ===
+        int statusX = w - 140;
+        
+        g2.setFont(FONT_STATUS);
+        g2.setColor(estadoColor);
+        // Alinear a la derecha
+        String statusStr = estadoTexto;
+        if (vuelo.getDelayed() > 0 && !statusStr.equals("FINALIZADO")) statusStr += " (+" + vuelo.getDelayed() + "m)";
+        
+        int sw = g2.getFontMetrics().stringWidth(statusStr);
+        g2.drawString(statusStr, w - 20 - sw, radarY - 5);
+        
+        // Hora
+        g2.setFont(FONT_DETAILS);
+        g2.setColor(Color.WHITE);
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm");
+        LocalDateTime timeRef = vuelo.getFechaHoraProgramada().plusMinutes(vuelo.getDelayed());
+        String timeLabel = (progreso >= 1) ? "LLEGADA" : "SALIDA";
+        if (progreso > 0 && progreso < 1) {
+            timeRef = timeRef.plusMinutes((long)vuelo.getDuracion());
+            timeLabel = "ETA";
+        }
+        
+        String timeStr = timeLabel + " " + timeRef.format(fmt);
+        int tw = g2.getFontMetrics().stringWidth(timeStr);
+        g2.drawString(timeStr, w - 20 - tw, radarY + 15);
+
+        // === BARRA DE PROGRESO INFERIOR (Estilo Laser) ===
+        if (progreso > 0 && progreso < 1) {
+            int barHeight = 2;
+            int barY = h - barHeight;
+            g2.setColor(new Color(20, 20, 20));
+            g2.fillRect(0, barY, w, barHeight); // Background track
             
+            g2.setColor(estadoColor);
+            g2.fillRect(0, barY, (int)(w * progreso), barHeight);
+            
+            // Brillo en la punta de la barra
             g2.setColor(Color.WHITE);
-            g2.setFont(new Font("Arial", Font.BOLD, 10));
-            String fin = "FINALIZADO";
-            int textWidth = g2.getFontMetrics().stringWidth(fin);
-            g2.drawString(fin, (w - textWidth) / 2, yBarra + 13);
+            g2.fillOval((int)(w * progreso) - 2, barY - 1, 4, 4);
         }
     }
     
-    private void dibujarAvion(Graphics2D g2, int x, int y, Color color) {
-        var t = g2.getTransform();
-        g2.translate(x, y);
+    private void drawDetail(Graphics2D g2, String label, String value, int x, int y) {
+        g2.setFont(new Font("Arial", Font.BOLD, 9));
+        g2.setColor(PanelTimeline.TEXT_DIM);
+        g2.drawString(label, x, y - 2);
         
-        int size = 18; 
-        
-        g2.setColor(Color.WHITE); 
-        g2.fillOval(-size / 2, -size / 2, size, size);
-        
-        g2.setColor(color); 
-        g2.setStroke(new BasicStroke(2f));
-        g2.drawOval(-size / 2, -size / 2, size, size);
-
-        g2.setColor(color.darker()); 
-        int[] xp = {-4, 6, -4};
-        int[] yp = {-5, 0, 5};
-        g2.fillPolygon(xp, yp, 3);
-        
-        g2.setTransform(t);
+        g2.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        g2.setColor(PaletaColor.get(PaletaColor.BLANCO));
+        g2.drawString(value, x, y + 9);
     }
 }
