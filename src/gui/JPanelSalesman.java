@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import domain.Vuelo;
+import domain.PaletaColor;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
 import threads.PanelTimeline; 
@@ -24,19 +25,6 @@ import threads.PanelTimeline;
 public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 
     private static final long serialVersionUID = 1L;
-
-    // --- PALETA DE COLORES (ESTILO FLAT/MODERNO) ---
-    private final Color COLOR_PRIMARY = new Color(44, 62, 80);      // Azul Oscuro (Header)
-    private final Color COLOR_ACCENT = new Color(52, 152, 219);     // Azul Claro (Botones/Selección)
-    private final Color COLOR_BG_PANEL = new Color(245, 247, 250);  // Gris Fondo
-    private final Color COLOR_TABLE_HEADER = new Color(52, 73, 94); // Encabezado Tablas
-    private final Color COLOR_TEXT_HEADER = Color.WHITE;
-    private final Color COLOR_TABLE_ALT = new Color(248, 249, 251); // Zebra Striping
-    private final Color COLOR_SELECTION = new Color(220, 240, 255); // Selección suave
-    
-    // Alertas
-    private final Color COLOR_DELAYED = new Color(231, 76, 60);     // Rojo
-    private final Color COLOR_ON_TIME = new Color(39, 174, 96);     // Verde
 
     // Estado
     private int filaHoverDinamica = -1;
@@ -70,7 +58,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
     public JPanelSalesman(ArrayList<Vuelo> vuelos) {
         this.vuelos = vuelos;
         setLayout(new BorderLayout());
-        setBackground(COLOR_BG_PANEL);
+        setBackground(PaletaColor.get(PaletaColor.FONDO));
 
         initComponents();
         initTables();
@@ -86,7 +74,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
     private void initComponents() {
         // --- 1. HEADER (PANEL SUPERIOR) ---
         JPanel panelSuperior = new JPanel(new BorderLayout());
-        panelSuperior.setBackground(COLOR_PRIMARY);
+        panelSuperior.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
         panelSuperior.setBorder(new EmptyBorder(15, 20, 15, 20));
 
         // Reloj (Izquierda)
@@ -111,7 +99,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 
         // --- 2. PANEL CENTRAL (SPLIT PANE) ---
         JPanel panelCentral = new JPanel(new BorderLayout());
-        panelCentral.setBackground(COLOR_BG_PANEL);
+        panelCentral.setBackground(PaletaColor.get(PaletaColor.FONDO));
         panelCentral.setBorder(new EmptyBorder(10, 10, 5, 10));
 
         // A. Izquierda: Tabla Vuelos
@@ -183,7 +171,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         splitHorizontal.setResizeWeight(0.5);
         splitHorizontal.setDividerSize(6);
         splitHorizontal.setBorder(null);
-        splitHorizontal.setBackground(COLOR_BG_PANEL);
+        splitHorizontal.setBackground(PaletaColor.get(PaletaColor.FONDO));
 
         panelCentral.add(splitHorizontal, BorderLayout.CENTER);
 
@@ -199,7 +187,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 
         JLabel lblTimeline = new JLabel("SEGUIMIENTO EN TIEMPO REAL", JLabel.CENTER);
         lblTimeline.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblTimeline.setForeground(COLOR_PRIMARY);
+        lblTimeline.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
         lblTimeline.setBorder(new EmptyBorder(10, 0, 10, 0));
         panelInferior.add(lblTimeline, BorderLayout.NORTH);
 
@@ -213,7 +201,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         splitVertical.setResizeWeight(0.65);
         splitVertical.setDividerSize(6);
         splitVertical.setBorder(null);
-        splitVertical.setBackground(COLOR_BG_PANEL);
+        splitVertical.setBackground(PaletaColor.get(PaletaColor.FONDO));
 
         add(splitVertical, BorderLayout.CENTER);
     }
@@ -221,27 +209,25 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
     // --- ESTILIZADO DE COMPONENTES ---
 
     private void estilizarBotonToggle(JToggleButton boton) {
-        boton.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        boton.setFont(new Font("Segoe UI", Font.BOLD, 13));
         boton.setFocusPainted(false);
         boton.setBorderPainted(true);
         boton.setContentAreaFilled(true);
         boton.setOpaque(true);
         
-        // Estado base (Gris inactivo)
-        boton.setBackground(new Color(230, 230, 230));
-        boton.setForeground(new Color(100, 100, 100));
+        // Estado base 
+        boton.setBackground(PaletaColor.get(PaletaColor.FONDO));
+        boton.setForeground(PaletaColor.get(PaletaColor.TEXTO));
         boton.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
 
         // Listener para cambio de color activo/inactivo
         boton.addItemListener(e -> {
             if (boton.isSelected()) {
-                boton.setBackground(COLOR_ACCENT); // Azul activo
+                boton.setBackground(PaletaColor.get(PaletaColor.HOVER)); // Azul activo
                 boton.setForeground(Color.WHITE);
-                boton.setFont(boton.getFont().deriveFont(Font.BOLD));
             } else {
-                boton.setBackground(new Color(230, 230, 230));
-                boton.setForeground(new Color(100, 100, 100));
-                boton.setFont(boton.getFont().deriveFont(Font.PLAIN));
+                boton.setBackground(PaletaColor.get(PaletaColor.FONDO));
+                boton.setForeground(PaletaColor.get(PaletaColor.TEXTO));
             }
         });
     }
@@ -286,8 +272,8 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                lbl.setBackground(COLOR_TABLE_HEADER);
-                lbl.setForeground(COLOR_TEXT_HEADER);
+                lbl.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
+                lbl.setForeground(PaletaColor.get(PaletaColor.BLANCO));
                 lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
                 lbl.setHorizontalAlignment(JLabel.CENTER);
                 lbl.setBorder(new EmptyBorder(8, 5, 8, 5));
@@ -321,12 +307,12 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 
                 // Selección y Hover
                 if (isSelected || (table == tablaDinamica && row == filaHoverDinamica)) {
-                    lbl.setBackground(COLOR_SELECTION);
-                    lbl.setForeground(COLOR_PRIMARY);
+                    lbl.setBackground(PaletaColor.get(PaletaColor.HOVER));
+                    lbl.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
                     lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
                 } else {
                     // Zebra
-                    lbl.setBackground((row % 2 == 0) ? Color.WHITE : COLOR_TABLE_ALT);
+                    lbl.setBackground((row % 2 == 0) ? Color.WHITE : PaletaColor.get(PaletaColor.FILA_ALT));
                     lbl.setForeground(Color.DARK_GRAY);
                 }
 
@@ -337,10 +323,10 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
                         // pero aquí podría llegar como String
                         String txt = value != null ? value.toString() : "0";
                         if (!txt.equals("0")) {
-                            lbl.setForeground(COLOR_DELAYED);
+                            lbl.setForeground(PaletaColor.get(PaletaColor.DELAYED));
                             lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
                         } else {
-                            lbl.setForeground(COLOR_ON_TIME);
+                            lbl.setForeground(PaletaColor.get(PaletaColor.EXITO));
                         }
                     } catch (Exception e) {}
                 }
@@ -602,7 +588,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         SwingUtilities.invokeLater(() -> {
             if (lblReloj != null) {
                 if (pausa) {
-                    lblReloj.setForeground(COLOR_DELAYED);
+                    lblReloj.setForeground(PaletaColor.get(PaletaColor.DELAYED));
                     lblReloj.setText(lblReloj.getText() + " (PAUSA)");
                 } else {
                     lblReloj.setForeground(Color.WHITE);

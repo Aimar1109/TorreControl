@@ -12,8 +12,9 @@ public enum PaletaColor {
     TEXTO_SUAVE(127, 140, 141, "Gris medio"),
     ACENTO(230, 126, 34, "Naranja"),
     EXITO(39, 174, 96, "Verde"),
-    HOVER(52, 152, 219, "Azul claro"),
-    FILA_ALT(250, 250, 250, "Blanco alternado");
+    HOVER(220, 240, 255, "Azul claro"),
+    FILA_ALT(250, 250, 250, "Blanco alternado"),
+    DELAYED(231, 76, 60, "Rojo");
     
     private final Color color;
     private final String descripcion;

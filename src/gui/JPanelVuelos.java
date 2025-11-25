@@ -194,7 +194,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 			// Color de fondo según si es la fila hover o no
 			if (row == filaHover[0]) {
 				// Fila con hover - color más oscuro
-				result.setBackground(new Color(230, 235, 240));
+				result.setBackground(PaletaColor.get(PaletaColor.HOVER));
 			} else if (row % 2 == 0) {
 				result.setBackground(PaletaColor.get(PaletaColor.BLANCO));
 			} else {
