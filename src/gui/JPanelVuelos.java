@@ -59,6 +59,7 @@ import com.toedter.calendar.JDateChooser;
 import domain.Aerolinea;
 import domain.Aeropuerto;
 import domain.Avion;
+import domain.PaletaColor;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import main.Main.VueloGenerador;
@@ -68,18 +69,6 @@ import threads.RelojGlobal;
 public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	
 	private static final long serialVersionUID = 1L;
-	
-	// Paleta de colores moderna
-	private static final Color COLOR_PRIMARIO = new Color(44, 62, 80);      // Azul profesional
-	private static final Color COLOR_SECUNDARIO = new Color(52, 73, 94);      // Azul oscuro
-	private static final Color COLOR_FONDO = new Color(236, 240, 241);        // Gris claro
-	private static final Color COLOR_BLANCO = Color.WHITE;
-	private static final Color COLOR_TEXTO = new Color(44, 62, 80);           // Gris oscuro
-	private static final Color COLOR_TEXTO_SUAVE = new Color(127, 140, 141);  // Gris medio
-	private static final Color COLOR_ACENTO = new Color(230, 126, 34);        // Naranja
-	private static final Color COLOR_EXITO = new Color(39, 174, 96);          // Verde
-	private static final Color COLOR_HOVER = new Color(52, 152, 219);         // Azul claro
-	private static final Color COLOR_FILA_ALT = new Color(250, 250, 250);     // Blanco alternado
 	
 	private DateTimeFormatter formatterFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 	private DateTimeFormatter formatterHora = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -94,24 +83,24 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 						ArrayList<PuertaEmbarque> puertas) {
 		
 		setLayout(new BorderLayout());
-		setBackground(COLOR_FONDO);
+		setBackground(PaletaColor.get(PaletaColor.FONDO));
 		
 		// Datos necesarios
 		this.vuelos = new ArrayList<Vuelo>(vg.devolverA());
 		
 		// Creacion del main panel
 		JPanel mainVuelos = new JPanel(new BorderLayout());
-		mainVuelos.setBackground(COLOR_FONDO);
+		mainVuelos.setBackground(PaletaColor.get(PaletaColor.FONDO));
 		
 		// Panel Superior
 		JPanel panelSuperior = new JPanel(new BorderLayout());
-		panelSuperior.setBackground(COLOR_PRIMARIO);
+		panelSuperior.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
 		panelSuperior.setBorder(new EmptyBorder(15, 20, 15, 20));
 		
 		// Titulo VUELOS
 		JLabel titu = new JLabel("VUELOS", SwingConstants.CENTER);
 		titu.setFont(new Font("Segoe UI", Font.BOLD, 24));
-		titu.setForeground(COLOR_BLANCO);
+		titu.setForeground(PaletaColor.get(PaletaColor.BLANCO));
         
         panelSuperior.add(titu, BorderLayout.CENTER);
         
@@ -120,7 +109,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         
         lblreloj.setPreferredSize(new Dimension(widthLados, 0));
         lblreloj.setFont(new Font("Consolas", Font.BOLD, 18));
-        lblreloj.setForeground(COLOR_BLANCO);        
+        lblreloj.setForeground(PaletaColor.get(PaletaColor.BLANCO));        
         panelSuperior.add(lblreloj, BorderLayout.WEST);
         
         // Derecha vacio para vuelos centrado
@@ -135,7 +124,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		// Panel Central
 		JPanel panelCentral = new JPanel(new GridLayout(1, 2, 5, 5));
 		panelCentral.setBorder(new EmptyBorder(10, 30, 30, 30));
-		panelCentral.setBackground(COLOR_FONDO);
+		panelCentral.setBackground(PaletaColor.get(PaletaColor.FONDO));
 		
 		// crear tablas
 		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", vuelos, true, aeropuertos, aers, avs, puertas, vg);
@@ -149,16 +138,9 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		add(mainVuelos);
 		
 		// Al final del constructor de JPanelVuelos:
-		RelojGlobal relojGlobal = RelojGlobal.getInstancia();
-		relojGlobal.addObservador(this);
-
+		RelojGlobal.getInstancia().addObservador(this);
 		// Mostrar tiempo inicial inmediatamente
-		lblreloj.setText(relojGlobal.getTiempoActual().format(formatterHora));
-		
-		SwingUtilities.invokeLater(() -> {
-		    lblreloj.setText(relojGlobal.getTiempoActual().format(formatterHora));
-		    lblreloj.setForeground(COLOR_BLANCO);
-		});
+		actualizarTiempo(RelojGlobal.getInstancia().getTiempoActual());
 	}
 	
 	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada, ArrayList<Aeropuerto> aeropuertos,
@@ -184,8 +166,8 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 					break;
 			}
 			
-			result.setBackground(COLOR_SECUNDARIO);
-			result.setForeground(COLOR_BLANCO);
+			result.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
+			result.setForeground(PaletaColor.get(PaletaColor.BLANCO));
 			result.setOpaque(true);
 			result.setFont(new Font("Segoe UI", Font.BOLD, 13));
 			result.setBorder(BorderFactory.createCompoundBorder(
@@ -207,16 +189,16 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 			}
 			
 			result.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-			result.setForeground(COLOR_TEXTO);
+			result.setForeground(PaletaColor.get(PaletaColor.TEXTO));
 			
 			// Color de fondo según si es la fila hover o no
 			if (row == filaHover[0]) {
 				// Fila con hover - color más oscuro
 				result.setBackground(new Color(230, 235, 240));
 			} else if (row % 2 == 0) {
-				result.setBackground(COLOR_BLANCO);
+				result.setBackground(PaletaColor.get(PaletaColor.BLANCO));
 			} else {
-				result.setBackground(COLOR_FILA_ALT);
+				result.setBackground(PaletaColor.get(PaletaColor.FILA_ALT));
 			}
 			
 			result.setOpaque(true);
@@ -231,7 +213,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		
 		//Panel de la tabla
 		JPanel mainPanel = new JPanel(new BorderLayout());
-		mainPanel.setBackground(COLOR_BLANCO);
+		mainPanel.setBackground(PaletaColor.get(PaletaColor.BLANCO));
 		mainPanel.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
 				BorderFactory.createEmptyBorder(0, 0, 0, 0)
@@ -239,18 +221,18 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	     
         // Panel superior de la tabla
 		JPanel tablaPSuperior = new JPanel(new BorderLayout());
-		tablaPSuperior.setBackground(COLOR_BLANCO);
+		tablaPSuperior.setBackground(PaletaColor.get(PaletaColor.BLANCO));
 		
 		// JPanel para titulos y imagenes parte de arriba
 		JPanel panelSdeTPS = new JPanel(new BorderLayout());
-		panelSdeTPS.setBackground(COLOR_BLANCO);
+		panelSdeTPS.setBackground(PaletaColor.get(PaletaColor.BLANCO));
 		panelSdeTPS.setBorder(BorderFactory.createEmptyBorder(15, 15, 10, 15));
 		
 		// Titulo Parte Izquierda
         JLabel tituT = new JLabel(titulo, SwingConstants.LEFT);
         tituT.setFont(new Font("Segoe UI", Font.BOLD, 22));
         tituT.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-        tituT.setForeground(COLOR_SECUNDARIO);
+        tituT.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
         
         panelSdeTPS.add(tituT, BorderLayout.WEST);
         
@@ -258,7 +240,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         JPanel panelFiltros = new JPanel(new GridLayout(1, 4, 10, 10));
         panelFiltros.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         panelFiltros.setVisible(false);
-        panelFiltros.setBackground(COLOR_BLANCO);
+        panelFiltros.setBackground(PaletaColor.get(PaletaColor.BLANCO));
         
         // Campos filtro
         
@@ -266,12 +248,12 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         JTextField txtFiltroVuelo = new JTextField();
         estilizarTextField(txtFiltroVuelo);
         txtFiltroVuelo.setBorder(BorderFactory.createTitledBorder( //IAG
-        	BorderFactory.createLineBorder(COLOR_PRIMARIO, 1),
+        	BorderFactory.createLineBorder(PaletaColor.get(PaletaColor.SECUNDARIO), 1),
         	"VUELO",
         	0,
         	0,
         	new Font("Segoe UI", Font.BOLD, 10),
-        	COLOR_TEXTO_SUAVE
+        	PaletaColor.get(PaletaColor.TEXTO_SUAVE)
         ));
         panelFiltros.add(txtFiltroVuelo);
         
@@ -280,25 +262,25 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         estilizarTextField(txtFiltroDO);
         String tituloFDO = esLlegada ? "ORIGEN": "DESTINO";
         txtFiltroDO.setBorder(BorderFactory.createTitledBorder(
-        	BorderFactory.createLineBorder(COLOR_PRIMARIO, 1),
+        	BorderFactory.createLineBorder(PaletaColor.get(PaletaColor.SECUNDARIO), 1),
         	tituloFDO,
         	0,
         	0,
         	new Font("Segoe UI", Font.BOLD, 10),
-        	COLOR_TEXTO_SUAVE
+        	PaletaColor.get(PaletaColor.TEXTO_SUAVE)
         ));
         panelFiltros.add(txtFiltroDO);
         
         // Filtro Fecha
         JPanel panelFecha = new JPanel(new BorderLayout());
-        panelFecha.setBackground(COLOR_BLANCO);
+        panelFecha.setBackground(PaletaColor.get(PaletaColor.BLANCO));
         panelFecha.setBorder(BorderFactory.createTitledBorder(
-        	BorderFactory.createLineBorder(COLOR_PRIMARIO, 1),
+        	BorderFactory.createLineBorder(PaletaColor.get(PaletaColor.SECUNDARIO), 1),
         	"FECHA",
         	0,
         	0,
         	new Font("Segoe UI", Font.BOLD, 10),
-        	COLOR_TEXTO_SUAVE
+        	PaletaColor.get(PaletaColor.TEXTO_SUAVE)
         ));
         // JDateChooser para fecha
         JDateChooser dateChooserFiltro = new JDateChooser();
@@ -315,19 +297,19 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         
         // Filtro Hora
         JPanel panelHora = new JPanel(new BorderLayout());
-        panelHora.setBackground(COLOR_BLANCO);
+        panelHora.setBackground(PaletaColor.get(PaletaColor.BLANCO));
         panelHora.setBorder(BorderFactory.createTitledBorder(
-        	BorderFactory.createLineBorder(COLOR_PRIMARIO, 1),
+        	BorderFactory.createLineBorder(PaletaColor.get(PaletaColor.SECUNDARIO), 1),
         	"HORA",
         	0,
         	0,
         	new Font("Segoe UI", Font.BOLD, 10),
-        	COLOR_TEXTO_SUAVE
+        	PaletaColor.get(PaletaColor.TEXTO_SUAVE)
         ));
         // CheckBox para hora
         JCheckBox chkFiltroHora = new JCheckBox();
         chkFiltroHora.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        chkFiltroHora.setBackground(COLOR_BLANCO);
+        chkFiltroHora.setBackground(PaletaColor.get(PaletaColor.BLANCO));
         panelHora.add(chkFiltroHora, BorderLayout.WEST);
         chkFiltroHora.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         // Spinner para la hora
@@ -363,9 +345,9 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         tabla.setFillsViewportHeight(true);
         tabla.setShowGrid(false);
         tabla.setIntercellSpacing(new Dimension(0, 0));
-        tabla.setBackground(COLOR_BLANCO);
-        tabla.setSelectionBackground(COLOR_HOVER);
-        tabla.setSelectionForeground(COLOR_BLANCO);
+        tabla.setBackground(PaletaColor.get(PaletaColor.BLANCO));
+        tabla.setSelectionBackground(PaletaColor.get(PaletaColor.HOVER));
+        tabla.setSelectionForeground(PaletaColor.get(PaletaColor.BLANCO));
         tabla.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         
         // Añadir MouseMotionListener para detectar hover
@@ -434,7 +416,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         scrollTabla.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollTabla.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollTabla.setBorder(BorderFactory.createEmptyBorder());
-        scrollTabla.getViewport().setBackground(COLOR_BLANCO);
+        scrollTabla.getViewport().setBackground(PaletaColor.get(PaletaColor.BLANCO));
         
         // Ponerle un component listener a la tabla para que salga el scroll cuando la tabla no entre
         scrollTabla.addComponentListener(new ComponentAdapter() {
@@ -465,7 +447,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         
         // Imagenes Parte Derecha
         JPanel panelDerecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
-        panelDerecha.setBackground(COLOR_BLANCO);
+        panelDerecha.setBackground(PaletaColor.get(PaletaColor.BLANCO));
         
         // cargar imagenes
         ImageIcon lupaIcon = new ImageIcon("resources\\img\\lupa.png");
@@ -580,7 +562,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         	@Override
         	public void mouseEntered(MouseEvent e) {
         		lupaLabel.setOpaque(true);
-        		lupaLabel.setBackground(COLOR_FONDO);
+        		lupaLabel.setBackground(PaletaColor.get(PaletaColor.FONDO));
         	}
         	
         	@Override
@@ -603,7 +585,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         	@Override
         	public void mouseEntered(MouseEvent e) {
         		plusLabel.setOpaque(true);
-        		plusLabel.setBackground(COLOR_FONDO);
+        		plusLabel.setBackground(PaletaColor.get(PaletaColor.FONDO));
         	}
         	
         	@Override
@@ -663,9 +645,9 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	// Método auxiliar para estilizar TextFields
 	private void estilizarTextField(JTextField textField) { //IAG
 		textField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		textField.setForeground(COLOR_TEXTO);
-		textField.setBackground(COLOR_BLANCO);
-		textField.setCaretColor(COLOR_PRIMARIO);
+		textField.setForeground(PaletaColor.get(PaletaColor.TEXTO));
+		textField.setBackground(PaletaColor.get(PaletaColor.BLANCO));
+		textField.setCaretColor(PaletaColor.get(PaletaColor.SECUNDARIO));
 	}
 	
 	@Override
@@ -680,9 +662,9 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	public void cambioEstadoPausa(boolean pausa) {
 		SwingUtilities.invokeLater(() -> {
 			if (pausa) {
-				lblreloj.setForeground(COLOR_ACENTO);
+				lblreloj.setForeground(PaletaColor.get(PaletaColor.ACENTO));
 			} else {
-				lblreloj.setForeground(COLOR_BLANCO);
+				lblreloj.setForeground(PaletaColor.get(PaletaColor.BLANCO));
 			}
 		});
 	}
