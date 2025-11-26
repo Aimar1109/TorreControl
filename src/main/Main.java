@@ -32,7 +32,7 @@ public class Main {
     	AeropuertoGenerador ag = new AeropuertoGenerador();
     	AvionGenerador av = new AvionGenerador();
     	PuertaGenerador pe = new PuertaGenerador();
-    	ArrayList<Aerolinea> aers = generadorAerolinea();
+    	ArrayList<Aerolinea> aers = generadorAerolinea(gestorBD);
         generarVuelosAleatorios(50, ag, aers, av, pe, vg, gestorBD);
         Set<Aeropuerto> aeroEjemplo = ag.devolverA();
         Set<Avion> avEjemplo = av.devolverA();
@@ -69,15 +69,19 @@ public class Main {
         	String ciudad = ciudades[i];
         	Aeropuerto aeropuerto = new Aeropuerto(codigo, nombre, ciudad);
         	ag.añadirA(aeropuerto);
+        	gestorBD.insertAeropuerto(aeropuerto);
         }
         
         ArrayList<Aeropuerto> aeropuertos = new ArrayList<Aeropuerto>(ag.devolverA());
         
         Aeropuerto bilbao = new Aeropuerto("LEBB", "Bilbao Airport", "Bilbao");
         ag.añadirA(bilbao);
+        gestorBD.insertAeropuerto(bilbao);
         
         for (int i=1; i<10; i++) {
-        	pe.añadirP(new PuertaEmbarque(false));
+        	PuertaEmbarque npe = new PuertaEmbarque(false);
+        	pe.añadirP(npe);
+        	gestorBD.insertPuerta(npe);
         }
         
         ArrayList<PuertaEmbarque> puertas = new ArrayList<PuertaEmbarque>(pe.devolverP());
@@ -118,6 +122,7 @@ public class Main {
             int capacidad = 150 + random.nextInt(200);
             Avion avion = new Avion(modelo, matricula, capacidad);
             av.añadirA(avion);
+            gestorBD.insertAvion(avion);
             
             boolean emergencia = random.nextInt(10) == 0;
             
@@ -155,6 +160,7 @@ public class Main {
 
                 // Pista y puerta: asignadas en Bilbao (destino)
                 pista = new Pista("Pista BIO " + (i % 3 + 1), false);
+                gestorBD.insertPista(pista);
                 
                 remainingArrivals--;
             } else {
@@ -164,6 +170,7 @@ public class Main {
 
                 // Pista y puerta: asignadas en Bilbao (origen)
                 pista = new Pista("Pista BIO " + (i % 3 + 1), false);
+                gestorBD.insertPista(pista);
 
                 remainingDepartures--;
             }
@@ -233,7 +240,7 @@ public class Main {
     	}
     }
     
-    public static ArrayList<Aerolinea> generadorAerolinea() {
+    public static ArrayList<Aerolinea> generadorAerolinea(GestorBD gestorBD) {
     	String[] nombresAerolineas = { //IAG
     		    "Iberia",
     		    "Vueling",
@@ -265,6 +272,7 @@ public class Main {
     		for(int i=0; i<nombresAerolineas.length; i++) {
     			Aerolinea a = new Aerolinea(codigosAerolineas[i], nombresAerolineas[i]);
     			aer.add(a);
+    			gestorBD.insertAerolinea(a);
     		}
     		return aer;
     }
