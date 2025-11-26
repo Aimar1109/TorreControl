@@ -71,7 +71,7 @@ public class GestorBDInitializer {
             
             String sqlAviones = "CREATE TABLE IF NOT EXISTS AVION (\n"
                     + " MATRICULA TEXT PRIMARY KEY NOT NULL,\n"
-                    + " MODELO TEXT NOT NULL\n"
+                    + " MODELO TEXT NOT NULL,\n"
                     + " CAPACIDAD INTEGER NOT NULL\n"
                     + ");";
             
