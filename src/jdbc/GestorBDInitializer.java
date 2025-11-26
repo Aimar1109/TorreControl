@@ -35,7 +35,7 @@ public class GestorBDInitializer {
     	
         try (Connection con = DriverManager.getConnection(CONNECTION_STRING)) {
             String sqlVuelos = "CREATE TABLE IF NOT EXISTS VUELO (\n"
-                    + " CODIGO TEXT PRIMARY KEY NOT NULL,\n"
+                    + " NUMERO INTEGER NOT NULL,\n"
                     + " CODIGO_ORIGEN TEXT NOT NULL,\n"
                     + " CODIGO_DESTINO TEXT NOT NULL,\n"
                     + " CODIGO_AEROLINEA TEXT NOT NULL,\n"
@@ -47,6 +47,8 @@ public class GestorBDInitializer {
                     + " MATRICULA_AVION TEXT NOT NULL,\n"
                     + " EMERGENCIA BOOLEAN NOT NULL,\n"
                     + " DELAYED INTEGER NOT NULL,\n"
+                    
+                    + " PRIMARY KEY(NUMERO, CODIGO_AEROLINEA)\n"
                     
                     + " FOREIGN KEY(CODIGO_ORIGEN) REFERENCES AEROPUERTO(CODIGO)\n"
                     + " FOREIGN KEY(CODIGO_DESTINO) REFERENCES AEROPUERTO(CODIGO)\n"
@@ -70,6 +72,7 @@ public class GestorBDInitializer {
             String sqlAviones = "CREATE TABLE IF NOT EXISTS AVION (\n"
                     + " MATRICULA TEXT PRIMARY KEY NOT NULL,\n"
                     + " MODELO TEXT NOT NULL\n"
+                    + " CAPACIDAD INTEGER NOT NULL\n"
                     + ");";
             
             String sqlPuertas = "CREATE TABLE IF NOT EXISTS PUERTAEMBARQUE (\n"

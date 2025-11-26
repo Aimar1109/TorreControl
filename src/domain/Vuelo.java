@@ -80,6 +80,8 @@ public class Vuelo {
 		
 		codigosRegistrados.add(codigo);
 	}
+	
+	
 
 	
 	//GETTERS Y SETTERS

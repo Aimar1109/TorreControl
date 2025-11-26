@@ -16,6 +16,13 @@ public class PuertaEmbarque {
     	this.codigo = "BIO" + this.numero;
         this.ocupada = ocupada;
     }
+    public PuertaEmbarque(String codigo, Integer numero, boolean ocupada) {
+
+    	this.numero = numero;
+    	this.codigo = codigo;
+        this.ocupada = ocupada;
+    }
+
 
 	public String getCodigo() {
 		return codigo;

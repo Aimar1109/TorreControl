@@ -62,6 +62,7 @@ import domain.Avion;
 import domain.PaletaColor;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
+import jdbc.GestorBD;
 import main.Main.VueloGenerador;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
@@ -648,6 +649,14 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		textField.setForeground(PaletaColor.get(PaletaColor.TEXTO));
 		textField.setBackground(PaletaColor.get(PaletaColor.BLANCO));
 		textField.setCaretColor(PaletaColor.get(PaletaColor.SECUNDARIO));
+	}
+	
+	public ArrayList<Vuelo> loadBDVuelos(GestorBD gestorBD) {
+		ArrayList<Vuelo> vuelos = new ArrayList<Vuelo>();
+		
+		
+		
+		return vuelos;
 	}
 	
 	@Override
