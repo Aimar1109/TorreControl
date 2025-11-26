@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -189,8 +190,20 @@ public class GestorBD {
             
             while (rsVuelo.next()) {
             	Integer numero = rsVuelo.getInt("NUMERO");
+            	Aeropuerto origen = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_ORIGEN"));
+            	Aeropuerto destino = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_DESTINO"));
+            	Aerolinea aerolinea = getAerolineaByCodigo(rsVuelo.getString("CODIGO_AEROLINEA"));
+            	Pista pista = (rsVuelo.getString("NUMERO_PISTA") != null || rsVuelo.getString("NUMERO_PISTA").isEmpty()) ? getPistaByNumero(rsVuelo.getString("NUMERO_PISTA")) : null;
+            	PuertaEmbarque puerta = getPuertaEmbarqueByCodigo(rsVuelo.getString(""));
+            	Boolean estado = rsVuelo.getBoolean("ESTADO");
+            	LocalDateTime fecha = LocalDateTime.parse(rsVuelo.getString("FECHAHORAPROGRAMADA"));
+            	Float duracion = rsVuelo.getFloat("DURACION");
+            	Avion avion = getAvionByMatricula(rsVuelo.getString("CODIGO_AVION"));
+            	Boolean emergencia = rsVuelo.getBoolean("EMERGENCIA");
+            	Integer delayed = rsVuelo.getInt("DELAYED");
             	
-            
+            	Vuelo vuelo = new Vuelo(numero, origen, destino, aerolinea, pista, puerta, estado, fecha, duracion, avion, emergencia, delayed);
+            	vuelos.add(vuelo);            
             }
             
             rsVuelo.close();
@@ -337,18 +350,19 @@ public class GestorBD {
 		
 		try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
 		     PreparedStatement pStmt = con.prepareStatement(sql)) {			
-			
 			pStmt.setString(1, codigo);
 			
 			ResultSet rsAeropuerto = pStmt.executeQuery();			
-
+			
 			//Se procesa el único resultado
 			if (rsAeropuerto.next()) {
+		
 				aeropuerto = new Aeropuerto(rsAeropuerto.getString("CODIGO"),
 											rsAeropuerto.getString("NOMBRE"),
 											rsAeropuerto.getString("CIUDAD")
 						);
-			}
+				
+				}
 			
 			rsAeropuerto.close();
 			

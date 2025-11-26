@@ -5,10 +5,8 @@ import java.util.Set;
 
 import java.util.Objects;
 
-//IAG*+-7
 public class Aerolinea {
 	
-	public static Set<String> codigosRegistrados = new HashSet<>();
 	
 	private String codigo;
 	private String nombre;
@@ -25,14 +23,10 @@ public class Aerolinea {
 			throw new IllegalArgumentException("El codigo tiene que se de 2 o 3 letras.");
 		}
 		String codigoNormalizado = codigo.trim().toUpperCase();
-		if(codigosRegistrados.contains(codigoNormalizado)) {
-			throw new IllegalArgumentException("El codigo esta utilizado.");
-		}
-		
+
 		this.codigo = codigoNormalizado;
 		this.nombre = nombre.trim();
-		
-		codigosRegistrados.add(codigoNormalizado);		
+				
 	}
 
 	// Getters
@@ -51,37 +45,7 @@ public class Aerolinea {
         }
         this.nombre = nombre.trim();
     }
-    
-    /**
-     * Método para eliminar una aerolínea y liberar su código
-     * Útil si necesitas eliminar aerolíneas
-     */
-    public void eliminar() {
-        codigosRegistrados.remove(this.codigo);
-    }
-    
-    /**
-     * Verifica si un código ya está registrado
-     */
-    public static boolean existeCodigo(String codigo) {
-        if (codigo == null) return false;
-        return codigosRegistrados.contains(codigo.trim().toUpperCase());
-    }
-    
-    /**
-     * Obtiene todos los códigos registrados
-     */
-    public static Set<String> getCodigosRegistrados() {
-        return new HashSet<>(codigosRegistrados); // Retorna copia para evitar modificaciones
-    }
-    
-    /**
-     * Limpia todos los códigos registrados (útil para testing)
-     */
-    public static void limpiarRegistros() {
-        codigosRegistrados.clear();
-    }
-    
+        
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

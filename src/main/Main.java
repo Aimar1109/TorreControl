@@ -46,7 +46,7 @@ public class Main {
 
         // Lanzar interfaz con los vuelos
         SwingUtilities.invokeLater(() -> new JFramePrincipal(vg, new ArrayList<Aeropuerto>(aeroEjemplo), avionesPrueba,
-        													 aers, new ArrayList<Avion>(avEjemplo), new ArrayList<PuertaEmbarque>(puertasEjemplo)));
+        													 aers, new ArrayList<Avion>(avEjemplo), new ArrayList<PuertaEmbarque>(puertasEjemplo), gestorBD));
     }
 
     private static void generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag, ArrayList<Aerolinea> aer,
@@ -114,7 +114,7 @@ public class Main {
             String matricula = "EC-" + (char)('A' + random.nextInt(26)) +
                                        (char)('A' + random.nextInt(26)) +
                                        (char)('A' + random.nextInt(26));
-            while (Avion.existeMatricula(matricula)) {
+            while (gestorBD.getAvionByMatricula(matricula)!=null) {
             		matricula = "EC-" + (char)('A' + random.nextInt(26)) +
                     (char)('A' + random.nextInt(26)) +
                     (char)('A' + random.nextInt(26));

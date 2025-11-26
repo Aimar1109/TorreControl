@@ -2,13 +2,10 @@ package domain;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 public class Vuelo {
 	
-	public static Set<String> codigosRegistrados = new HashSet<>();
 	
 	// ATRIBUTOS
 	final private String codigo;
@@ -51,7 +48,32 @@ public class Vuelo {
 		this.tripulacion = new ArrayList<String>();
 		this.delayed = 0;
 		
-		codigosRegistrados.add(codigo);
+	}
+	
+	public Vuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aereolinea, Pista pista,
+			PuertaEmbarque puerta, Boolean estado, LocalDateTime fechaHoraProgramada, Float duracion, 
+			Avion avion, Boolean emergencia, Integer delayed) {
+		super();
+		if (numero.toString().length() != 4) {
+			throw new IllegalArgumentException("El numero de vuelo tiene que tener 4 digitos");
+		} else {
+			this.numero = numero;
+		}
+		this.codigo = aereolinea.getCodigo() + numero.toString();
+		this.origen = origen;
+		this.destino = destino;
+		this.aereolinea = aereolinea;
+		this.pista = pista;
+		this.puerta = puerta;
+		this.estado = estado;
+		this.fechaHoraProgramada = fechaHoraProgramada;
+		this.duracion = duracion;
+		this.avion = avion;
+		this.emergencia = emergencia;
+		this.pasajeros = new ArrayList<String>();
+		this.tripulacion = new ArrayList<String>();
+		this.delayed = delayed;
+		
 	}
 	
 	public Vuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aereolinea, Pista pista,
@@ -78,11 +100,7 @@ public class Vuelo {
 		this.tripulacion = tripulacion;
 		this.delayed = delayed;
 		
-		codigosRegistrados.add(codigo);
 	}
-	
-	
-
 	
 	//GETTERS Y SETTERS
 	public String getCodigo() {
@@ -204,19 +222,6 @@ public class Vuelo {
 		this.delayed = delayed;
 	}
 	
-	// Codigos
-	public static boolean existeCodigo(String codigo) {
-        if (codigo == null) return false;
-        return codigosRegistrados.contains(codigo.trim().toUpperCase());
-    }
-    
-    public static Set<String> getCodigosRegistrados() {
-        return new HashSet<>(codigosRegistrados);
-    }
-    
-    public static void limpiarRegistros() {
-        codigosRegistrados.clear();
-    }
 	
     @Override
     public boolean equals(Object o) {

@@ -39,7 +39,7 @@ public class GestorBDInitializer {
                     + " CODIGO_ORIGEN TEXT NOT NULL,\n"
                     + " CODIGO_DESTINO TEXT NOT NULL,\n"
                     + " CODIGO_AEROLINEA TEXT NOT NULL,\n"
-                    + " CODIGO_PISTA TEXT,\n"
+                    + " NUMERO_PISTA TEXT,\n"
                     + " CODIGO_PUERTAEMBARQUE TEXT NOT NULL,\n"                    
                     + " ESTADO BOOLEAN NOT NULL,\n"
                     + " FECHAHORAPROGRAMADA TEXT NOT NULL,\n"
@@ -53,7 +53,7 @@ public class GestorBDInitializer {
                     + " FOREIGN KEY(CODIGO_ORIGEN) REFERENCES AEROPUERTO(CODIGO)\n"
                     + " FOREIGN KEY(CODIGO_DESTINO) REFERENCES AEROPUERTO(CODIGO)\n"
                     + " FOREIGN KEY(CODIGO_AEROLINEA) REFERENCES AEROLINEA(CODIGO)\n"
-                    + " FOREIGN KEY(CODIGO_PISTA) REFERENCES PISTA(CODIGO)\n"
+                    + " FOREIGN KEY(NUMERO_PISTA) REFERENCES PISTA(NUMERO)\n"
                     + " FOREIGN KEY(CODIGO_PUERTAEMBARQUE) REFERENCES PUERTAEMBARQUE(CODIGO)\n"
                     + " FOREIGN KEY(MATRICULA_AVION) REFERENCES AVION(MATRICULA)\n"
                     + ");";

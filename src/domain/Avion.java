@@ -21,7 +21,6 @@ public class Avion {
     private double speed;
     private String regex = "^(?:[A-Z]{1,2}-[A-Z0-9]{3,4}|N\\d{1,5}[A-Z]{0,2})$"; //IAG
     
-    private static Set<String> matriculasRegistradas = new HashSet<>();
 
     public Avion() {
         this.modelo = "";
@@ -39,7 +38,7 @@ public class Avion {
         this.capacidad = capacidad;
         this.speed = 1.0;
         
-        matriculasRegistradas.add(matricula);
+//        matriculasRegistradas.add(matricula);
     }
 
     public Avion(String modelo, String matricula, int capacidad, int x, int y, double angulo) {
@@ -72,7 +71,6 @@ public class Avion {
     	}
         this.matricula = matricula;
         
-        matriculasRegistradas.add(matricula);
     }
 
     public int getCapacidad() {
@@ -186,18 +184,6 @@ public class Avion {
         this.speed = speed;
     }
     
-    public static boolean existeMatricula(String matricula) {
-    	if(matricula==null) return false;
-    	return matriculasRegistradas.contains(matricula.trim().toUpperCase());
-    }
-    
-    public static Set<String> getMatriculasRegistradas() {
-    	return new HashSet<>(matriculasRegistradas);
-    }
-    
-    public static void clear() {
-    	matriculasRegistradas.clear();
-    }
     
     
     @Override

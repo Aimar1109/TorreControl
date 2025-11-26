@@ -6,8 +6,6 @@ import java.util.Set;
 
 public class Aeropuerto {
 	
-	public static Set<String> codigosRegistrados = new HashSet<>();
-	
 	// ATRIBUTOS
 	private String codigo;
 	private String nombre;
@@ -29,16 +27,13 @@ public class Aeropuerto {
 			throw new IllegalArgumentException("Código ICAO inválido: debe tener 4 letras mayúsculas");
 		}
 		
-		String codigoNormalizado = codigo.trim().toUpperCase();
-		if(codigosRegistrados.contains(codigoNormalizado)) {
-			throw new IllegalArgumentException("El codigo esta utilizado.");
-		}
 		
+		String codigoNormalizado = codigo.trim().toUpperCase();
+
 		this.codigo = codigoNormalizado;
 		this.nombre = nombre.trim();
 		this.ciudad = ciudad.trim();
-		
-		codigosRegistrados.add(codigoNormalizado);
+
 	}
 	
 	// Getters
@@ -69,31 +64,6 @@ public class Aeropuerto {
         this.ciudad = ciudad.trim();
     }
     
-    public void eliminar() {
-        codigosRegistrados.remove(this.codigo);
-    }
-    
-    /**
-     * Verifica si un código ya está registrado
-     */
-    public static boolean existeCodigo(String codigo) {
-        if (codigo == null) return false;
-        return codigosRegistrados.contains(codigo.trim().toUpperCase());
-    }
-    
-    /**
-     * Obtiene todos los códigos registrados
-     */
-    public static Set<String> getCodigosRegistrados() {
-        return new HashSet<>(codigosRegistrados); // Retorna copia para evitar modificaciones
-    }
-    
-    /**
-     * Limpia todos los códigos registrados (útil para testing)
-     */
-    public static void limpiarRegistros() {
-        codigosRegistrados.clear();
-    }
     
     @Override
     public boolean equals(Object o) {

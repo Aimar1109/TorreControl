@@ -80,8 +80,12 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	
 	private JLabel lblreloj = new JLabel();
 	
+	private GestorBD gestorBD;
+	
 	public JPanelVuelos(VueloGenerador vg, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, ArrayList<Avion> avs,
-						ArrayList<PuertaEmbarque> puertas) {
+						ArrayList<PuertaEmbarque> puertas, GestorBD gestorBD) {
+		
+		this.gestorBD = gestorBD;
 		
 		setLayout(new BorderLayout());
 		setBackground(PaletaColor.get(PaletaColor.FONDO));
@@ -440,7 +444,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
             public void keyPressed(KeyEvent e) {
                 // Comprobar si se presiona Ctrl + +
                 if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_PLUS) {
-                	dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos, avs, puertas, vg, modelo);
+                	dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos, avs, puertas, vg, modelo, gestorBD);
                 }
             }
         });        
@@ -581,7 +585,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         	
         	@Override
         	public void mouseClicked(MouseEvent e) {
-        		dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos, avs, puertas, vg, modelo);
+        		dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos, avs, puertas, vg, modelo, gestorBD);
         	}
         	@Override
         	public void mouseEntered(MouseEvent e) {

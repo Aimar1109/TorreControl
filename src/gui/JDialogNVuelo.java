@@ -32,6 +32,7 @@ import domain.Avion;
 import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
+import jdbc.GestorBD;
 import main.Main.VueloGenerador;
 
 public class JDialogNVuelo extends 	JDialog {
@@ -46,12 +47,16 @@ public class JDialogNVuelo extends 	JDialog {
 	private JComboBox<Avion> boxAvion;
 	private JComboBox<PuertaEmbarque> boxPuerta;
 	
+	private GestorBD gestorBD;
+	
 	public JDialogNVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, JPanel panel, ArrayList<Avion> avs,
-						 ArrayList<PuertaEmbarque> puertas, VueloGenerador vg, DefaultTableModel modelo) {
+						 ArrayList<PuertaEmbarque> puertas, VueloGenerador vg, DefaultTableModel modelo, GestorBD gestorBD) {
 		this.setTitle(esLlegada ? "Nuevo Vuelo - Llegada" : "Nuevo Vuelo - Salida");
 	    this.setModal(true); // Bloquea la ventana principal hasta que se cierre
 	    this.setSize(400, 400);
 	    this.setLocationRelativeTo(panel);
+	    
+	    this.gestorBD = gestorBD;
 	    
 	 // Panel principal del diálogo
 	    JPanel panelFormulario = new JPanel(new BorderLayout(10, 10));
@@ -215,7 +220,7 @@ public class JDialogNVuelo extends 	JDialog {
 	                JOptionPane.ERROR_MESSAGE);
 	    	return false;
 	    }
-	    if (Vuelo.existeCodigo(aerolinea.getCodigo()+txtNumero.getText().toString().trim())) {
+	    if (gestorBD.getAerolineaByCodigo(aerolinea.getCodigo()+txtNumero.getText().toString().trim())!=null) {
 	    	JOptionPane.showMessageDialog(this, 
 	                "Por favor, el vuelo ya esta creado", 
 	                "Error", 
