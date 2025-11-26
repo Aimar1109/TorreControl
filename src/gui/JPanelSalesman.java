@@ -1,6 +1,7 @@
 package gui;
 
 import javax.swing.*;
+import javax.swing.border.AbstractBorder;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -14,6 +15,8 @@ import javax.swing.table.TableCellRenderer;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Area;
+import java.awt.geom.RoundRectangle2D;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -125,7 +128,6 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         // Botones (Pestañas)
         JPanel panelBotones = new JPanel(new GridLayout(1, 4, 0, 0)); 
         panelBotones.setOpaque(false);
-        panelBotones.setBorder(new EmptyBorder(0, 0, 5, 0));
 
         btnPasajeros = new JToggleButton("Pasajeros");
         btnTripulacion = new JToggleButton("Tripulación");
@@ -170,7 +172,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 
         // Split Central
         JSplitPane splitHorizontal = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panelIzquierdo, panelDerecho);
-        splitHorizontal.setDividerLocation(600);
+        splitHorizontal.setDividerLocation(580);
         splitHorizontal.setResizeWeight(0.5);
         estilizarSplitPane(splitHorizontal);
         splitHorizontal.setBackground(PaletaColor.get(PaletaColor.FONDO));
@@ -255,8 +257,8 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         
         estilizarScrollPane(scrollVuelos);
         
-        scrollVuelos.setBorder(new BordeRedondeado(15, new Color(200, 200, 200)));
-
+        scrollVuelos.setBorder(new BordeRedondeado(20, new Color(220, 220, 220), Color.WHITE));
+        
         tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(40);
         tablaVuelos.getColumnModel().getColumn(5).setPreferredWidth(80);
 
@@ -269,7 +271,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         tablaDinamica.setModel(modeloDinamico);
         configurarEstiloTabla(tablaDinamica);
         estilizarScrollPane(scrollDinamico);
-        scrollDinamico.setBorder(new BordeRedondeado(15, new Color(200, 200, 200)));
+        scrollDinamico.setBorder(new BordeRedondeado(20, new Color(220, 220, 220), Color.WHITE));
     }
 
     private void configurarEstiloTabla(JTable tabla) {
@@ -278,7 +280,8 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         tabla.setShowHorizontalLines(true);
         tabla.setGridColor(new Color(230, 230, 230));
         tabla.setIntercellSpacing(new Dimension(0, 0));
-
+        tabla.getTableHeader().setReorderingAllowed(false);
+        tabla.getTableHeader().setResizingAllowed(false);
         // Header
         JTableHeader header = tabla.getTableHeader();
         header.setDefaultRenderer(new DefaultTableCellRenderer() {
@@ -289,7 +292,6 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
                 lbl.setForeground(PaletaColor.get(PaletaColor.BLANCO));
                 lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
                 lbl.setHorizontalAlignment(JLabel.CENTER);
-                lbl.setBorder(new EmptyBorder(8, 5, 8, 5));
                 return lbl;
             }
         });
@@ -737,28 +739,48 @@ class SeatLabel extends JLabel {
  }
 }
 
-class BordeRedondeado implements javax.swing.border.Border {
-    private int radius;
-    private Color color;
+//--- CLASE PARA BORDE REDONDEADO ---
+class BordeRedondeado extends AbstractBorder {
+ private static final long serialVersionUID = 1L;
+ private int radius;
+ private Color colorBorde;
+ private Color colorPadre; 
 
-    public BordeRedondeado(int radius, Color color) {
-        this.radius = radius;
-        this.color = color;
-    }
+ public BordeRedondeado(int radius, Color colorBorde, Color colorPadre) {
+     this.radius = radius;
+     this.colorBorde = colorBorde;
+     this.colorPadre = colorPadre;
+ }
 
-    public Insets getBorderInsets(Component c) {
-        return new Insets(this.radius/2, this.radius/2, this.radius/2, this.radius/2);
-    }
+ @Override
+ public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+     Graphics2D g2 = (Graphics2D) g.create();
+     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-    public boolean isBorderOpaque() {
-        return true;
-    }
+     Area areaExterna = new Area(new Rectangle(x, y, width, height));
+     Area areaInterna = new Area(
+         new RoundRectangle2D.Float(x, y, width - 1, height - 1, radius, radius)
+     );
+     
+     areaExterna.subtract(areaInterna);
+     g2.setColor(colorPadre);
+     g2.fill(areaExterna);
+     g2.setColor(colorBorde);
+     g2.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
 
-    public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(color);
-        // Dibuja el rectángulo con esquinas redondeadas
-        g2.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
-    }
+     g2.dispose();
+ }
+
+ @Override
+ public Insets getBorderInsets(Component c) {
+     int value = radius / 2;
+     return new Insets(value, value, value, value);
+ }
+
+ @Override
+ public Insets getBorderInsets(Component c, Insets insets) {
+     int value = radius / 2;
+     insets.left = insets.top = insets.right = insets.bottom = value;
+     return insets;
+ }
 }
