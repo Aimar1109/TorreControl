@@ -90,7 +90,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         lblTitulo.setForeground(Color.WHITE);
         panelSuperior.add(lblTitulo, BorderLayout.CENTER);
 
-        // Dummy (Derecha - para equilibrar el centrado)
+        // Dummy 
         JLabel lblDummy = new JLabel("00:00:00");
         lblDummy.setFont(new Font("Consolas", Font.BOLD, 18));
         lblDummy.setForeground(new Color(0, 0, 0, 0)); 
@@ -120,7 +120,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         panelDerecho.setBorder(new EmptyBorder(0, 10, 0, 0)); 
 
         // Botones (Pestañas)
-        JPanel panelBotones = new JPanel(new GridLayout(1, 4, 5, 0)); 
+        JPanel panelBotones = new JPanel(new GridLayout(1, 4, 0, 0)); 
         panelBotones.setOpaque(false);
         panelBotones.setBorder(new EmptyBorder(0, 0, 5, 0));
 
@@ -162,7 +162,6 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         panelSeatmap.setBackground(Color.WHITE);
         panelSeatmap.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // Por defecto mostramos la tabla
         panelDinamico.add(scrollDinamico, BorderLayout.CENTER);
         panelDerecho.add(panelDinamico, BorderLayout.CENTER);
 
@@ -176,7 +175,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 
         panelCentral.add(splitHorizontal, BorderLayout.CENTER);
 
-        // --- 3. PANEL INFERIOR (TIMELINE + LEYENDA MODIFICADO) ---
+        // --- 3. PANEL INFERIOR ---
         panelInferior = new JPanel(new BorderLayout());
         panelInferior.setPreferredSize(new Dimension(0, 250));
         panelInferior.setBackground(Color.WHITE); 
@@ -195,13 +194,12 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         // Título Centrado y Blanco
         JLabel lblTimeline = new JLabel("SEGUIMIENTO EN TIEMPO REAL", JLabel.CENTER);
         lblTimeline.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        lblTimeline.setForeground(Color.WHITE); 
+        lblTimeline.setForeground(PaletaColor.get(PaletaColor.BLANCO)); 
         headerPanel.add(lblTimeline, BorderLayout.CENTER);
 
-        // Añadir cabecera al Norte del panel inferior
+
         panelInferior.add(headerPanel, BorderLayout.NORTH);
 
-        // Instancia del PanelTimeline
         panelTimeline = new PanelTimeline(vuelos);
         panelInferior.add(panelTimeline, BorderLayout.CENTER);
 
@@ -220,26 +218,26 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
     // --- ESTILIZADO DE COMPONENTES ---
 
     private void estilizarBotonToggle(JToggleButton boton) {
-        boton.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        boton.setFont(new Font("Segoe UI", Font.BOLD, 12));
         boton.setPreferredSize(new Dimension(80, 35));
         boton.setFocusPainted(false);
-        boton.setBorderPainted(true);
+        boton.setBorderPainted(false); 
         boton.setContentAreaFilled(true);
         boton.setOpaque(true);
-        
-        // Estado base 
-        boton.setBackground(PaletaColor.get(PaletaColor.FONDO));
-        boton.setForeground(PaletaColor.get(PaletaColor.TEXTO));
-        boton.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
 
-        // Listener para cambio de color activo/inactivo
+        boton.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(230, 230, 230)));
+        boton.setBackground(PaletaColor.get(PaletaColor.FILA_ALT)); 
+        boton.setForeground(Color.GRAY);
+
         boton.addItemListener(e -> {
             if (boton.isSelected()) {
-                boton.setBackground(PaletaColor.get(PaletaColor.HOVER));
-                boton.setForeground(Color.WHITE);
+                boton.setBackground(Color.WHITE);
+                boton.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
+                boton.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, PaletaColor.get(PaletaColor.PRIMARIO)));
             } else {
-                boton.setBackground(PaletaColor.get(PaletaColor.FONDO));
-                boton.setForeground(PaletaColor.get(PaletaColor.TEXTO));
+                boton.setBackground(new Color(250, 250, 250));
+                boton.setForeground(Color.GRAY);
+                boton.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(230, 230, 230)));
             }
         });
     }
@@ -255,14 +253,12 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         };
         tablaVuelos.setModel(modeloVuelos);
         
-        // Estilo moderno reutilizable
         configurarEstiloTabla(tablaVuelos);
         
         estilizarScrollPane(scrollVuelos);
 
-        // Ajustes de ancho específicos
-        tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(40); // Icono
-        tablaVuelos.getColumnModel().getColumn(5).setPreferredWidth(80); // Status
+        tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(40);
+        tablaVuelos.getColumnModel().getColumn(5).setPreferredWidth(80);
 
         // Modelo Dinámico
         modeloDinamico = new DefaultTableModel() {
@@ -313,7 +309,6 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
                     lbl.setHorizontalAlignment(JLabel.CENTER);
                 } else {
                     lbl.setText(value != null ? value.toString() : "");
-                    // Centrar ciertas columnas en tablaVuelos
                     if (table == tablaVuelos && (column == 1 || column == 4 || column == 5)) {
                         lbl.setHorizontalAlignment(JLabel.CENTER);
                     } else {
@@ -357,7 +352,6 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
             String duracion = formatearDuracion(v.getDuracion());
             ImageIcon icono = obtenerIconoEstado(v);
             
-            // Nota: Aquí pasamos v.getDelayed() (int), el renderer se encarga del color
             modeloVuelos.addRow(new Object[]{
                 icono, v.getCodigo(), v.getOrigen().getCiudad(), 
                 v.getDestino().getCiudad(), duracion, v.getDelayed()
@@ -511,34 +505,48 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         panelSeatmap.removeAll();
         int capacidad = vuelo.getAvion().getCapacidad();
         ArrayList<String> listaPasajeros = vuelo.getPasajeros();
-        
+
         final int COLUMNAS = 6;
         int filas = (int) Math.ceil((double) capacidad / COLUMNAS);
-        int colsGrid = COLUMNAS + 2; // + Fila y Pasillo
-
+        int colsGrid = COLUMNAS + 2;
         Map<String, String> tooltips = new HashMap<>();
         for (int i = 0; i < listaPasajeros.size(); i++) {
             tooltips.put(generarAsiento(i), "Pasajero: " + listaPasajeros.get(i));
         }
 
-        // Leyenda
-        JPanel pnlLeyenda = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
-        pnlLeyenda.setBackground(Color.WHITE);
-        pnlLeyenda.add(crearItemLeyenda("LIBRE", SeatLabel.COLOR_LIBRE));
-        pnlLeyenda.add(crearItemLeyenda("OCUPADO", SeatLabel.COLOR_OCUPADO));
+        // --- 1. CABECERA  ---
+        JPanel pnlCabecera = new JPanel(new BorderLayout());
+        pnlCabecera.setBackground(Color.WHITE);
+        pnlCabecera.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, PaletaColor.get(PaletaColor.LIBRE)));
 
-        // Grid Asientos
+        // A) Indicador de Frente
+        JLabel lblFrente = new JLabel("FRENTE DEL AVIÓN", JLabel.CENTER);
+        lblFrente.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblFrente.setForeground(new Color(150, 150, 150)); 
+        lblFrente.setBorder(new EmptyBorder(15, 0, 5, 0)); 
+        pnlCabecera.add(lblFrente, BorderLayout.NORTH);
+
+        // B) Leyenda
+        JPanel pnlLeyenda = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        pnlLeyenda.setBackground(Color.WHITE);
+        pnlLeyenda.add(crearItemLeyenda("LIBRE", PaletaColor.get(PaletaColor.LIBRE)));
+        pnlLeyenda.add(crearItemLeyenda("OCUPADO", PaletaColor.get(PaletaColor.OCUPADO)));
+        pnlCabecera.add(pnlLeyenda, BorderLayout.CENTER);
+
+        // --- 2. GRID DE ASIENTOS  ---
         JPanel grid = new JPanel(new GridLayout(filas, colsGrid, 5, 5));
-        grid.setBackground(Color.WHITE);
+        grid.setBackground(PaletaColor.get(PaletaColor.BLANCO));
+        grid.setBorder(new EmptyBorder(20, 20, 20, 20)); 
         
         int cont = 0;
         for (int f = 1; f <= filas; f++) {
             JLabel lblF = new JLabel(String.valueOf(f), JLabel.CENTER);
             lblF.setFont(new Font("Arial", Font.BOLD, 12));
+            lblF.setForeground(PaletaColor.get(PaletaColor.TEXTO));
             grid.add(lblF);
 
             for (int c = 0; c < COLUMNAS; c++) {
-                if (c == 3) grid.add(new JLabel("")); // Pasillo
+                if (c == 3) grid.add(new JLabel("")); 
                 
                 if (cont < capacidad) {
                     String asiento = generarAsientoDirecto(f, c);
@@ -549,27 +557,30 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
                     grid.add(new JLabel(""));
                 }
             }
-            grid.add(new JLabel(""));
+            grid.add(new JLabel("")); 
         }
 
+        // --- 3. SCROLL ---
         JScrollPane scroll = new JScrollPane(grid);
         estilizarScrollPane(scroll);
 
-        panelSeatmap.add(pnlLeyenda, BorderLayout.NORTH);
+        // --- 4. AÑADIR AL PANEL PRINCIPAL ---
+        panelSeatmap.add(pnlCabecera, BorderLayout.NORTH);
         panelSeatmap.add(scroll, BorderLayout.CENTER);
+        
         panelSeatmap.revalidate();
         panelSeatmap.repaint();
     }
 
-    private JLabel crearItemLeyenda(String txt, Color col) {
+    private JLabel crearItemLeyenda(String txt, Color color) {
         JLabel lbl = new JLabel(txt);
         lbl.setIcon(new Icon() {
             public int getIconWidth() { return 12; }
             public int getIconHeight() { return 12; }
             public void paintIcon(Component c, Graphics g, int x, int y) {
-                g.setColor(col);
+                g.setColor(color);
                 g.fillRect(x, y, 12, 12);
-                g.setColor(Color.LIGHT_GRAY);
+                g.setColor(PaletaColor.get(PaletaColor.TEXTO_SUAVE));
                 g.drawRect(x, y, 12, 12);
             }
         });
@@ -613,8 +624,8 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
     private void estilizarScrollPane(JScrollPane scroll) {
         // Estilizar barra vertical
         scroll.getVerticalScrollBar().setUI(new ModernScrollBarUI());
-        scroll.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0)); // Ancho fino
-        scroll.getVerticalScrollBar().setUnitIncrement(16); // Velocidad scroll
+        scroll.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0)); 
+        scroll.getVerticalScrollBar().setUnitIncrement(16); 
 
         // Estilizar barra horizontal
         scroll.getHorizontalScrollBar().setUI(new ModernScrollBarUI());
@@ -662,27 +673,43 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 }
 
 
-// --- CLASE AUXILIAR SEATLABEL (Estilo Moderno) ---
+//--- CLASE AUXILIAR SEATLABEL ---
 class SeatLabel extends JLabel {
-    private static final long serialVersionUID = 1L;
-    public static final Color COLOR_LIBRE = new Color(236, 240, 241);
-    public static final Color COLOR_OCUPADO = new Color(52, 152, 219);
+ private static final long serialVersionUID = 1L;
+ 
+ private boolean occupied;
 
-    public SeatLabel(String text, boolean occupied, String tooltip) {
-        super(text, JLabel.CENTER);
-        setOpaque(true);
-        setFont(new Font("Segoe UI", Font.BOLD, 11));
-        setPreferredSize(new Dimension(45, 30));
-        setBorder(BorderFactory.createLineBorder(new Color(189, 195, 199), 1));
-        
-        if (occupied) {
-            setBackground(COLOR_OCUPADO);
-            setForeground(Color.WHITE);
-            setToolTipText(tooltip);
-        } else {
-            setBackground(COLOR_LIBRE);
-            setForeground(Color.DARK_GRAY);
-        }
-    }
+ public SeatLabel(String text, boolean occupied, String tooltip) {
+     super(text, JLabel.CENTER);
+     this.occupied = occupied;
+     
+     setFont(new Font("Segoe UI", Font.BOLD, 11));
+     setPreferredSize(new Dimension(45, 35)); 
+     setForeground(occupied ? PaletaColor.get(PaletaColor.BLANCO) : PaletaColor.get(PaletaColor.TEXTO_SUAVE));
+     
+     if (occupied) {
+         setToolTipText(tooltip);
+         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+     }
+ }
+
+ @Override
+ protected void paintComponent(Graphics g) {
+     Graphics2D g2 = (Graphics2D) g.create();
+     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+     int w = getWidth();
+     int h = getHeight();
+     
+     g2.setColor(occupied ? PaletaColor.get(PaletaColor.OCUPADO) : PaletaColor.get(PaletaColor.LIBRE));
+     g2.fillRoundRect(2, 2, w-4, h-4, 12, 12);
+     
+     g2.setStroke(new BasicStroke(1f));
+     g2.drawRoundRect(2, 2, w-4, h-4, 12, 12);
+
+     g2.dispose();
+
+     super.paintComponent(g);
+ }
 }
 
