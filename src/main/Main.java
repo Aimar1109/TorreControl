@@ -12,6 +12,8 @@ import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import gui.JFramePrincipal;
+import jdbc.GestorBD;
+import jdbc.GestorBDInitializer;
 import domain.*;
 import threads.RelojGlobal;
 
@@ -20,13 +22,18 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) {
+    	GestorBD gestorBD = new GestorBD();
+        GestorBDInitializer gestorBDInitializer = new GestorBDInitializer();
+        
+        gestorBDInitializer.crearTablas();
+        
         // Generar vuelos de ejemplo
     	VueloGenerador vg = new VueloGenerador();
     	AeropuertoGenerador ag = new AeropuertoGenerador();
     	AvionGenerador av = new AvionGenerador();
     	PuertaGenerador pe = new PuertaGenerador();
     	ArrayList<Aerolinea> aers = generadorAerolinea();
-        generarVuelosAleatorios(50, ag, aers, av, pe, vg);
+        generarVuelosAleatorios(50, ag, aers, av, pe, vg, gestorBD);
         Set<Aeropuerto> aeroEjemplo = ag.devolverA();
         Set<Avion> avEjemplo = av.devolverA();
         List<Avion> avionesPrueba = crearAvionesPrueba();
@@ -43,7 +50,7 @@ public class Main {
     }
 
     private static void generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag, ArrayList<Aerolinea> aer,
-    														AvionGenerador av, PuertaGenerador pe, VueloGenerador vg) {
+    														AvionGenerador av, PuertaGenerador pe, VueloGenerador vg, GestorBD gestorBD) {
         Random random = new Random();
 
         // Ciudades disponibles (incluye BIO en la lista si quieres, pero lo gestionamos a parte)
@@ -165,6 +172,7 @@ public class Main {
         			 puertas.get(random.nextInt(puertas.size())),  estado,  ahora.plusHours(i),  duracion,  avion,
         			 emergencia,  pasajeros,  tripulacion,  delayed);
             vg.añadirA(vuelo);
+            gestorBD.insertVuelo(vuelo);
             
         }
     }
