@@ -36,14 +36,10 @@ public class PanelTimeline extends JPanel implements ObservadorTiempo {
 
     private static final long serialVersionUID = 1L;
     
-    // CONSTANTE: Código del aeropuerto local
     public static final String CODIGO_AEROPUERTO_LOCAL = "LEBB"; 
     
     private JPanel listPanel;
     private List<RadarTile> tiles;
-
-    // NOTA: Se han eliminado las variables estáticas de color locales.
-    // Ahora se usa directamente PaletaColor.get(...)
 
     public PanelTimeline(ArrayList<Vuelo> vuelos) {
         setLayout(new BorderLayout());
@@ -110,7 +106,7 @@ public class PanelTimeline extends JPanel implements ObservadorTiempo {
         RelojGlobal.getInstancia().eliminarObservador(this);
     }
 
-//--- MÉTODOS DE ESTILO PARA SCROLLBAR (MODO OSCURO) ---
+//--- MÉTODOS DE ESTILO PARA SCROLLBAR ---
 
 
 private void estilizarScrollPane(JScrollPane scroll) {
@@ -234,8 +230,12 @@ class RadarTile extends JPanel {
                 estadoColor = PaletaColor.get(PaletaColor.DELAYED); 
                 estadoTexto = "RETRASADO";             
             } else if (toGo < 60) {
-                estadoColor = PaletaColor.get(PaletaColor.ACENTO); 
-                estadoTexto = "EMBARCANDO"; 
+            	estadoColor = PaletaColor.get(PaletaColor.ACENTO); 
+            	if (esSalida) {
+            		estadoTexto = "EMBARCANDO"; 
+            	} else {
+            		estadoTexto = "DESEMBARCANDO"; 
+            	}
             } else {
                 estadoColor = PaletaColor.get(PaletaColor.SECUNDARIO); 
                 estadoTexto = "PROGRAMADO";
@@ -287,7 +287,7 @@ class RadarTile extends JPanel {
         
         // Aerolínea
         g2.setFont(FONT_AIRLINE);
-        g2.setColor(PaletaColor.get(PaletaColor.ACENTO)); // Usamos ACENTO (Naranja)
+        g2.setColor(estadoColor); 
         String aerolinea = vuelo.getAereolinea().getNombre().toUpperCase();
         g2.drawString(aerolinea, textLeftX, 25);
 
