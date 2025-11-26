@@ -3,6 +3,7 @@ package gui;
 import domain.Avion;
 import domain.Pista;
 import domain.Vuelo;
+import jdbc.GestorBD;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
 
@@ -31,14 +32,20 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
 	//Pistas
 	private Pista pista1 = new Pista("1", true);
 	private Pista pista2 = new Pista("2", true);
+	
+	private GestorBD gestorBD;
 
 
-	public JPanelPrincipal(ArrayList<Vuelo> vuelos) {
-		this(vuelos, new ArrayList<>());
+	public JPanelPrincipal(GestorBD gestorBD) {
+		this(gestorBD, new ArrayList<>());
 	}
 
-	public JPanelPrincipal(ArrayList<Vuelo> vuelos, List<Avion> aviones) {
+	public JPanelPrincipal(GestorBD gestorBD, List<Avion> avionesPrueba) {
 
+		// AIMAR: Para acceder desde la base de datos
+		ArrayList<Vuelo> vuelos = (ArrayList<Vuelo>) gestorBD.loadVuelos();
+		List<Avion> aviones = avionesPrueba;
+		
 		//Panel Principal
 		setLayout(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();

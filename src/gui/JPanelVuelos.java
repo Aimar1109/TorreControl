@@ -63,7 +63,6 @@ import domain.PaletaColor;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import jdbc.GestorBD;
-import main.Main.VueloGenerador;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
 

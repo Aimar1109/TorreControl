@@ -28,16 +28,9 @@ public class Main {
         gestorBDInitializer.crearTablas();
         
         // Generar vuelos de ejemplo
-    	VueloGenerador vg = new VueloGenerador();
-    	AeropuertoGenerador ag = new AeropuertoGenerador();
-    	AvionGenerador av = new AvionGenerador();
-    	PuertaGenerador pe = new PuertaGenerador();
     	ArrayList<Aerolinea> aers = generadorAerolinea(gestorBD);
-        generarVuelosAleatorios(50, ag, aers, av, pe, vg, gestorBD);
-        Set<Aeropuerto> aeroEjemplo = ag.devolverA();
-        Set<Avion> avEjemplo = av.devolverA();
+        generarVuelosAleatorios(50, gestorBD);
         List<Avion> avionesPrueba = crearAvionesPrueba();
-        Set<PuertaEmbarque> puertasEjemplo = pe.devolverP();
 
         //Configuración RelojGlobal
         RelojGlobal relojGlobal = RelojGlobal.getInstancia();
@@ -45,12 +38,10 @@ public class Main {
         
 
         // Lanzar interfaz con los vuelos
-        SwingUtilities.invokeLater(() -> new JFramePrincipal(vg, new ArrayList<Aeropuerto>(aeroEjemplo), avionesPrueba,
-        													 aers, new ArrayList<Avion>(avEjemplo), new ArrayList<PuertaEmbarque>(puertasEjemplo), gestorBD));
+        SwingUtilities.invokeLater(() -> new JFramePrincipal(gestorBD, avionesPrueba));
     }
 
-    private static void generarVuelosAleatorios(int cantidad, AeropuertoGenerador ag, ArrayList<Aerolinea> aer,
-    														AvionGenerador av, PuertaGenerador pe, VueloGenerador vg, GestorBD gestorBD) {
+    private static void generarVuelosAleatorios(int cantidad, GestorBD gestorBD) {
         Random random = new Random();
 
         // Ciudades disponibles (incluye BIO en la lista si quieres, pero lo gestionamos a parte)
@@ -68,23 +59,20 @@ public class Main {
         	String nombre = nombresAeropuertos[i];
         	String ciudad = ciudades[i];
         	Aeropuerto aeropuerto = new Aeropuerto(codigo, nombre, ciudad);
-        	ag.añadirA(aeropuerto);
         	gestorBD.insertAeropuerto(aeropuerto);
         }
         
-        ArrayList<Aeropuerto> aeropuertos = new ArrayList<Aeropuerto>(ag.devolverA());
+        ArrayList<Aeropuerto> aeropuertos = (ArrayList<Aeropuerto>) gestorBD.loadAeropuertos();
         
         Aeropuerto bilbao = new Aeropuerto("LEBB", "Bilbao Airport", "Bilbao");
-        ag.añadirA(bilbao);
         gestorBD.insertAeropuerto(bilbao);
         
         for (int i=1; i<10; i++) {
         	PuertaEmbarque npe = new PuertaEmbarque(false);
-        	pe.añadirP(npe);
         	gestorBD.insertPuerta(npe);
         }
         
-        ArrayList<PuertaEmbarque> puertas = new ArrayList<PuertaEmbarque>(pe.devolverP());
+        ArrayList<PuertaEmbarque> puertas = (ArrayList<PuertaEmbarque>) gestorBD.loadPuertasEmbarque();
         
 
         // Queremos aproximadamente la mitad llegadas a BIO y la mitad salidas desde BIO
@@ -121,25 +109,24 @@ public class Main {
             }
             int capacidad = 150 + random.nextInt(200);
             Avion avion = new Avion(modelo, matricula, capacidad);
-            av.añadirA(avion);
             gestorBD.insertAvion(avion);
             
             boolean emergencia = random.nextInt(10) == 0;
             
             // Pasajeros
             int numPasajeros = 50 + random.nextInt(Math.max(1, Math.min(capacidad, 150)));
-            ArrayList<String> pasajeros = new ArrayList<>();
+            ArrayList<Pasajero> pasajeros = new ArrayList<>();
             for (int j = 0; j < numPasajeros; j++) {
-                pasajeros.add(nombres[random.nextInt(nombres.length)] + " " +
-                               apellidos[random.nextInt(apellidos.length)]);
+                pasajeros.add(new Pasajero(nombres[random.nextInt(nombres.length)] + " " +
+                               apellidos[random.nextInt(apellidos.length)]));
             }
 
             // Tripulación
-            ArrayList<String> tripulacion = new ArrayList<>();
+            ArrayList<Tripulante> tripulacion = new ArrayList<>();
             int numTripulacion = 4 + random.nextInt(4);
             for (int j = 0; j < numTripulacion; j++) {
-                tripulacion.add(nombres[random.nextInt(nombres.length)] + " " +
-                                apellidos[random.nextInt(apellidos.length)]);
+                tripulacion.add(new Tripulante(nombres[random.nextInt(nombres.length)] + " " +
+                                apellidos[random.nextInt(apellidos.length)]));
             }
 
             // Retraso en minutos (70% sin retraso, 30% con retraso)
@@ -175,71 +162,13 @@ public class Main {
                 remainingDepartures--;
             }
 
-            Vuelo vuelo = new Vuelo( codigo,  origen,  destino,  aer.get(0),  pista,
+            Vuelo vuelo = new Vuelo( codigo,  origen,  destino,  gestorBD.loadAerolineas().get(0),  pista,
         			 puertas.get(random.nextInt(puertas.size())),  estado,  ahora.plusHours(i),  duracion,  avion,
         			 emergencia,  pasajeros,  tripulacion,  delayed);
-            vg.añadirA(vuelo);
             gestorBD.insertVuelo(vuelo);
-            
         }
     }
-    
-    public static class VueloGenerador {
-    	private Set<Vuelo> vuelos;
-    	
-    	public VueloGenerador() {
-    		this.vuelos = new HashSet<Vuelo>();
-    	}
-    	public void añadirA(Vuelo v) {
-    		this.vuelos.add(v);
-    	}
-    	public Set<Vuelo> devolverA(){
-    		return this.vuelos;
-    	} 
-    }
-    
-    public static class AeropuertoGenerador {
-    	private Set<Aeropuerto> aeropuertos;
-    	
-    	public AeropuertoGenerador() {
-    		this.aeropuertos = new HashSet<Aeropuerto>();
-    	}
-    	public void añadirA(Aeropuerto a) {
-    		this.aeropuertos.add(a);
-    	}
-    	public Set<Aeropuerto> devolverA(){
-    		return this.aeropuertos;
-    	} 
-    }
-    
-    public static class AvionGenerador {
-    	private Set<Avion> aviones;
-    	
-    	public AvionGenerador() {
-    		this.aviones = new HashSet<Avion>();
-    	}
-    	public void añadirA(Avion a) {
-    		this.aviones.add(a);
-    	}
-    	public Set<Avion> devolverA(){
-    		return this.aviones;
-    	}
-    }
-    
-    public static class PuertaGenerador {
-    	private Set<PuertaEmbarque> puertas;
-    	
-    	public PuertaGenerador() {
-    		this.puertas = new HashSet<PuertaEmbarque>();
-    	}
-    	public void añadirP(PuertaEmbarque p) {
-    		this.puertas.add(p);
-    	}
-    	public Set<PuertaEmbarque> devolverP(){
-    		return this.puertas;
-    	}
-    }
-    
+   
     public static ArrayList<Aerolinea> generadorAerolinea(GestorBD gestorBD) {
     	String[] nombresAerolineas = { //IAG
     		    "Iberia",

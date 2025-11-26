@@ -24,7 +24,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import domain.Vuelo;
+import jdbc.GestorBD;
 import domain.PaletaColor;
+import domain.Pasajero;
+import domain.Tripulante;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
 import threads.PanelTimeline; 
@@ -61,9 +64,13 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
     private DefaultTableModel modeloDinamico;
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+    
+    private GestorBD gestorBD;
 
-    public JPanelSalesman(ArrayList<Vuelo> vuelos) {
-        this.vuelos = vuelos;
+    public JPanelSalesman(GestorBD gestorBD) {
+    	// te lo he cambiado para recibir coger los datos de la base de datos
+    	this.gestorBD = gestorBD;
+        this.vuelos = (ArrayList<Vuelo>) this.gestorBD.loadVuelos();
         setLayout(new BorderLayout());
         setBackground(PaletaColor.get(PaletaColor.FONDO));
 
@@ -471,7 +478,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         modeloDinamico.addColumn("Nombre");
         modeloDinamico.addColumn("Asiento");
         
-        ArrayList<String> pax = vuelo.getPasajeros();
+        ArrayList<Pasajero> pax = vuelo.getPasajeros();
         for (int i = 0; i < pax.size(); i++) {
             modeloDinamico.addRow(new Object[]{
                 String.format("DOC-%04d", i + 1), pax.get(i), generarAsiento(i)
@@ -484,7 +491,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         modeloDinamico.addColumn("Nombre");
         modeloDinamico.addColumn("Rol");
         
-        ArrayList<String> trip = vuelo.getTripulacion();
+        ArrayList<Tripulante> trip = vuelo.getTripulacion();
         String[] roles = {"Piloto", "Copiloto", "Jefe Cabina", "Auxiliar"};
         for (int i = 0; i < trip.size(); i++) {
             modeloDinamico.addRow(new Object[]{
@@ -507,7 +514,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
     private void cargarSeatmap(Vuelo vuelo) {
         panelSeatmap.removeAll();
         int capacidad = vuelo.getAvion().getCapacidad();
-        ArrayList<String> listaPasajeros = vuelo.getPasajeros();
+        ArrayList<Pasajero> listaPasajeros = vuelo.getPasajeros();
 
         final int COLUMNAS = 6;
         int filas = (int) Math.ceil((double) capacidad / COLUMNAS);

@@ -23,7 +23,6 @@ import domain.Avion;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import jdbc.GestorBD;
-import main.Main.VueloGenerador;
 
 public class JFramePrincipal extends JFrame {
 	private static final long serialVersionUID = 1L;
@@ -33,10 +32,8 @@ public class JFramePrincipal extends JFrame {
 	
 	private GestorBD gestorBD;
 	
-	public JFramePrincipal(VueloGenerador vg, ArrayList<Aeropuerto> aeropuertos, List<Avion> aviones,
-						   ArrayList<Aerolinea> aers, ArrayList<Avion> avs, ArrayList<PuertaEmbarque> puertas, GestorBD gestorBD) {
+	public JFramePrincipal(GestorBD gestorBD, List<Avion> avionesPrueba) {
 		
-		vuelos = new ArrayList<Vuelo>(vg.devolverA());
 		this.gestorBD = gestorBD;
 		// PANEL PRINCIPAL
 		JPanel mainPanel = new JPanel(new BorderLayout());
@@ -73,10 +70,10 @@ public class JFramePrincipal extends JFrame {
 		JPanelVuelos jpvuelos = new JPanelVuelos(gestorBD);
 		
 		// AGREGAR JPanelSalesman con los vuelos
-		JPanelSalesman panelSalesman = new JPanelSalesman(vuelos);
+		JPanelSalesman panelSalesman = new JPanelSalesman(gestorBD);
 		
 		//
-		JPanelPrincipal jpPrincipal = new JPanelPrincipal(vuelos, aviones);
+		JPanelPrincipal jpPrincipal = new JPanelPrincipal(gestorBD, avionesPrueba);
 		
 		
 		JPanelClima panelClima = new JPanelClima();

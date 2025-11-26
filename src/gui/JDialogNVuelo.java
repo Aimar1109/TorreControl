@@ -33,7 +33,6 @@ import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import jdbc.GestorBD;
-import main.Main.VueloGenerador;
 
 public class JDialogNVuelo extends 	JDialog {
 	

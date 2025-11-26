@@ -20,8 +20,8 @@ public class Vuelo {
 	private float duracion;
 	private Avion avion;
 	private boolean emergencia;
-	private ArrayList<String> pasajeros;
-	private ArrayList<String> tripulacion;
+	private ArrayList<Pasajero> pasajeros;
+	private ArrayList<Tripulante> tripulacion;
 	private int delayed;
 		
 	// CONSTRUCTOR
@@ -44,8 +44,8 @@ public class Vuelo {
 		this.duracion = duracion;
 		this.avion = avion;
 		this.emergencia = false;
-		this.pasajeros = new ArrayList<String>();
-		this.tripulacion = new ArrayList<String>();
+		this.pasajeros = new ArrayList<Pasajero>();
+		this.tripulacion = new ArrayList<Tripulante>();
 		this.delayed = 0;
 		
 	}
@@ -70,15 +70,15 @@ public class Vuelo {
 		this.duracion = duracion;
 		this.avion = avion;
 		this.emergencia = emergencia;
-		this.pasajeros = new ArrayList<String>();
-		this.tripulacion = new ArrayList<String>();
+		this.pasajeros = new ArrayList<Pasajero>();
+		this.tripulacion = new ArrayList<Tripulante>();
 		this.delayed = delayed;
 		
 	}
 	
 	public Vuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aereolinea, Pista pista,
 			PuertaEmbarque puerta, boolean estado, LocalDateTime fechaHoraProgramada, float duracion, Avion avion,
-			boolean emergencia, ArrayList<String> pasajeros, ArrayList<String> tripulacion, int delayed) {
+			boolean emergencia, ArrayList<Pasajero> pasajeros, ArrayList<Tripulante> tripulacion, int delayed) {
 		super();
 		if (numero.toString().length() != 4) {
 			throw new IllegalArgumentException("El numero de vuelo tiene que tener 4 digitos");
@@ -198,20 +198,32 @@ public class Vuelo {
 		this.emergencia = emergencia;
 	}
 
-	public ArrayList<String> getPasajeros() {
+	public ArrayList<Pasajero> getPasajeros() {
 		return pasajeros;
 	}
 
-	public void setPasajeros(ArrayList<String> pasajeros) {
+	public void setPasajeros(ArrayList<Pasajero> pasajeros) {
 		this.pasajeros = pasajeros;
 	}
+	
+	public void addPasajero(Pasajero pasajero) {
+		if (this.avion.getCapacidad()>this.pasajeros.size()) {
+			this.pasajeros.add(pasajero);
+		} else {
+			throw new IllegalArgumentException("El avion esta lleno");
+		}
+	}
 
-	public ArrayList<String> getTripulacion() {
+	public ArrayList<Tripulante> getTripulacion() {
 		return tripulacion;
 	}
 
-	public void setTripulacion(ArrayList<String> tripulacion) {
+	public void setTripulacion(ArrayList<Tripulante> tripulacion) {
 		this.tripulacion = tripulacion;
+	}
+	
+	public void addTripulante(Tripulante tripulante) {
+		this.tripulacion.add(tripulante);
 	}
 
 	public int getDelayed() {

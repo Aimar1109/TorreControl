@@ -35,6 +35,7 @@ public class GestorBDInitializer {
     	
         try (Connection con = DriverManager.getConnection(CONNECTION_STRING)) {
             String sqlVuelos = "CREATE TABLE IF NOT EXISTS VUELO (\n"
+            		+ " CODIGO TEXT NOT NULL,\n"
                     + " NUMERO INTEGER NOT NULL,\n"
                     + " CODIGO_ORIGEN TEXT NOT NULL,\n"
                     + " CODIGO_DESTINO TEXT NOT NULL,\n"
@@ -85,6 +86,38 @@ public class GestorBDInitializer {
                     + " NUMERO TEXT PRIMARY KEY NOT NULL,\n"
                     + " DISPONIBLE BOOLEAN NOT NULL\n"
                     + ");";
+            
+            String sqlPasajeros = "CREATE TABLE IF NOT EXISTS PASAJERO (\n"
+                    + " NOMBRE TEXT PRIMARY KEY NOT NULL\n"
+                    + ");";
+            
+            String sqlTripulante = "CREATE TABLE IF NOT EXISTS TRIPULANTE (\n"
+                    + " NOMBRE TEXT PRIMARY KEY NOT NULL\n"
+                    + ");";
+            
+            String sqlVueloPasajero = "CREATE TABLE IF NOT EXISTS VUELO_PASAJERO (\n"
+                    + " CODIGO_VUELO TEXT NOT NULL,\n"
+                    + " NOMBRE_PASAJERO TEXT NOT NULL,\n"
+                    
+					+ " PRIMARY KEY(CODIGO_VUELO, NOMBRE_PASAJERO)\n"
+					
+					+ " FOREIGN KEY(CODIGO_VUELO) REFERENCES VUELO(CODIGO)\n"
+					+ " FOREIGN KEY(NOMBRE_PASAJERO) REFERENCES TRIPULANTE(NOMBRE)\n"
+                    + ");";
+            
+            String sqlVueloTripulante = "CREATE TABLE IF NOT EXISTS VUELO_TRIPULANTE (\n"
+                    + " CODIGO_VUELO TEXT NOT NULL,\n"
+                    + " NOMBRE_TRIPULANTE TEXT NOT NULL,\n"
+                    
+					+ " PRIMARY KEY(CODIGO_VUELO, NOMBRE_TRIPULANTE)\n"
+					
+					+ " FOREIGN KEY(CODIGO_VUELO) REFERENCES VUELO(CODIGO)\n"
+					+ " FOREIGN KEY(NOMBRE_TRIPULANTE) REFERENCES TRIPULANTE(NOMBRE)\n"
+                    + ");";
+            
+            
+            
+
 
             try (Statement stmt = con.createStatement()) {
                 stmt.execute(sqlVuelos);
@@ -93,6 +126,10 @@ public class GestorBDInitializer {
                 stmt.execute(sqlAviones);
                 stmt.execute(sqlPuertas);
                 stmt.execute(sqlPistas);
+                stmt.execute(sqlPasajeros);
+                stmt.execute(sqlTripulante);
+                stmt.execute(sqlVueloPasajero); 
+                stmt.execute(sqlVueloTripulante);
             }
             
             // System.out.println("- Tablas creadas.");
