@@ -4,6 +4,7 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GradientPaint;
@@ -11,6 +12,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -180,6 +183,7 @@ class RadarTile extends JPanel {
     
     private float pulseAlpha = 0f;
     private boolean isFlying = false;
+    private boolean isHover = false;
     
     // Datos lógicos
     private boolean esSalida; 
@@ -201,6 +205,22 @@ class RadarTile extends JPanel {
         setMinimumSize(new Dimension(400, 95));
         setPreferredSize(new Dimension(600, 95));
         setMaximumSize(new Dimension(Integer.MAX_VALUE, 95));
+        
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                isHover = true;
+                setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                repaint(); 
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                isHover = false;
+                setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                repaint();
+            }
+        });
     }
 
     public void actualizarEstado(LocalDateTime now) {
@@ -220,7 +240,6 @@ class RadarTile extends JPanel {
         } else if (now.isAfter(salida)) {
             isFlying = true;
             progreso = (float)elapsed / (float)Math.max(totalMin, 1);
-            // Uso de PaletaColor para estados
             estadoColor = vuelo.getDelayed() > 0 ? PaletaColor.get(PaletaColor.DELAYED) : PaletaColor.get(PaletaColor.EXITO);
             estadoTexto = "EN VUELO";
         } else {
@@ -260,7 +279,7 @@ class RadarTile extends JPanel {
         int w = getWidth();
         int h = getHeight();
 
-        // --- 1. FONDO CON PALETA ---
+        // --- 1. FONDO BASE ---
         GradientPaint bgGrad = new GradientPaint(
             0, 0, PaletaColor.get(PaletaColor.TILE_INICIO), 
             0, h, PaletaColor.get(PaletaColor.TILE_FIN)
@@ -268,14 +287,22 @@ class RadarTile extends JPanel {
         g2.setPaint(bgGrad);
         g2.fillRoundRect(0, 0, w, h, 10, 10);
         
-        // Borde indicador lateral (Color de estado calculado dinámicamente)
-        g2.setColor(estadoColor);
-        g2.fillRoundRect(0, 0, 6, h, 10, 10); 
+        // efecto hover
+        if (isHover) {
+        	g2.setColor(new Color(176, 196, 222, 15)); 
+            g2.fillRoundRect(0, 0, w, h, 10, 10);
+            
+            g2.setColor(new Color(176, 196, 222, 60));
+            g2.setStroke(new BasicStroke(1f));
+            g2.drawRoundRect(0, 0, w-1, h-1, 10, 10);
+        } else {
+            g2.setColor(PaletaColor.get(PaletaColor.TILE_BORDE));
+            g2.setStroke(new BasicStroke(1f));
+            g2.drawRoundRect(0, 0, w-1, h-1, 10, 10);
+        }
         
-        // Borde del Tile
-        g2.setColor(PaletaColor.get(PaletaColor.TILE_BORDE));
-        g2.setStroke(new BasicStroke(1f));
-        g2.drawRoundRect(0, 0, w-1, h-1, 10, 10);
+        g2.setColor(estadoColor);
+        g2.fillRoundRect(0, 0, 6, h, 10, 10);
 
         // === 2. ICONO DIRECCIÓN ===
         int iconX = 25;
