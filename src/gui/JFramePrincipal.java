@@ -70,7 +70,7 @@ public class JFramePrincipal extends JFrame {
 		mainPanel.add(menuPanel, BorderLayout.NORTH);
 
 		// PANEL CENTRAL VUELOS
-		JPanelVuelos jpvuelos = new JPanelVuelos(vg, aeropuertos, aers, avs, puertas, gestorBD);
+		JPanelVuelos jpvuelos = new JPanelVuelos(gestorBD);
 		
 		// AGREGAR JPanelSalesman con los vuelos
 		JPanelSalesman panelSalesman = new JPanelSalesman(vuelos);

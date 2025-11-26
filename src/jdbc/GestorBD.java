@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -179,7 +180,7 @@ public class GestorBD {
     
     // LOAD
     // terminar
-    public List<Vuelo> loadVuelo() {
+    public List<Vuelo> loadVuelos() {
     	List<Vuelo> vuelos = new ArrayList<Vuelo>();
 		
 		String sqlVuelo = "SELECT * FROM VUELO";
@@ -188,17 +189,28 @@ public class GestorBD {
              PreparedStatement pstVuelo = con.prepareStatement(sqlVuelo);) {
             ResultSet rsVuelo = pstVuelo.executeQuery();
             
+            ResultSetMetaData rsmd = rsVuelo.getMetaData();
+            boolean existePista = false;
+            
+            for (int i = 1; i <= rsmd.getColumnCount(); i++) {
+                if (rsmd.getColumnName(i).equalsIgnoreCase("NUMERO_PISTA")) {
+                	existePista = true;
+                    break;
+                }
+            }
+
+            
             while (rsVuelo.next()) {
             	Integer numero = rsVuelo.getInt("NUMERO");
             	Aeropuerto origen = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_ORIGEN"));
             	Aeropuerto destino = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_DESTINO"));
             	Aerolinea aerolinea = getAerolineaByCodigo(rsVuelo.getString("CODIGO_AEROLINEA"));
-            	Pista pista = (rsVuelo.getString("NUMERO_PISTA") != null || rsVuelo.getString("NUMERO_PISTA").isEmpty()) ? getPistaByNumero(rsVuelo.getString("NUMERO_PISTA")) : null;
-            	PuertaEmbarque puerta = getPuertaEmbarqueByCodigo(rsVuelo.getString(""));
+            	Pista pista = existePista ? getPistaByNumero(rsVuelo.getString("NUMERO_PISTA")) : null;
+            	PuertaEmbarque puerta = getPuertaEmbarqueByCodigo(rsVuelo.getString("CODIGO_PUERTAEMBARQUE"));
             	Boolean estado = rsVuelo.getBoolean("ESTADO");
             	LocalDateTime fecha = LocalDateTime.parse(rsVuelo.getString("FECHAHORAPROGRAMADA"));
             	Float duracion = rsVuelo.getFloat("DURACION");
-            	Avion avion = getAvionByMatricula(rsVuelo.getString("CODIGO_AVION"));
+            	Avion avion = getAvionByMatricula(rsVuelo.getString("MATRICULA_AVION"));
             	Boolean emergencia = rsVuelo.getBoolean("EMERGENCIA");
             	Integer delayed = rsVuelo.getInt("DELAYED");
             	
@@ -208,7 +220,7 @@ public class GestorBD {
             
             rsVuelo.close();
         } catch (Exception e) {
-        	System.err.format("\n* Error recuperando actividades: %s.", e.getMessage());
+        	System.err.format("\n* Error recuperando vuelos: %s.", e.getMessage());
         }
 				
 		return vuelos;
@@ -240,7 +252,7 @@ public class GestorBD {
 		return aeropuertos;
 	}
     
-    public List<Aerolinea> loadAerolinea() {
+    public List<Aerolinea> loadAerolineas() {
     	List<Aerolinea> aerolineas = new ArrayList<Aerolinea>();
 		
 		String sqlAerolinea = "SELECT * FROM AEROLINEA";
@@ -265,7 +277,7 @@ public class GestorBD {
 		return aerolineas;
 	}
     
-    public List<Avion> loadAvion() {
+    public List<Avion> loadAviones() {
     	List<Avion> aviones = new ArrayList<Avion>();
 		
 		String sqlAvion = "SELECT * FROM AVION";
@@ -291,7 +303,7 @@ public class GestorBD {
 		return aviones;
 	}
     
-    public List<PuertaEmbarque> loadPuertaEmbarque() {
+    public List<PuertaEmbarque> loadPuertasEmbarque() {
     	List<PuertaEmbarque> puertas = new ArrayList<PuertaEmbarque>();
 		
 		String sqlPuertaEmbarque = "SELECT * FROM PUERTAEMBARQUE";
@@ -317,7 +329,7 @@ public class GestorBD {
 		return puertas;
 	}
     
-    public List<Pista> loadPista() {
+    public List<Pista> loadPistas() {
     	List<Pista> pistas = new ArrayList<Pista>();
 		
 		String sqlPista = "SELECT * FROM AEROLINEA";

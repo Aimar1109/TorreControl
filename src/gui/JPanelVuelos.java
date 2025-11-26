@@ -72,7 +72,8 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	private static final long serialVersionUID = 1L;
 	
 	private DateTimeFormatter formatterFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-	private DateTimeFormatter formatterHora = DateTimeFormatter.ofPattern("HH:mm:ss");
+	private DateTimeFormatter formatterHora = DateTimeFormatter.ofPattern("HH:mm");
+	private DateTimeFormatter formatterHoraReloj = DateTimeFormatter.ofPattern("HH:mm:ss");
 	
 	private ArrayList<Vuelo> vuelos;
 	private JDialogNVuelo dialogNVuelo;
@@ -82,8 +83,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	
 	private GestorBD gestorBD;
 	
-	public JPanelVuelos(VueloGenerador vg, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, ArrayList<Avion> avs,
-						ArrayList<PuertaEmbarque> puertas, GestorBD gestorBD) {
+	public JPanelVuelos(GestorBD gestorBD) {
 		
 		this.gestorBD = gestorBD;
 		
@@ -91,7 +91,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		setBackground(PaletaColor.get(PaletaColor.FONDO));
 		
 		// Datos necesarios
-		this.vuelos = new ArrayList<Vuelo>(vg.devolverA());
+		this.vuelos = (ArrayList<Vuelo>) gestorBD.loadVuelos();
 		
 		// Creacion del main panel
 		JPanel mainVuelos = new JPanel(new BorderLayout());
@@ -132,8 +132,8 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		panelCentral.setBackground(PaletaColor.get(PaletaColor.FONDO));
 		
 		// crear tablas
-		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", vuelos, true, aeropuertos, aers, avs, puertas, vg);
-		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", vuelos, false, aeropuertos, aers, avs, puertas, vg);
+		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", vuelos, true);
+		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", vuelos, false);
         
 		// MAIN
         panelCentral.add(mainLlegadas);
@@ -148,8 +148,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		actualizarTiempo(RelojGlobal.getInstancia().getTiempoActual());
 	}
 	
-	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada, ArrayList<Aeropuerto> aeropuertos,
-									  ArrayList<Aerolinea> aers, ArrayList<Avion> avs, ArrayList<PuertaEmbarque> puertas, VueloGenerador vg) {
+	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada) {
 		// Funcion para crear tabla de Vuelos tanto llegadas como salidas
 		
 		
@@ -444,7 +443,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
             public void keyPressed(KeyEvent e) {
                 // Comprobar si se presiona Ctrl + +
                 if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_PLUS) {
-                	dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos, avs, puertas, vg, modelo, gestorBD);
+                	dialogNVuelo = new JDialogNVuelo(esLlegada, panelVuelos, modelo, gestorBD);
                 }
             }
         });        
@@ -585,7 +584,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         	
         	@Override
         	public void mouseClicked(MouseEvent e) {
-        		dialogNVuelo = new JDialogNVuelo(esLlegada, aeropuertos, aers, panelVuelos, avs, puertas, vg, modelo, gestorBD);
+        		dialogNVuelo = new JDialogNVuelo(esLlegada, panelVuelos, modelo, gestorBD);
         	}
         	@Override
         	public void mouseEntered(MouseEvent e) {
@@ -666,7 +665,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	@Override
 	public void actualizarTiempo(LocalDateTime nuevoTiempo) {
 		SwingUtilities.invokeLater(() -> {
-			lblreloj.setText(nuevoTiempo.format(formatterHora));
+			lblreloj.setText(nuevoTiempo.format(formatterHoraReloj));
 		});
 		
 	}

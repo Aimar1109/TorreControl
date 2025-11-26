@@ -10,3 +10,6 @@ out/
 
 # Código compilado
 bin/
+
+# Base de Datos
+resources/db/

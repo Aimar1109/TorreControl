@@ -49,8 +49,7 @@ public class JDialogNVuelo extends 	JDialog {
 	
 	private GestorBD gestorBD;
 	
-	public JDialogNVuelo(boolean esLlegada, ArrayList<Aeropuerto> aeropuertos, ArrayList<Aerolinea> aers, JPanel panel, ArrayList<Avion> avs,
-						 ArrayList<PuertaEmbarque> puertas, VueloGenerador vg, DefaultTableModel modelo, GestorBD gestorBD) {
+	public JDialogNVuelo(boolean esLlegada, JPanel panel, DefaultTableModel modelo, GestorBD gestorBD) {
 		this.setTitle(esLlegada ? "Nuevo Vuelo - Llegada" : "Nuevo Vuelo - Salida");
 	    this.setModal(true); // Bloquea la ventana principal hasta que se cierre
 	    this.setSize(400, 400);
@@ -74,8 +73,11 @@ public class JDialogNVuelo extends 	JDialog {
 	    Aeropuerto origen;
 	    Aeropuerto destino;
 	    JLabel tituAeropuerto;
-	    boxAeropuerto = new JComboBox<Aeropuerto>(aeropuertos.toArray(new Aeropuerto[0])); // IAG
-	    Aeropuerto aeOtro = aeropuertos.get(aeropuertos.size()-1);
+	    boxAeropuerto = new JComboBox<Aeropuerto>();
+	    for(Aeropuerto aeropuertob: (ArrayList<Aeropuerto>) gestorBD.loadAeropuertos()) {
+	    	boxAeropuerto.addItem(aeropuertob);
+	    }
+	    Aeropuerto aeOtro = gestorBD.getAeropuertoByCodigo("LEBB");
 	    
 	    if (esLlegada) {
 	    	tituAeropuerto = new JLabel("Origen");
@@ -92,7 +94,10 @@ public class JDialogNVuelo extends 	JDialog {
 	    
 	    //Aerolinea
 	    panelCampos.add(new JLabel("Aerolinea:"));
-	    boxAerolinea = new JComboBox<Aerolinea>(aers.toArray(new Aerolinea[0]));
+	    boxAerolinea = new JComboBox<Aerolinea>();
+	    for(Aerolinea aerolineab: (ArrayList<Aerolinea>) gestorBD.loadAerolineas()) {
+	    	boxAerolinea.addItem(aerolineab);
+	    }
 	    panelCampos.add(boxAerolinea);
 	    
 	    // Fecha y Hora
@@ -126,12 +131,18 @@ public class JDialogNVuelo extends 	JDialog {
 	    
 	    // Avion
 	    panelCampos.add(new JLabel("Avion:"));
-	    boxAvion = new JComboBox<Avion>(avs.toArray(new Avion[0]));
+	    boxAvion = new JComboBox<Avion>();
+	    for(Avion avionb: (ArrayList<Avion>) gestorBD.loadAviones()) {
+	    	boxAvion.addItem(avionb);
+	    }
 	    panelCampos.add(boxAvion);
 	    
 	    // Avion
 	    panelCampos.add(new JLabel("Puerta:"));
-	    boxPuerta = new JComboBox<PuertaEmbarque>(puertas.toArray(new PuertaEmbarque[0]));
+	    boxPuerta = new JComboBox<PuertaEmbarque>();
+	    for(PuertaEmbarque puertab: (ArrayList<PuertaEmbarque>) gestorBD.loadPuertasEmbarque()) {
+	    	boxPuerta.addItem(puertab);
+	    }
 	    panelCampos.add(boxPuerta);
 	    
 	    
@@ -142,12 +153,12 @@ public class JDialogNVuelo extends 	JDialog {
 	    btnGuardar.setPreferredSize(new Dimension(100, 30));
 	    btnGuardar.addActionListener(ev -> {
 	        // Validar y guardar
-	        if (validarFormulario(txtNumero, txtDuracion, dateChooser, (Aerolinea)boxAerolinea.getSelectedItem(), vg)) {
+	        if (validarFormulario(txtNumero, txtDuracion, dateChooser, (Aerolinea)boxAerolinea.getSelectedItem())) {
 	        	LocalDateTime fechaHora = creadorLDTdeSpinner(dateChooser, spinnerHora);
 	        	
 	        	guardarVuelo(Integer.parseInt(txtNumero.getText().toString().trim()), origen, destino, (Aerolinea)boxAerolinea.getSelectedItem(),
 	        				 (PuertaEmbarque)boxPuerta.getSelectedItem(), fechaHora, Float.parseFloat(txtDuracion.getText().toString()), (Avion) boxAvion.getSelectedItem(),
-	        				 vg, modelo);
+	        				 modelo);
 	        	
 	            this.dispose();
 	        }
@@ -168,7 +179,7 @@ public class JDialogNVuelo extends 	JDialog {
 	}
 	
 	private boolean validarFormulario(JTextField txtNumero, JTextField txtDuracion, JDateChooser dateChoseer,
-									  Aerolinea aerolinea, VueloGenerador vg) {
+									  Aerolinea aerolinea) {
 	    if (txtNumero.getText().toString().trim().isEmpty()) {
 	    	JOptionPane.showMessageDialog(this, 
 	                "Por favor, rellene el numero", 
@@ -231,14 +242,14 @@ public class JDialogNVuelo extends 	JDialog {
 	}
 	
 	private void guardarVuelo(int numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aerolinea,
-			PuertaEmbarque puerta, LocalDateTime fechaHoraProgramada, float duracion, Avion avion, VueloGenerador vg,
+			PuertaEmbarque puerta, LocalDateTime fechaHoraProgramada, float duracion, Avion avion,
 			DefaultTableModel modelo) {
 			
 			DateTimeFormatter formatterFecha = DateTimeFormatter.ofPattern("dd:MM:yyyy");
 			DateTimeFormatter formatterHora = DateTimeFormatter.ofPattern("HH:mm");
 			
 			Vuelo v = new Vuelo(numero, origen, destino, aerolinea, puerta, fechaHoraProgramada, duracion, avion);
-			vg.añadirA(v);
+			gestorBD.insertVuelo(v);
 			Aeropuerto ciudad;
 			if (origen.getCiudad() == "Bilbao") {
 				ciudad = destino;
