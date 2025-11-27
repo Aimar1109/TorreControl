@@ -264,7 +264,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         
         estilizarScrollPane(scrollVuelos);
         
-        scrollVuelos.setBorder(new BordeRedondeado(20, new Color(220, 220, 220), Color.WHITE));
+        
         
         tablaVuelos.getColumnModel().getColumn(0).setPreferredWidth(40);
         tablaVuelos.getColumnModel().getColumn(5).setPreferredWidth(80);
@@ -278,7 +278,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         tablaDinamica.setModel(modeloDinamico);
         configurarEstiloTabla(tablaDinamica);
         estilizarScrollPane(scrollDinamico);
-        scrollDinamico.setBorder(new BordeRedondeado(20, new Color(220, 220, 220), Color.WHITE));
+        
     }
 
     private void configurarEstiloTabla(JTable tabla) {
@@ -474,29 +474,38 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
     // --- CARGA DE DATOS ESPECÍFICOS ---
 
     private void cargarPasajeros(Vuelo vuelo) {
+        modeloDinamico.setColumnCount(0);
         modeloDinamico.addColumn("ID");
         modeloDinamico.addColumn("Nombre");
         modeloDinamico.addColumn("Asiento");
         
         ArrayList<Pasajero> pax = vuelo.getPasajeros();
+        
         for (int i = 0; i < pax.size(); i++) {
-            modeloDinamico.addRow(new Object[]{
-                String.format("DOC-%04d", i + 1), pax.get(i), generarAsiento(i)
-            });
+            Pasajero p = pax.get(i);
+            String id = String.format("PAX-%04d", i + 1); 
+            String nombre = p.getNombre();
+            String asiento = generarAsiento(i);
+            modeloDinamico.addRow(new Object[]{ id, nombre, asiento });
         }
     }
 
     private void cargarTripulacion(Vuelo vuelo) {
+        modeloDinamico.setColumnCount(0);
         modeloDinamico.addColumn("ID");
         modeloDinamico.addColumn("Nombre");
         modeloDinamico.addColumn("Rol");
         
         ArrayList<Tripulante> trip = vuelo.getTripulacion();
-        String[] roles = {"Piloto", "Copiloto", "Jefe Cabina", "Auxiliar"};
+        
+        String[] roles = {"Comandante", "Copiloto", "Sobrecargo", "Auxiliar de Vuelo"};
+
         for (int i = 0; i < trip.size(); i++) {
-            modeloDinamico.addRow(new Object[]{
-                String.format("EMP-%03d", i + 1), trip.get(i), (i < roles.length ? roles[i] : "Auxiliar")
-            });
+            Tripulante t = trip.get(i);
+            String id = String.format("CREW-%03d", i + 1);
+            String nombre = t.getNombre();
+            String rol = (i < roles.length) ? roles[i] : "Auxiliar de Vuelo";
+            modeloDinamico.addRow(new Object[]{ id, nombre, rol });
         }
     }
 
@@ -743,51 +752,5 @@ class SeatLabel extends JLabel {
      g2.dispose();
 
      super.paintComponent(g);
- }
-}
-
-//--- CLASE PARA BORDE REDONDEADO ---
-class BordeRedondeado extends AbstractBorder {
- private static final long serialVersionUID = 1L;
- private int radius;
- private Color colorBorde;
- private Color colorPadre; 
-
- public BordeRedondeado(int radius, Color colorBorde, Color colorPadre) {
-     this.radius = radius;
-     this.colorBorde = colorBorde;
-     this.colorPadre = colorPadre;
- }
-
- @Override
- public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-     Graphics2D g2 = (Graphics2D) g.create();
-     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-     Area areaExterna = new Area(new Rectangle(x, y, width, height));
-     Area areaInterna = new Area(
-         new RoundRectangle2D.Float(x, y, width - 1, height - 1, radius, radius)
-     );
-     
-     areaExterna.subtract(areaInterna);
-     g2.setColor(colorPadre);
-     g2.fill(areaExterna);
-     g2.setColor(colorBorde);
-     g2.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
-
-     g2.dispose();
- }
-
- @Override
- public Insets getBorderInsets(Component c) {
-     int value = radius / 2;
-     return new Insets(value, value, value, value);
- }
-
- @Override
- public Insets getBorderInsets(Component c, Insets insets) {
-     int value = radius / 2;
-     insets.left = insets.top = insets.right = insets.bottom = value;
-     return insets;
  }
 }
