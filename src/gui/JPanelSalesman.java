@@ -235,16 +235,41 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         boton.setContentAreaFilled(true);
         boton.setOpaque(true);
 
-        boton.setBackground(PaletaColor.get(PaletaColor.FILA_ALT)); 
-        boton.setForeground(Color.GRAY);
+        Color bgNormal = PaletaColor.get(PaletaColor.FILA_ALT);
+        Color bgHover = new Color(230, 240, 250);
+        Color bgSelected = Color.WHITE;
+        
+        Color fgNormal = Color.GRAY;
+        Color fgSelected = PaletaColor.get(PaletaColor.PRIMARIO);
+
+        boton.setBackground(bgNormal); 
+        boton.setForeground(fgNormal);
 
         boton.addItemListener(e -> {
             if (boton.isSelected()) {
-                boton.setBackground(Color.WHITE);
-                boton.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
+                boton.setBackground(bgSelected);
+                boton.setForeground(fgSelected);
             } else {
-                boton.setBackground(Color.WHITE);
-                boton.setForeground(Color.GRAY);
+                boton.setBackground(bgNormal);
+                boton.setForeground(fgNormal);
+            }
+        });
+
+        boton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (!boton.isSelected()) { 
+                    boton.setBackground(bgHover);
+                    boton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (!boton.isSelected()) {
+                    boton.setBackground(bgNormal);
+                }
+                boton.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
             }
         });
     }
@@ -730,10 +755,12 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 
 
 //--- CLASE AUXILIAR SEATLABEL ---
+
 class SeatLabel extends JLabel {
  private static final long serialVersionUID = 1L;
  
  private boolean occupied;
+ private boolean isHover = false;
 
  public SeatLabel(String text, boolean occupied, String tooltip) {
      super(text, JLabel.CENTER);
@@ -743,10 +770,23 @@ class SeatLabel extends JLabel {
      setPreferredSize(new Dimension(45, 35)); 
      setForeground(occupied ? PaletaColor.get(PaletaColor.TEXTO_SUAVE) : PaletaColor.get(PaletaColor.BLANCO));
      
-     if (occupied) {
-         setToolTipText(tooltip);
-         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-     }
+     setToolTipText(tooltip);
+
+     addMouseListener(new MouseAdapter() {
+         @Override
+         public void mouseEntered(MouseEvent e) {
+             isHover = true;
+             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+             repaint();
+         }
+
+         @Override
+         public void mouseExited(MouseEvent e) {
+             isHover = false;
+             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+             repaint();
+         }
+     });
  }
 
  @Override
@@ -757,11 +797,27 @@ class SeatLabel extends JLabel {
      int w = getWidth();
      int h = getHeight();
      
-     g2.setColor(occupied ? PaletaColor.get(PaletaColor.OCUPADO) : PaletaColor.get(PaletaColor.LIBRE));
+     if (occupied) {
+         g2.setColor(PaletaColor.get(PaletaColor.OCUPADO));
+     } else {
+         g2.setColor(PaletaColor.get(PaletaColor.LIBRE));
+     }
      g2.fillRoundRect(2, 2, w-4, h-4, 12, 12);
      
-     g2.setStroke(new BasicStroke(1f));
-     g2.drawRoundRect(2, 2, w-4, h-4, 12, 12);
+     if (isHover) {
+         g2.setColor(new Color(52, 152, 219)); 
+         g2.setStroke(new BasicStroke(2f)); 
+         g2.drawRoundRect(2, 2, w-4, h-4, 12, 12);
+         
+         if(occupied) {
+             g2.setColor(new Color(255,255,255,30));
+             g2.fillRoundRect(2, 2, w-4, h-4, 12, 12);
+         }
+     } else {
+         g2.setColor(new Color(200, 200, 200));
+         g2.setStroke(new BasicStroke(1f));
+         g2.drawRoundRect(2, 2, w-4, h-4, 12, 12);
+     }
 
      g2.dispose();
 
