@@ -1,5 +1,6 @@
 package jdbc;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -25,6 +26,12 @@ public class GestorBD {
     private static final String CONNECTION_STRING = "jdbc:sqlite:" + SQLITE_FILE;
     
     public GestorBD() {
+    	
+    	File directorio = new File("resources/db");
+        if (!directorio.exists()) {
+            directorio.mkdirs();
+        }
+        
 		try {
 			Class.forName("org.sqlite.JDBC");
 		} catch (ClassNotFoundException e) {
