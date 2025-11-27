@@ -15,6 +15,51 @@ import java.util.Random;
 
 public class MapPanel extends JPanel {
 
+    //Coordenadas
+
+    //Pista 1 Aterrizaje
+    private static final Point[] PISTAATERRIZAJEABAJO = {new Point(29,509), new Point(29,459), new Point(738, 459), new Point(738,509)};
+    private static final Point PISTAATERRIZAJEABAJOCENTROIZDA = new Point(30,485);
+    private static final Point PISTAATERRIZAJEABAJOCENTRODCHA = new Point(738,485);
+
+    //Pista 1 Despegue
+    private static final Point[] PISTADESPEGUEARRIBA = {new Point(29,418), new Point(29,367), new Point(738, 367), new Point(738,418)};
+    private static final Point PISTADESPEGUEARRIBACENTROIZDA = new Point(30,392);
+    private static final Point PISTADESPEGUEARRIBACENTRODCHA = new Point(738,392);
+
+    //Pista 2 Aterrizaje
+    private static final Point[] PISTAATERRIZAJEDERECHA = {new Point(149,667), new Point(149,69), new Point(198, 69), new Point(198,667)};
+    private static final Point PISTAATERRIZAJEDERECHACENTRONORTH = new Point(174,69);
+    private static final Point PISTAATERRIZAJEDERECHACENTROSOUTH = new Point(174,669);
+
+    //Pista 2 Despegue
+    private static final Point[] PISTADESPEGUEIZQUIERDA = {new Point(59,667), new Point(59,69), new Point(108, 69), new Point(108,667)};
+    private static final Point PISTADESPEGUEIZQUIERDACENTRONORTH = new Point(84,69);
+    private static final Point PISTADESPEGUEIZQUIERDACENTROSOUTH = new Point(84,669);
+
+    //Pìstas Auxiliares: Unión Pista 1
+    private static final Point[] UNIONPISTAS1 = {new Point(690,509), new Point(690,370), new Point(738, 376), new Point(738,509)};
+    private static final Point UNIONPISTAS1CENTRONORTH = new Point(713,370);
+    private static final Point UNIONPISTAS1CENTROSOUTH = new Point(713,509);
+
+    //Pistas Auxiliares: Unión Pista 2 (TODAVÍA NO EXISTE EN EL DIBUJO)
+    private static final Point[] UNIONPISTAS2 = {new Point(690,509), new Point(690,370), new Point(738, 376), new Point(738,509)};
+    private static final Point UNIONPISTAS2CENTROIZDA = new Point(713,370);
+    private static final Point UNIONPISTAS1CENTRODCHA = new Point(713,509);
+
+    //Hangar: Area
+    private static final Point[] AREAHANGAR = {new Point(410,655), new Point(410,540), new Point(607, 540), new Point(607,655)};
+
+    //Hangar: Entrada Norte
+    private static final Point[] ENTRADANORTE = {new Point(470, 655), new Point(548, 655)};
+    private static final Point CENTROENTRADANORTE = new Point(509, 655);
+    private static final Point[] PISTAENTRADANORTE = {new Point(470, 537), new Point(470, 510), new Point(548,510), new Point(548,537)};
+
+    //Hangar: Entrada Oeste
+    private static final Point[] ENTRADAOESTE = {new Point(409, 578), new Point(409, 620)};
+    private static final Point CENTROENTRADAOESTE = new Point(409, 599);
+    private static final Point[] PISTAENTRADAOESTE = {new Point(200, 620), new Point(200, 578), new Point(407,578), new Point(407,620)};
+
     //Tamaño lógico fijo para evitar problemas con el escalado de coordenadas al variar el tamaño de la ventana.
     private final int widthReal = 1000;
     private final int heightReal = 700;
