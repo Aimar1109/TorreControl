@@ -111,7 +111,7 @@ public class PanelTimeline extends JPanel implements ObservadorTiempo {
 
 //--- MÉTODOS DE ESTILO PARA SCROLLBAR ---
 
-
+// IAG
 private void estilizarScrollPane(JScrollPane scroll) {
     // 1. Barra Vertical
     scroll.getVerticalScrollBar().setUI(new ModernScrollBarUI());
@@ -130,6 +130,7 @@ private void estilizarScrollPane(JScrollPane scroll) {
     scroll.setBorder(null);
 }
 
+// IAG
 private static class ModernScrollBarUI extends BasicScrollBarUI {
     @Override
     protected void configureScrollBarColors() {
@@ -230,7 +231,7 @@ class RadarTile extends JPanel {
 
         LocalDateTime salida = vuelo.getFechaHoraProgramada().plusMinutes(vuelo.getDelayed());
         LocalDateTime llegada = salida.plusMinutes((long)vuelo.getDuracion());
-        
+        // IAG
         long totalMin = ChronoUnit.MINUTES.between(salida, llegada);
         long elapsed = ChronoUnit.MINUTES.between(salida, now);
         long toGo = ChronoUnit.MINUTES.between(now, salida);
@@ -278,6 +279,7 @@ class RadarTile extends JPanel {
         }
         
         // Animación de pulso (Más rápida si es emergencia)
+        // IAG
         if (isFlying || isEmergency) { 
             long millis = System.currentTimeMillis();
             double speed = isEmergency ? 100.0 : 250.0; // Emergencia parpadea rápido
@@ -287,7 +289,8 @@ class RadarTile extends JPanel {
         }
         repaint();
     }
-
+    
+    //IAG
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
