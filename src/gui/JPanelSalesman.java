@@ -483,10 +483,12 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         
         for (int i = 0; i < pax.size(); i++) {
             Pasajero p = pax.get(i);
-            String id = String.format("PAX-%04d", i + 1); 
-            String nombre = p.getNombre();
-            String asiento = generarAsiento(i);
-            modeloDinamico.addRow(new Object[]{ id, nombre, asiento });
+            if (p instanceof Pasajero) {
+	            String id = String.format("PAX-%04d", i + 1); 
+	            String nombre = p.getNombre();
+	            String asiento = generarAsiento(i);
+	            modeloDinamico.addRow(new Object[]{ id, nombre, asiento });
+            }
         }
     }
 
@@ -524,15 +526,19 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         panelSeatmap.removeAll();
         int capacidad = vuelo.getAvion().getCapacidad();
         ArrayList<Pasajero> listaPasajeros = vuelo.getPasajeros();
-
         final int COLUMNAS = 6;
         int filas = (int) Math.ceil((double) capacidad / COLUMNAS);
-        int colsGrid = COLUMNAS + 2;
-        Map<String, String> tooltips = new HashMap<>();
-        for (int i = 0; i < listaPasajeros.size(); i++) {
-            tooltips.put(generarAsiento(i), "Pasajero: " + listaPasajeros.get(i));
+        int colsGrid = COLUMNAS + 2; // +1 Fila, +1 Pasillo
+        Map<String, String> mapOcupacion = new HashMap<>();
+        if (listaPasajeros != null) {
+            for (int i = 0; i < listaPasajeros.size(); i++) {
+                Pasajero p = listaPasajeros.get(i);
+                if (p instanceof Pasajero) {
+                    String codigoAsiento = generarAsiento(i); 
+                    mapOcupacion.put(codigoAsiento, p.getNombre());
+                }
+            }
         }
-
         // --- 1. CABECERA  ---
         JPanel pnlCabecera = new JPanel(new BorderLayout());
         pnlCabecera.setBackground(Color.WHITE);
@@ -568,9 +574,17 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
                 if (c == 3) grid.add(new JLabel("")); 
                 
                 if (cont < capacidad) {
-                    String asiento = generarAsientoDirecto(f, c);
-                    boolean ocupado = tooltips.containsKey(asiento);
-                    grid.add(new SeatLabel(asiento, ocupado, tooltips.get(asiento)));
+                    String asientoActual = generarAsientoDirecto(f, c);
+                    String nombrePasajero = mapOcupacion.get(asientoActual);
+                    boolean ocupado = (nombrePasajero != null);
+                    String tooltip;
+                    if (ocupado) {
+                        tooltip = "<html><b>Asiento " + asientoActual + "</b><br/>" + nombrePasajero + "</html>";
+                    } else {
+                        tooltip = "<html><b>Asiento " + asientoActual + "</b><br/><i>Disponible</i></html>";
+                    }
+
+                    grid.add(new SeatLabel(asientoActual, ocupado, tooltip));
                     cont++;
                 } else {
                     grid.add(new JLabel(""));
