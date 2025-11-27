@@ -3,8 +3,12 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +24,7 @@ import javax.swing.WindowConstants;
 import domain.Aerolinea;
 import domain.Aeropuerto;
 import domain.Avion;
+import domain.PaletaColor;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import jdbc.GestorBD;
@@ -137,25 +142,49 @@ public class JFramePrincipal extends JFrame {
 	}
 	
 	private void estilizarBotonToggle(JToggleButton boton) {
-		boton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		boton.setFocusPainted(false);
-		boton.setBorderPainted(true);
-		boton.setBackground(new Color(240, 240, 240));
-		boton.setForeground(Color.BLACK);
-		boton.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(new Color(180, 180, 180), 1),
-			BorderFactory.createEmptyBorder(8, 15, 8, 15)
-		));
+        boton.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        boton.setPreferredSize(new Dimension(80, 35));
+        boton.setFocusPainted(false);
+        boton.setBorderPainted(false); 
+        boton.setContentAreaFilled(true);
+        boton.setOpaque(true);
 
-		// Cambiar apariencia cuando está seleccionado
-		boton.addItemListener(e -> {
-			if (boton.isSelected()) {
-				boton.setBackground(new Color(70, 130, 180)); // Azul
-				boton.setForeground(Color.WHITE);
-			} else {
-				boton.setBackground(new Color(240, 240, 240));
-				boton.setForeground(Color.BLACK);
-			}
-		});
-	}
+        Color bgNormal = PaletaColor.get(PaletaColor.FILA_ALT);
+        Color bgHover = new Color(230, 240, 250);
+        Color bgSelected = Color.WHITE;
+        
+        Color fgNormal = Color.GRAY;
+        Color fgSelected = PaletaColor.get(PaletaColor.PRIMARIO);
+
+        boton.setBackground(bgNormal); 
+        boton.setForeground(fgNormal);
+
+        boton.addItemListener(e -> {
+            if (boton.isSelected()) {
+                boton.setBackground(bgSelected);
+                boton.setForeground(fgSelected);
+            } else {
+                boton.setBackground(bgNormal);
+                boton.setForeground(fgNormal);
+            }
+        });
+
+        boton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (!boton.isSelected()) { 
+                    boton.setBackground(bgHover);
+                    boton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (!boton.isSelected()) {
+                    boton.setBackground(bgNormal);
+                }
+                boton.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            }
+        });
+    }
 }

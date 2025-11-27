@@ -1,7 +1,6 @@
 package gui;
 
 import javax.swing.*;
-import javax.swing.border.AbstractBorder;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -15,8 +14,6 @@ import javax.swing.table.TableCellRenderer;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Area;
-import java.awt.geom.RoundRectangle2D;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -684,10 +681,16 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         scroll.getVerticalScrollBar().setUI(new ModernScrollBarUI());
         scroll.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0)); 
         scroll.getVerticalScrollBar().setUnitIncrement(16); 
+        
+        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
         // Estilizar barra horizontal
         scroll.getHorizontalScrollBar().setUI(new ModernScrollBarUI());
         scroll.getHorizontalScrollBar().setPreferredSize(new Dimension(0, 8));
+        
+        JPanel cornerTopRight = new JPanel();
+        cornerTopRight.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
+        scroll.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, cornerTopRight);
         
         // Esquina blanca
         JPanel corner = new JPanel();
