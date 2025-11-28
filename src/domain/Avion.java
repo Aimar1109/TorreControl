@@ -60,9 +60,9 @@ public class Avion {
     }
 
     public Avion(String modelo, String matricula, int capacidad, int x, int y, double angulo) {
-        if (matricula == null || matricula.trim().isEmpty() || !matricula.matches(regex)) {
+        /*if (matricula == null || matricula.trim().isEmpty() || !matricula.matches(regex)) {
             throw new IllegalArgumentException("La matricula no puede estar vacio y tiene que cumplir la condicion");
-        }
+        }*/
 
         this.modelo = modelo;
         this.matricula = matricula;
@@ -78,7 +78,7 @@ public class Avion {
         this.pointIndex = 0;
         this.enHangar = false;
 
-        matriculasRegistradas.add(matricula);
+        //matriculasRegistradas.add(matricula);
     }
 
     public String getModelo() {
