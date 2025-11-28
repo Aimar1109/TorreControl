@@ -42,11 +42,6 @@ public class MapPanel extends JPanel {
     private static final Point UNIONPISTAS1CENTRONORTH = new Point(713,370);
     private static final Point UNIONPISTAS1CENTROSOUTH = new Point(713,509);
 
-    //Pistas Auxiliares: Unión Pista 2 (TODAVÍA NO EXISTE EN EL DIBUJO)
-    private static final Point[] UNIONPISTAS2 = {new Point(690,509), new Point(690,370), new Point(738, 376), new Point(738,509)};
-    private static final Point UNIONPISTAS2CENTROIZDA = new Point(713,370);
-    private static final Point UNIONPISTAS1CENTRODCHA = new Point(713,509);
-
     //Hangar: Area
     private static final Point[] AREAHANGAR = {new Point(410,655), new Point(410,540), new Point(607, 540), new Point(607,655)};
 

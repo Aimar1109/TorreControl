@@ -1,9 +1,11 @@
 package domain;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+
 
 public class Avion {
 
@@ -20,6 +22,14 @@ public class Avion {
     //Speed en pixels/Frame
     private double speed;
     private String regex = "^(?:[A-Z]{1,2}-[A-Z0-9]{3,4}|N\\d{1,5}[A-Z]{0,2})$"; //IAG
+
+    private ArrayList<Point> rutaActual;
+    private int pointIndex;
+    private boolean enHangar;
+    private Point estacionamientoHangar;
+    private EstadoAvion estadoAvion;
+
+
     
     private static Set<String> matriculasRegistradas = new HashSet<>();
 
@@ -28,6 +38,9 @@ public class Avion {
         this.matricula = "";
         this.capacidad = 0;
         this.speed = 1.0;
+        this.rutaActual = new ArrayList<>();
+        this.pointIndex = 0;
+        this.enHangar = false;
     }
 
     public Avion(String modelo, String matricula, int capacidad) {
@@ -38,11 +51,19 @@ public class Avion {
         this.matricula = matricula;
         this.capacidad = capacidad;
         this.speed = 1.0;
+
+        this.rutaActual = new ArrayList<>();
+        this.pointIndex = 0;
+        this.enHangar = false;
         
         matriculasRegistradas.add(matricula);
     }
 
     public Avion(String modelo, String matricula, int capacidad, int x, int y, double angulo) {
+        if (matricula == null || matricula.trim().isEmpty() || !matricula.matches(regex)) {
+            throw new IllegalArgumentException("La matricula no puede estar vacio y tiene que cumplir la condicion");
+        }
+
         this.modelo = modelo;
         this.matricula = matricula;
         this.capacidad = capacidad;
@@ -52,6 +73,12 @@ public class Avion {
         this.futureX = x;
         this.futureY = y;
         this.speed = 1.0;
+
+        this.rutaActual = new ArrayList<>();
+        this.pointIndex = 0;
+        this.enHangar = false;
+
+        matriculasRegistradas.add(matricula);
     }
 
     public String getModelo() {
@@ -217,5 +244,61 @@ public class Avion {
     @Override
     public String toString() {
     	return modelo + " - " + matricula;
+    }
+
+    public void setRuta(ArrayList<Point> ruta) {
+        this.rutaActual = ruta;
+        this.pointIndex = 0;
+        if (ruta.isEmpty()) {
+            setDestino(ruta.get(0).x, ruta.get(0).y);
+        }
+    }
+
+    public boolean enDestino() {
+        boolean devolver = true;
+        double distancia = Math.sqrt(
+                Math.pow(x - futureX, 2) + Math.pow(y - futureY, 2)
+        );
+
+        //Se dan 4 bits de margen
+        if (distancia > 4) {
+            devolver = false;
+        }
+
+        return devolver;
+    }
+
+    public boolean siguientePunto() {
+        if (rutaActual != null && pointIndex < rutaActual.size() - 1) {
+            pointIndex++;
+            Point siguiente = rutaActual.get(pointIndex);
+            setDestino(siguiente.x, siguiente.y);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isEnHangar() {
+        return enHangar;
+    }
+
+    public void setEnHangar(boolean enHangar) {
+        this.enHangar = enHangar;
+    }
+
+    public Point getEstacionamientoHangar() {
+        return estacionamientoHangar;
+    }
+
+    public void setEstacionamientoHangar(Point estacionamientoHangar) {
+        this.estacionamientoHangar = estacionamientoHangar;
+    }
+
+    public EstadoAvion getEstadoAvion() {
+        return estadoAvion;
+    }
+
+    public void setEstadoAvion(EstadoAvion estadoAvion) {
+        this.estadoAvion = estadoAvion;
     }
 }
