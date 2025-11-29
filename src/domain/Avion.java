@@ -249,7 +249,7 @@ public class Avion {
     public void setRuta(ArrayList<Point> ruta) {
         this.rutaActual = ruta;
         this.pointIndex = 0;
-        if (ruta.isEmpty()) {
+        if (!ruta.isEmpty()) {
             setDestino(ruta.get(0).x, ruta.get(0).y);
         }
     }
@@ -260,8 +260,8 @@ public class Avion {
                 Math.pow(x - futureX, 2) + Math.pow(y - futureY, 2)
         );
 
-        //Se dan 4 bits de margen
-        if (distancia > 4) {
+        //Se dan 10 bits de margen
+        if (distancia > 10) {
             devolver = false;
         }
 

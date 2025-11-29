@@ -72,7 +72,7 @@ public class JFramePrincipal extends JFrame {
 		JPanelSalesman panelSalesman = new JPanelSalesman(vuelos);
 		
 		//
-		JPanelPrincipal jpPrincipal = new JPanelPrincipal(vuelos, aviones);
+		JPanelPrincipal jpPrincipal = new JPanelPrincipal(vuelos);
 		
 		
 		JPanelClima panelClima = new JPanelClima();

@@ -3,6 +3,7 @@ package gui;
 import domain.Avion;
 import domain.Pista;
 import domain.Vuelo;
+import threads.ControladorHangar;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
 
@@ -31,6 +32,9 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
 	//Pistas
 	private Pista pista1 = new Pista("1", true);
 	private Pista pista2 = new Pista("2", true);
+
+	//Animacion despegue, aterrizaje y estacionamiento
+	private ControladorHangar controladorHangar;
 
 
 	public JPanelPrincipal(ArrayList<Vuelo> vuelos) {
@@ -95,9 +99,12 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
 		efectoHover(listaVuelosPista1);
 		efectoHover(listaVuelosPista2);
 
+		this.controladorHangar = new ControladorHangar(mapa, vuelos);
+
 		//Configurar instancia RelojPrincial
 		RelojGlobal instanciaReloj = RelojGlobal.getInstancia();
 		instanciaReloj.addObservador(this);
+
 	}
 
 	private JPanel crearPanelListaOrigen(String titulo, List<Vuelo> vuelos) {
