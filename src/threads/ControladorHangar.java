@@ -1,6 +1,7 @@
 package threads;
 
 import domain.Avion;
+import domain.Pista;
 import domain.Vuelo;
 import gui.MapPanel;
 
@@ -99,7 +100,22 @@ public class ControladorHangar implements ObservadorTiempo{
     private void iniciarVuelo(Vuelo vuelo)  {
         Avion avion = vuelo.getAvion();
 
-        boolean pistaHorizontal = avionesEnCurso.values().size() % 2 == 0;
+        boolean pistaHorizontal;
+        Pista pistaAsignada = vuelo.getPista();
+
+        if (pistaAsignada != null) {
+            String nPista = pistaAsignada.getNumero();
+
+            if (nPista.equals("1")) {
+                pistaHorizontal = true;
+            } else {
+                pistaHorizontal = false;
+            }
+
+        } else {
+            pistaHorizontal = avionesEnCurso.values().size() % 2 == 0;
+        }
+
 
         if (pistaHorizontal) {
             setAterrizajeHorizontal(avion, vuelo);
@@ -151,7 +167,7 @@ public class ControladorHangar implements ObservadorTiempo{
 
         //Recorre prácticamente toda la pista
         ruta.add(PISTAATERRIZAJEDERECHACENTRONORTH);
-        Point finalAterrizaje = new Point((int) (PISTAATERRIZAJEDERECHACENTRONORTH.getX()), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY() - 50);
+        Point finalAterrizaje = new Point((int) (PISTAATERRIZAJEDERECHACENTRONORTH.getX()), (int) PISTAATERRIZAJEDERECHACENTROSOUTH.getY() - 10);
         ruta.add(finalAterrizaje);
 
         //Vuelve y entra por la entrada norte
