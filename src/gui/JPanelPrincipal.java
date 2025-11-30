@@ -1,6 +1,7 @@
 package gui;
 
 import domain.Avion;
+import domain.ComparadorFechaVuelos;
 import domain.Pista;
 import domain.Vuelo;
 import threads.ControladorHangar;
@@ -36,12 +37,16 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
 	//Animacion despegue, aterrizaje y estacionamiento
 	private ControladorHangar controladorHangar;
 
+	//Comparator vuelos
+	private ComparadorFechaVuelos comparadorVuelos;
 
 	public JPanelPrincipal(ArrayList<Vuelo> vuelos) {
 		this(vuelos, new ArrayList<>());
 	}
 
 	public JPanelPrincipal(ArrayList<Vuelo> vuelos, List<Avion> aviones) {
+
+		this.comparadorVuelos = new ComparadorFechaVuelos();
 
 		//Panel Principal
 		setLayout(new GridBagLayout());
@@ -105,6 +110,10 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
 		RelojGlobal instanciaReloj = RelojGlobal.getInstancia();
 		instanciaReloj.addObservador(this);
 
+		//Ordena las listas
+		ordenarLista(modeloVuelosCercanos);
+		ordenarLista(modeloVuelosPista1);
+		ordenarLista(modeloVuelosPista2);
 	}
 
 	private JPanel crearPanelListaOrigen(String titulo, List<Vuelo> vuelos) {
@@ -265,11 +274,55 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
 
 	@Override
 	public void actualizarTiempo(LocalDateTime nuevoTiempo) {
-
+		SwingUtilities.invokeLater(() -> {
+			limpiarVuelos(modeloVuelosCercanos, nuevoTiempo);
+			limpiarVuelos(modeloVuelosPista1, nuevoTiempo);
+			limpiarVuelos(modeloVuelosPista2, nuevoTiempo);
+		});
 	}
 
 	@Override
 	public void cambioEstadoPausa(boolean pausa) {
 
 	}
+
+	private void ordenarLista(DefaultListModel<Vuelo> modelo) {
+		if (modelo.isEmpty()) {
+			return;
+		}
+
+		//Añado todos los vuelos a la lista
+		ArrayList<Vuelo> vuelos = new ArrayList<>();
+		for (int i = 0; i < modelo.size(); i++) {
+			vuelos.add(modelo.get(i));
+		}
+
+		//Ordeno la lista
+		Collections.sort(vuelos, comparadorVuelos);
+
+		//Vuelvo insertar los vuelos al modelo vaciado
+		modelo.clear();
+		for (Vuelo v : vuelos) {
+			modelo.addElement(v);
+		}
+	}
+
+	private void limpiarVuelos(DefaultListModel<Vuelo> modelo, LocalDateTime momentoActual) {
+		ArrayList<Vuelo> vuelosPasados = new ArrayList<>();
+
+		for (int i = 0; i < modelo.size(); i++) {
+			Vuelo vuelo = modelo.get(i);
+
+			int delay = vuelo.getDelayed();
+			LocalDateTime momentoLlegada = vuelo.getFechaHoraProgramada().plusMinutes(delay);
+			if (momentoActual.isAfter(momentoLlegada)) {
+				vuelosPasados.add(vuelo);
+			}
+		}
+
+		for (Vuelo v: vuelosPasados) {
+			modelo.removeElement(v);
+		}
+	}
+
 }
