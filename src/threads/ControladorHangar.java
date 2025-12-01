@@ -1,6 +1,7 @@
 package threads;
 
 import domain.Avion;
+import domain.EstadoAvion;
 import domain.Pista;
 import domain.Vuelo;
 import gui.MapPanel;
@@ -16,6 +17,7 @@ public class ControladorHangar implements ObservadorTiempo{
     private ArrayList<Vuelo> vuelos;
     private Map<String, Avion> avionesEnCurso;
     private Set<Vuelo> vuelosProcesados;
+    private Set<Vuelo> vuelosSalidaProcesados;
     private threadAnimacion threadAnimacion;
     private boolean ejecutando;
 
@@ -58,6 +60,7 @@ public class ControladorHangar implements ObservadorTiempo{
         this.vuelos = vuelos;
         this.avionesEnCurso = new HashMap<>();
         this.vuelosProcesados = new HashSet<>();
+        this.vuelosSalidaProcesados = new HashSet<>();
         this.ejecutando = true;
 
         RelojGlobal.getInstancia().addObservador(this);
@@ -67,7 +70,7 @@ public class ControladorHangar implements ObservadorTiempo{
 
     @Override
     public void actualizarTiempo(LocalDateTime nuevoTiempo) {
-        verificarSiIniciar(nuevoTiempo);
+        verificarVuelosLlegada(nuevoTiempo);
     }
 
     @Override
@@ -75,20 +78,140 @@ public class ControladorHangar implements ObservadorTiempo{
 
     }
 
-    private void verificarSiIniciar(LocalDateTime momentoActual) {
+    private void verificarVuelosSalid(LocalDateTime momentoActual) {
         for (Vuelo v : vuelos) {
+            //Si la llegada no es Bilbao salta en el bucle
+            if (!v.getOrigen().getCiudad().equals("Bilbao")) {
+                continue;
+            }
+
+            //Si ya se ha procesado salta en el bucle
+            if (vuelosSalidaProcesados.contains(v)) {
+                continue;
+            }
+
+            long delay = v.getDelayed();
+            LocalDateTime horaSalida = v.getFechaHoraProgramada().plusMinutes(delay);
+            //El avion aparece 2 minutos antes de la llegada
+            LocalDateTime horaAparece = horaSalida.minusMinutes(2);
+
+            //Si es mas tarde de la hora en la que debe aparecer o es la hora a la que debe aparecer aparece
+            if (momentoActual.isAfter(horaAparece) || momentoActual.equals(horaAparece)) {
+                Avion avion = v.getAvion();
+
+                //Verifico si el avión está ya en el aeropuerto
+                if (!avionesEnCurso.containsKey(avion.getMatricula())) {
+                    //Si no está en el aeropuerto lo colocamos manualmente en el hangar
+                    colocarManualmente(avion);
+                    avionesEnCurso.put(avion.getMatricula(), avion);
+
+                    mapPanel.addAvion(avion);
+                }
+                iniciarVueloSalida(v);
+                vuelosSalidaProcesados.add(v);
+            }
+
+        }
+    }
+
+    private void colocarManualmente(Avion avion) {
+        //Se coloca el avion aleatoriamente en el hangar
+        Point posicionHangar = calcularPosicionHangar();
+        avion.setX((int) posicionHangar.getX());
+        avion.setY((int) posicionHangar.getY());
+        avion.setEnHangar(true);
+        avion.setEstacionamientoHangar(posicionHangar);
+        avion.setSpeed(0);
+        avion.setEstadoAvion(EstadoAvion.ESTACIONADO_HANGAR);
+    }
+
+    private void iniciarVueloSalida(Vuelo vuelo) {
+        Avion avion = vuelo.getAvion();
+
+        boolean pistaHorizontal;
+        pistaHorizontal = avionesEnCurso.values().size() % 2 == 0;
+
+        //Se asigna la pista
+        if (pistaHorizontal) {
+            setDespegueHorizontal(avion, vuelo);
+        } else {
+            setDespegueVertical(avion, vuelo);
+        }
+    }
+
+    private void setDespegueHorizontal(Avion avion, Vuelo vuelo) {
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //El primer punto es la salida norte
+        ruta.add(CENTROENTRADANORTE);
+
+        //Llega a la pista de aterrizaje 1
+        Point interseccionEntradaNortePista1 = new Point((int) CENTROENTRADANORTE.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(interseccionEntradaNortePista1);
+
+        //Llega a la interseccion entr la pista de aterrizaje 1 y la pista unión
+        ruta.add(UNIONPISTAS1CENTROSOUTH);
+
+        //Sube hasta la intersección entre la pista de despegue 1 y la pista unión
+        ruta.add(PISTADESPEGUEARRIBACENTRODCHA);
+
+        //Recorre la pista hasta salir
+        ruta.add(PISTADESPEGUEARRIBACENTROIZDA);
+        Point puntoSalida = new Point(-1, (int) PISTADESPEGUEARRIBACENTRODCHA.getY());
+        ruta.add(puntoSalida);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+    }
+
+    private void setDespegueVertical(Avion avion, Vuelo vuelo) {
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //El primer punto es la salida norte
+        ruta.add(CENTROENTRADAOESTE);
+
+        //Llega a la pista de aterrizaje 1
+        Point interseccionEntradaOestePista2 = new Point((int) PISTAATERRIZAJEDERECHACENTRONORTH.getX(), (int) CENTROENTRADAOESTE.getY());
+        ruta.add(interseccionEntradaOestePista2);
+
+        //Llega a la interseccion entr la pista de aterrizaje 1 y la pista de aterrizaje 2
+        Point interseccionPistaAterrizaje1PistaAterrizaje2 = new Point((int) PISTAATERRIZAJEDERECHACENTRONORTH.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(interseccionPistaAterrizaje1PistaAterrizaje2);
+
+        //Va a la intersección entre la pista de aterrizaje 1 y la pista de salida 2
+        Point interseccionPistaAterrizaje1PistaSalidaje2 = new Point((int) PISTADESPEGUEIZQUIERDACENTRONORTH.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(interseccionPistaAterrizaje1PistaSalidaje2);
+
+        //Baja hasta el inicio de la pista de despegue 2
+        ruta.add(PISTADESPEGUEIZQUIERDACENTROSOUTH);
+
+        //Recorre la pista hasta salir
+        ruta.add(PISTADESPEGUEIZQUIERDACENTRONORTH);
+        Point puntoSalida = new Point((int) PISTADESPEGUEIZQUIERDACENTRONORTH.getX(), -1);
+        ruta.add(puntoSalida);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+    }
+
+    private void verificarVuelosLlegada(LocalDateTime momentoActual) {
+        for (Vuelo v : vuelos) {
+            //Si la llegada no es Bilbao salta en el bucle
             if (!v.getDestino().getCiudad().equals("Bilbao")) {
                 continue;
             }
 
+            //Si ya se ha procesado salta en el bucle
             if (vuelosProcesados.contains(v)) {
                 continue;
             }
 
             long delay = v.getDelayed();
             LocalDateTime horaLLegada = v.getFechaHoraProgramada().plusMinutes(delay);
+            //El avion aparece 2 minutos antes de la llegada
             LocalDateTime horaAparece = horaLLegada.minusMinutes(2);
 
+            //Si es mas tarde de la hora en la que debe aparecer o es la hora a la que debe aparecer aparece
             if (momentoActual.isAfter(horaAparece) || momentoActual.equals(horaAparece)) {
                 iniciarVuelo(v);
                 vuelosProcesados.add(v);
@@ -103,6 +226,7 @@ public class ControladorHangar implements ObservadorTiempo{
         boolean pistaHorizontal;
         Pista pistaAsignada = vuelo.getPista();
 
+        //Si la pista está asignada(mediante las listas del panel principal) no se asigna en función del anterior vuelo
         if (pistaAsignada != null) {
             String nPista = pistaAsignada.getNumero();
 
@@ -116,7 +240,7 @@ public class ControladorHangar implements ObservadorTiempo{
             pistaHorizontal = avionesEnCurso.values().size() % 2 == 0;
         }
 
-
+        //Se asigna la pista
         if (pistaHorizontal) {
             setAterrizajeHorizontal(avion, vuelo);
         } else {
@@ -263,8 +387,9 @@ public class ControladorHangar implements ObservadorTiempo{
     private boolean estaEnHangar(Avion avion) {
         int x = avion.getX();
         int y = avion.getY();
-
         boolean devolver = false;
+
+        //Si se encuentra dentro de los limites del hangar se devuelver true
         if (x >= HANGARMINX && x <= HANGARMAXX && y >= HANGARMINY && y <= HANGARMAXY) {
             devolver = true;
         }
