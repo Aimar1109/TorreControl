@@ -84,8 +84,13 @@ public class Main {
 
         LocalDateTime ahora = LocalDateTime.now();
 
-        // Arrays para los 4 vuelos especiales (minutos 3, 5, 7, 10)
-        int[] minutosLlegada = {3, 5, 7, 10};
+        //Arrays para los vuelos de prueba
+        int[] minutosLlegadaEarly = {1, 2, 5};
+        int[] minutosSalidaEarly = {1, 2, 3};
+        int targetEarlyArrivals = 3;
+        int targetEarlyDepartures = 3;
+        int earlyArrivalsAssigned = 0;
+        int earlyDeparturesAssigned = 0;
 
         for (int i = 0; i < cantidad; i++) {
             int codigo = 1000 + i;
@@ -155,10 +160,9 @@ public class Main {
                 // Pista y puerta: asignadas en Bilbao (destino)
                 pista = new Pista("Pista BIO " + (i % 3 + 1), false);
 
-                // Asignar hora de llegada: los primeros 4 vuelos de llegada entre minuto 3-10
-                if (remainingArrivals > targetArrivalsToBIO - 4) {
-                    int indice = targetArrivalsToBIO - remainingArrivals;
-                    horaLlegada = ahora.plusMinutes(minutosLlegada[indice]);
+                if (earlyArrivalsAssigned < targetEarlyArrivals) {
+                    horaLlegada = ahora.plusMinutes(minutosLlegadaEarly[earlyArrivalsAssigned]);
+                    earlyArrivalsAssigned++;
                 } else {
                     horaLlegada = ahora.plusHours(i);
                 }
@@ -172,7 +176,12 @@ public class Main {
                 // Pista y puerta: asignadas en Bilbao (origen)
                 pista = new Pista("Pista BIO " + (i % 3 + 1), false);
 
-                horaLlegada = ahora.plusHours(i);
+                if (earlyDeparturesAssigned < targetEarlyDepartures) {
+                    horaLlegada = ahora.plusMinutes(minutosSalidaEarly[earlyDeparturesAssigned]);
+                    earlyDeparturesAssigned++;
+                } else {
+                    horaLlegada = ahora.plusHours(i);
+                }
 
                 remainingDepartures--;
             }

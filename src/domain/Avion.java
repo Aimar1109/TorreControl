@@ -164,11 +164,25 @@ public class Avion {
 
         //Si la distancia es mayor que la velocidad(pixels por frame) el avión se movera, sino no porque se pasaría
         if (d > speed) {
-            x += (int) (normalDx * speed);
-            y += (int) (normalDy * speed);
+            double moveX = normalDx * speed;
+            double moveY = normalDy * speed;
+
+            int moveXi = (int) Math.round(moveX);
+            int moveYi = (int) Math.round(moveY);
+
+            // Si el redondeo da 0 pero hay aunque sea un movimiento minimo, se fuerza que se mueva al menos 1 px
+            if (moveXi == 0 && Math.abs(moveX) > 0){
+                moveXi = (int) Math.signum(moveX);
+            }
+            if (moveYi == 0 && Math.abs(moveY) > 0) {
+                moveYi = (int) Math.signum(moveY);
+            }
+
+            x += moveXi;
+            y += moveYi;
 
             //Se le suman pi/2 radianes ya que es el desfase. La imagen del avión apunta hacia arriba por lo que tiene un desfase de 90 grados
-            angulo = Math.atan2(dx, dy) + Math.PI/2;
+            angulo = Math.atan2(dx, dy) + Math.PI;
         } else {
             //Si está muy cerca (speed>d) se coloca directamente encima
             x = futureX;
@@ -260,8 +274,7 @@ public class Avion {
                 Math.pow(x - futureX, 2) + Math.pow(y - futureY, 2)
         );
 
-        //Se dan 10 bits de margen
-        if (distancia > 10) {
+        if (distancia > 0) {
             devolver = false;
         }
 
@@ -300,5 +313,25 @@ public class Avion {
 
     public void setEstadoAvion(EstadoAvion estadoAvion) {
         this.estadoAvion = estadoAvion;
+    }
+
+    public int getPointIndex() {
+        return pointIndex;
+    }
+
+    public ArrayList<Point> getRutaActual() {
+        if (rutaActual != null) {
+            return rutaActual;
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
+    public int getRutaLength() {
+        if (rutaActual != null) {
+            return rutaActual.size();
+        } else {
+            return 0;
+        }
     }
 }

@@ -20,6 +20,8 @@ public class ControladorHangar implements ObservadorTiempo{
     private Set<Vuelo> vuelosSalidaProcesados;
     private threadAnimacion threadAnimacion;
     private boolean ejecutando;
+    private boolean siguientePistaAterrizajeHorizontal = true;
+    private boolean siguientePistaDespeguejeHorizontal = true;
 
     //Coordenadas
 
@@ -71,6 +73,7 @@ public class ControladorHangar implements ObservadorTiempo{
     @Override
     public void actualizarTiempo(LocalDateTime nuevoTiempo) {
         verificarVuelosLlegada(nuevoTiempo);
+        verificarVuelosSalida(nuevoTiempo);
     }
 
     @Override
@@ -78,7 +81,7 @@ public class ControladorHangar implements ObservadorTiempo{
 
     }
 
-    private void verificarVuelosSalid(LocalDateTime momentoActual) {
+    private void verificarVuelosSalida(LocalDateTime momentoActual) {
         for (Vuelo v : vuelos) {
             //Si la llegada no es Bilbao salta en el bucle
             if (!v.getOrigen().getCiudad().equals("Bilbao")) {
@@ -119,7 +122,6 @@ public class ControladorHangar implements ObservadorTiempo{
         Point posicionHangar = calcularPosicionHangar();
         avion.setX((int) posicionHangar.getX());
         avion.setY((int) posicionHangar.getY());
-        avion.setEnHangar(true);
         avion.setEstacionamientoHangar(posicionHangar);
         avion.setSpeed(0);
         avion.setEstadoAvion(EstadoAvion.ESTACIONADO_HANGAR);
@@ -129,7 +131,8 @@ public class ControladorHangar implements ObservadorTiempo{
         Avion avion = vuelo.getAvion();
 
         boolean pistaHorizontal;
-        pistaHorizontal = avionesEnCurso.values().size() % 2 == 0;
+        pistaHorizontal = siguientePistaDespeguejeHorizontal;
+        siguientePistaDespeguejeHorizontal = !siguientePistaDespeguejeHorizontal;
 
         //Se asigna la pista
         if (pistaHorizontal) {
@@ -146,14 +149,16 @@ public class ControladorHangar implements ObservadorTiempo{
         ruta.add(CENTROENTRADANORTE);
 
         //Llega a la pista de aterrizaje 1
-        Point interseccionEntradaNortePista1 = new Point((int) CENTROENTRADANORTE.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        Point interseccionEntradaNortePista1 = new Point((int) CENTROENTRADANORTE.getX(), (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY());
         ruta.add(interseccionEntradaNortePista1);
 
-        //Llega a la interseccion entr la pista de aterrizaje 1 y la pista unión
-        ruta.add(UNIONPISTAS1CENTROSOUTH);
+        //Llega a la interseccion entre la pista de aterrizaje 1 y la pista unión
+        Point interseccionUnionPistas1PistaAterrizaje = new Point((int) UNIONPISTAS1CENTROSOUTH.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(interseccionUnionPistas1PistaAterrizaje);
 
         //Sube hasta la intersección entre la pista de despegue 1 y la pista unión
-        ruta.add(PISTADESPEGUEARRIBACENTRODCHA);
+        Point interseccionUnionPistas1PistaDespegue = new Point((int) UNIONPISTAS1CENTROSOUTH.getX(), (int) PISTADESPEGUEARRIBACENTROIZDA.getY());
+        ruta.add(interseccionUnionPistas1PistaDespegue);
 
         //Recorre la pista hasta salir
         ruta.add(PISTADESPEGUEARRIBACENTROIZDA);
@@ -162,6 +167,9 @@ public class ControladorHangar implements ObservadorTiempo{
 
         avion.setRuta(ruta);
         avion.setSpeed(2);
+
+        avion.setEnHangar(false);
+        avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
     }
 
     private void setDespegueVertical(Avion avion, Vuelo vuelo) {
@@ -192,6 +200,9 @@ public class ControladorHangar implements ObservadorTiempo{
 
         avion.setRuta(ruta);
         avion.setSpeed(2);
+
+        avion.setEnHangar(false);
+        avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
     }
 
     private void verificarVuelosLlegada(LocalDateTime momentoActual) {
@@ -237,7 +248,8 @@ public class ControladorHangar implements ObservadorTiempo{
             }
 
         } else {
-            pistaHorizontal = avionesEnCurso.values().size() % 2 == 0;
+            pistaHorizontal = siguientePistaAterrizajeHorizontal;
+            siguientePistaAterrizajeHorizontal = !siguientePistaAterrizajeHorizontal;
         }
 
         //Se asigna la pista
@@ -375,9 +387,23 @@ public class ControladorHangar implements ObservadorTiempo{
                 avion.setEnHangar(true);
                 avion.setSpeed(0);
             } else {
-                if (estaEnHangar(avion)) {
-                    //Si esta estacionando va más lento
-                    avion.setSpeed(0.8);
+                ArrayList<Point> ruta = avion.getRutaActual();
+                int i = avion.getPointIndex();
+                if (ruta != null && i >= 0 && i < ruta.size()) {
+                    Point destino = ruta.get(i);
+
+                    if (estaVolando(destino)) {
+                        avion.setEstadoAvion(EstadoAvion.DESPEGANDO);
+                        avion.setSpeed(4);
+                    } else if (estaEnPista(destino)) {
+                        avion.setEstadoAvion(EstadoAvion.RODANDO_A_PISTA);
+                        avion.setSpeed(3);
+                    } else if (estaEnAreaHangarPunto(destino)) {
+                        avion.setEstadoAvion(EstadoAvion.RODANDO_A_HANGAR);
+                        avion.setSpeed(0.8);
+                    } else {
+                        avion.setSpeed(1.3);
+                    }
                 }
             }
         }
@@ -396,4 +422,50 @@ public class ControladorHangar implements ObservadorTiempo{
         return devolver;
     }
 
+    //Verifica si está en pista
+    private boolean estaEnPista(Point p) {
+        int x = p.x;
+        int y = p.y;
+
+        //Cada condicion corresponde a una pista
+        boolean cond1 = (y >= 440 && y <= 530 && x >= 19 && x <= 750);
+        boolean cond2 = (y >= 350 && y <= 430 && x >= 19 && x <= 750);
+        boolean cond3 = (y >= 50 && y <= 680 && x >= 135 && x <= 210);
+        boolean cond4 = (y >= 50 && y <= 680 && x >= 47 && x <= 120);
+
+        //Si está en alguna de las pistas devuelve true
+        if (cond1 || cond2 || cond3 || cond4) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean estaVolando(Point p) {
+        int x = p.x;
+        int y = p.y;
+
+        /*Si esta llegando o saliendo de alguna de las pistas
+        se tiene que cumplir alguna de estas condiciones*/
+        boolean cond1 = y < 50;
+        boolean cond2 = x > 750;
+        boolean cond3 = x < 19;
+
+        if (cond1 || cond2 || cond3) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean estaEnAreaHangarPunto(Point p) {
+        int x = p.x;
+        int y = p.y;
+        boolean devolver = false;
+
+        if (x >= HANGARMINX && x <= HANGARMAXX && y >= HANGARMINY && y <= HANGARMAXY) {
+            devolver = true;
+        }
+        return devolver;
+    }
 }
