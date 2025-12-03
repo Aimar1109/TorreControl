@@ -123,6 +123,7 @@ public class ControladorHangar implements ObservadorTiempo{
         avion.setEstacionamientoHangar(posicionHangar);
         avion.setSpeed(0);
         avion.setEstadoAvion(EstadoAvion.ESTACIONADO_HANGAR);
+        avion.setEnHangar(true);
     }
 
     private void iniciarVueloSalida(Vuelo vuelo) {
@@ -408,7 +409,7 @@ public class ControladorHangar implements ObservadorTiempo{
     }
 
     //Verfica si está dentro del área del hangar
-    private boolean estaEnHangar(Avion avion) {
+    public static boolean estaEnHangar(Avion avion) {
         int x = avion.getX();
         int y = avion.getY();
         boolean devolver = false;

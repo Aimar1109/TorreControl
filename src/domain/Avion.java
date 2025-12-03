@@ -182,7 +182,7 @@ public class Avion {
             y += moveYi;
 
             //Se le suman piradianes ya que es el desfase.
-            angulo = Math.atan2(dx, dy) + Math.PI;
+            angulo = Math.atan2(normalDy, normalDx) + Math.PI / 2;
         } else {
             //Si está muy cerca (speed>d) se coloca directamente encima
             x = futureX;

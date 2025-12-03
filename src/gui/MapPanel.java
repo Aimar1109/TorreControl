@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+import static threads.ControladorHangar.estaEnHangar;
+
 public class MapPanel extends JPanel {
 
     //Coordenadas
@@ -136,6 +138,11 @@ public class MapPanel extends JPanel {
 
         //Dibujo aviones únicamente si están en el mapa
         for (Avion avion: avionesAeropuerto) {
+            //Si está dentro del hangar no se dibuja
+            if (estaEnHangar(avion)) {
+                continue;
+            }
+
             boolean enMapa = estaMapa(avion);
 
             if (enMapa) {
