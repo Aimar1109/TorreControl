@@ -1,9 +1,15 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.RenderingHints;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -12,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -29,6 +36,7 @@ import com.toedter.calendar.JDateChooser;
 import domain.Aerolinea;
 import domain.Aeropuerto;
 import domain.Avion;
+import domain.PaletaColor;
 import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
@@ -51,21 +59,36 @@ public class JDialogNVuelo extends 	JDialog {
 	public JDialogNVuelo(boolean esLlegada, JPanel panel, DefaultTableModel modelo, GestorBD gestorBD) {
 		this.setTitle(esLlegada ? "Nuevo Vuelo - Llegada" : "Nuevo Vuelo - Salida");
 	    this.setModal(true); // Bloquea la ventana principal hasta que se cierre
-	    this.setSize(400, 400);
+	    this.setSize(400, 500);
 	    this.setLocationRelativeTo(panel);
 	    
 	    this.gestorBD = gestorBD;
 	    
-	 // Panel principal del diálogo
+	    // Panel principal del diálogo
 	    JPanel panelFormulario = new JPanel(new BorderLayout(10, 10));
 	    panelFormulario.setBorder(new EmptyBorder(20, 20, 20, 20));
 	    
+	    // Panel de título
+	    JPanel panelTitulo = new JPanel();
+	    panelTitulo.setBackground(PaletaColor.PRIMARIO.getColor());
+	    JLabel lblTitulo = new JLabel(esLlegada ? "Nuevo Vuelo de Llegada" : "Nuevo Vuelo de Salida");
+	    lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 16));
+	    lblTitulo.setForeground(PaletaColor.BLANCO.getColor());
+	    lblTitulo.setBorder(new EmptyBorder(15, 0, 15, 0));
+	    panelTitulo.add(lblTitulo);
+	    panelFormulario.add(panelTitulo, BorderLayout.NORTH);
+	    
 	    // Panel de campos del formulario
 	    JPanel panelCampos = new JPanel(new GridLayout(8, 2, 10, 10));
+	    panelCampos.setBorder(new EmptyBorder(10, 0, 10, 0));
 	    
 	    // Código del vuelo
 	    panelCampos.add(new JLabel("Numero:"));
 	    txtNumero = new JTextField();
+	    txtNumero.setBorder(BorderFactory.createCompoundBorder(
+	    	    BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+	    	    BorderFactory.createEmptyBorder(5, 10, 5, 10)
+	    	));
 	    panelCampos.add(txtNumero);
 	    
 	    //Aeropuerto
@@ -87,6 +110,8 @@ public class JDialogNVuelo extends 	JDialog {
 	    	destino = (Aeropuerto) boxAeropuerto.getSelectedItem();
 	    	origen =  aeOtro;
 	    }
+	    boxAeropuerto.setBorder(BorderFactory.createLineBorder(new Color(189, 195, 199), 1));
+	    ((JLabel)boxAeropuerto.getRenderer()).setBorder(new EmptyBorder(5, 10, 5, 10));
 	    
 	    panelCampos.add(tituAeropuerto);
 	    panelCampos.add(boxAeropuerto);
@@ -97,6 +122,8 @@ public class JDialogNVuelo extends 	JDialog {
 	    for(Aerolinea aerolineab: (ArrayList<Aerolinea>) gestorBD.loadAerolineas()) {
 	    	boxAerolinea.addItem(aerolineab);
 	    }
+	    boxAerolinea.setBorder(BorderFactory.createLineBorder(new Color(189, 195, 199), 1));
+	    ((JLabel)boxAerolinea.getRenderer()).setBorder(new EmptyBorder(5, 10, 5, 10));
 	    panelCampos.add(boxAerolinea);
 	    
 	    // Fecha y Hora
@@ -134,22 +161,32 @@ public class JDialogNVuelo extends 	JDialog {
 	    for(Avion avionb: (ArrayList<Avion>) gestorBD.loadAviones()) {
 	    	boxAvion.addItem(avionb);
 	    }
+	    boxAvion.setBorder(BorderFactory.createLineBorder(new Color(189, 195, 199), 1));
+	    ((JLabel)boxAvion.getRenderer()).setBorder(new EmptyBorder(5, 10, 5, 10));
 	    panelCampos.add(boxAvion);
 	    
-	    // Avion
+	    // Puerta
 	    panelCampos.add(new JLabel("Puerta:"));
 	    boxPuerta = new JComboBox<PuertaEmbarque>();
 	    for(PuertaEmbarque puertab: (ArrayList<PuertaEmbarque>) gestorBD.loadPuertasEmbarque()) {
 	    	boxPuerta.addItem(puertab);
 	    }
+	    boxPuerta.setBorder(BorderFactory.createLineBorder(new Color(189, 195, 199), 1));
+	    ((JLabel)boxPuerta.getRenderer()).setBorder(new EmptyBorder(5, 10, 5, 10));
 	    panelCampos.add(boxPuerta);
 	    
 	    
 	    // Panel de botones
-	    JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+	    JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
 	    
 	    JButton btnGuardar = new JButton("Guardar");
-	    btnGuardar.setPreferredSize(new Dimension(100, 30));
+	    btnGuardar.setPreferredSize(new Dimension(120, 40));
+	    btnGuardar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+	    btnGuardar.setBackground(PaletaColor.GUARDAR.getColor());
+	    btnGuardar.setForeground(PaletaColor.BLANCO.getColor());
+	    btnGuardar.setFocusPainted(false);
+	    btnGuardar.setBorderPainted(false);
+	    btnGuardar.setCursor(new Cursor(Cursor.HAND_CURSOR));
 	    btnGuardar.addActionListener(ev -> {
 	        // Validar y guardar
 	        if (validarFormulario(txtNumero, txtDuracion, dateChooser, (Aerolinea)boxAerolinea.getSelectedItem())) {
@@ -162,10 +199,34 @@ public class JDialogNVuelo extends 	JDialog {
 	            this.dispose();
 	        }
 	    });
+	    // Efecto hover
+	    btnGuardar.addMouseListener(new java.awt.event.MouseAdapter() {
+	        public void mouseEntered(java.awt.event.MouseEvent evt) {
+	            btnGuardar.setBackground(PaletaColor.GUARDAR_H.getColor());
+	        }
+	        public void mouseExited(java.awt.event.MouseEvent evt) {
+	            btnGuardar.setBackground(PaletaColor.GUARDAR.getColor());
+	        }
+	    });
 	    
 	    JButton btnCancelar = new JButton("Cancelar");
-	    btnCancelar.setPreferredSize(new Dimension(100, 30));
+	    btnCancelar.setPreferredSize(new Dimension(120, 40));
+	    btnCancelar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+	    btnCancelar.setBackground(PaletaColor.CANCELAR.getColor());
+	    btnCancelar.setForeground(PaletaColor.BLANCO.getColor());
+	    btnCancelar.setFocusPainted(false);
+	    btnCancelar.setBorderPainted(false);
+	    btnCancelar.setCursor(new Cursor(Cursor.HAND_CURSOR));
 	    btnCancelar.addActionListener(ev -> this.dispose());
+	    // Efecto hover
+	    btnCancelar.addMouseListener(new java.awt.event.MouseAdapter() {
+	        public void mouseEntered(java.awt.event.MouseEvent evt) {
+	        	btnCancelar.setBackground(PaletaColor.CANCELAR_H.getColor());
+	        }
+	        public void mouseExited(java.awt.event.MouseEvent evt) {
+	        	btnCancelar.setBackground(PaletaColor.CANCELAR.getColor());
+	        }
+	    });
 	    
 	    panelBotones.add(btnCancelar);
 	    panelBotones.add(btnGuardar);

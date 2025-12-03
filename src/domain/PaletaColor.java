@@ -21,7 +21,12 @@ public enum PaletaColor {
     TILE_BORDE(60, 65, 70, "Borde Tile"),
     NEGRO_SUAVE(20, 20, 20, "Negro para barras/iconos"),
     LIBRE(52, 152, 219, "Azul claro seatmap"),
-    OCUPADO(52, 58, 64, "Gris oscuro seatmap");
+    OCUPADO(52, 58, 64, "Gris oscuro seatmap"),
+	GUARDAR(39, 174, 96, "Verde Guardar"),
+	GUARDAR_H(46, 204, 113, "Verde Guardar"),
+	CANCELAR_H(235, 87, 87, "Rojo Cancelar"),
+	CANCELAR(192, 57, 43, "Rojo oscuro hover cancelar");
+
     
     private final Color color;
     private final String descripcion;
