@@ -34,16 +34,15 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
 	private Pista pista2 = new Pista("2", true);
 	
 	private GestorBD gestorBD;
+	
 
-
-	public JPanelPrincipal(GestorBD gestorBD) {
-		this(gestorBD, new ArrayList<>());
+	public JPanelPrincipal(GestorBD gestorBD, ArrayList<Vuelo> vuelos) {
+		this(gestorBD, new ArrayList<>(), vuelos);
 	}
 
-	public JPanelPrincipal(GestorBD gestorBD, List<Avion> avionesPrueba) {
+	public JPanelPrincipal(GestorBD gestorBD, List<Avion> avionesPrueba, ArrayList<Vuelo> vuelos) {
 
 		// AIMAR: Para acceder desde la base de datos
-		ArrayList<Vuelo> vuelos = (ArrayList<Vuelo>) gestorBD.loadVuelos();
 		List<Avion> aviones = avionesPrueba;
 		
 		//Panel Principal

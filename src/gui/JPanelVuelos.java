@@ -82,7 +82,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	
 	private GestorBD gestorBD;
 	
-	public JPanelVuelos(GestorBD gestorBD) {
+	public JPanelVuelos(GestorBD gestorBD, ArrayList<Vuelo> vuelos) {
 		
 		this.gestorBD = gestorBD;
 		
@@ -90,7 +90,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		setBackground(PaletaColor.get(PaletaColor.FONDO));
 		
 		// Datos necesarios
-		this.vuelos = (ArrayList<Vuelo>) gestorBD.loadVuelos();
+		this.vuelos = vuelos;
 		
 		// Creacion del main panel
 		JPanel mainVuelos = new JPanel(new BorderLayout());

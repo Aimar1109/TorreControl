@@ -70,15 +70,17 @@ public class JFramePrincipal extends JFrame {
 		menuPanel.add(boton4);
 		
 		mainPanel.add(menuPanel, BorderLayout.NORTH);
+		
+		ArrayList<Vuelo> vuelos = (ArrayList<Vuelo>) gestorBD.loadVuelos();
 
 		// PANEL CENTRAL VUELOS
-		JPanelVuelos jpvuelos = new JPanelVuelos(gestorBD);
+		JPanelVuelos jpvuelos = new JPanelVuelos(gestorBD, vuelos);
 		
 		// AGREGAR JPanelSalesman con los vuelos
-		JPanelSalesman panelSalesman = new JPanelSalesman(gestorBD);
+		JPanelSalesman panelSalesman = new JPanelSalesman(gestorBD, vuelos);
 		
 		//
-		JPanelPrincipal jpPrincipal = new JPanelPrincipal(gestorBD, avionesPrueba);
+		JPanelPrincipal jpPrincipal = new JPanelPrincipal(gestorBD, avionesPrueba, vuelos);
 		
 		
 		JPanelClima panelClima = new JPanelClima();

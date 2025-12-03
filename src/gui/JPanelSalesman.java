@@ -64,10 +64,10 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
     
     private GestorBD gestorBD;
 
-    public JPanelSalesman(GestorBD gestorBD) {
+    public JPanelSalesman(GestorBD gestorBD, ArrayList<Vuelo> vuelos) {
     	// te lo he cambiado para recibir coger los datos de la base de datos
     	this.gestorBD = gestorBD;
-        this.vuelos = (ArrayList<Vuelo>) this.gestorBD.loadVuelos();
+        this.vuelos = vuelos;
         setLayout(new BorderLayout());
         setBackground(PaletaColor.get(PaletaColor.FONDO));
 
