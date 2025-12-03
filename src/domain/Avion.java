@@ -181,7 +181,7 @@ public class Avion {
             x += moveXi;
             y += moveYi;
 
-            //Se le suman pi/2 radianes ya que es el desfase. La imagen del avión apunta hacia arriba por lo que tiene un desfase de 90 grados
+            //Se le suman piradianes ya que es el desfase.
             angulo = Math.atan2(dx, dy) + Math.PI;
         } else {
             //Si está muy cerca (speed>d) se coloca directamente encima

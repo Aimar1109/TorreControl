@@ -95,11 +95,9 @@ public class ControladorHangar implements ObservadorTiempo{
 
             long delay = v.getDelayed();
             LocalDateTime horaSalida = v.getFechaHoraProgramada().plusMinutes(delay);
-            //El avion aparece 2 minutos antes de la llegada
-            LocalDateTime horaAparece = horaSalida.minusMinutes(2);
 
             //Si es mas tarde de la hora en la que debe aparecer o es la hora a la que debe aparecer aparece
-            if (momentoActual.isAfter(horaAparece) || momentoActual.equals(horaAparece)) {
+            if (momentoActual.isAfter(horaSalida) || momentoActual.equals(horaSalida)) {
                 Avion avion = v.getAvion();
 
                 //Verifico si el avión está ya en el aeropuerto
