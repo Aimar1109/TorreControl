@@ -4,6 +4,7 @@ import domain.Avion;
 import domain.ComparadorFechaVuelos;
 import domain.Pista;
 import domain.Vuelo;
+import jdbc.GestorBD;
 import threads.ControladorHangar;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
@@ -40,11 +41,11 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
     //Comparator vuelos
     private ComparadorFechaVuelos comparadorVuelos;
 
-    public JPanelPrincipal(ArrayList<Vuelo> vuelos) {
-        this(vuelos, new ArrayList<>());
+    public JPanelPrincipal(GestorBD gestorBD, ArrayList<Vuelo> vuelos) {
+        this(gestorBD, vuelos, new ArrayList<>());
     }
 
-    public JPanelPrincipal(ArrayList<Vuelo> vuelos, List<Avion> aviones) {
+    public JPanelPrincipal(GestorBD gestorBD, ArrayList<Vuelo> vuelos, List<Avion> aviones) {
 
         this.comparadorVuelos = new ComparadorFechaVuelos();
 
