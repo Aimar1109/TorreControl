@@ -42,6 +42,9 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
     private Random generadorAleatorio;
     private Clima climaHoraActual;
     private LinkedList<Clima> pronosticoFuturo;
+    
+    private JLabel lblEstadoAeropuerto;
+    private JPanel panelEstado;
 
 	
 	public JPanelClima() {
@@ -172,6 +175,21 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         panelIzquierdo.add(panelBrujulaWrapper);
         panelIzquierdo.add(Box.createVerticalGlue());
         
+        panelEstado = new JPanel(new BorderLayout());
+        panelEstado.setBorder(new EmptyBorder(10, 10, 10, 10));
+        panelEstado.setBackground(new Color(60, 179, 113));
+        
+        lblEstadoAeropuerto = new JLabel("OPERATIVO");
+        lblEstadoAeropuerto.setFont(new Font("Arial", Font.BOLD, 18));
+        lblEstadoAeropuerto.setForeground(Color.WHITE);
+        lblEstadoAeropuerto.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        panelEstado.add(lblEstadoAeropuerto, BorderLayout.CENTER);
+        
+        panelIzquierdo.add(Box.createVerticalStrut(20));
+        panelIzquierdo.add(panelEstado);
+        
+        
         graficoTemperatura = new GraficoTemperatura();
         graficoPrecipitacion = new GraficoPrecipitacion();
         
@@ -250,6 +268,21 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         // Actualizar Brújula
         if (panelBrujula != null) {
             panelBrujula.setDatos(c.getVelocidadViento(), c.getDireccionViento());
+        }
+        
+        if (c.isSenalPeligro()) {
+            // Condiciones peligrosas (Viento fuerte, tormenta, etc.)
+            panelEstado.setBackground(new Color(220, 53, 69)); // Rojo Alerta
+            lblEstadoAeropuerto.setText("¡PELIGRO: PISTA CERRADA!");
+            
+            // Opcional: Indicar la causa
+            if (c.getVelocidadViento() > 80) lblEstadoAeropuerto.setText("¡ALERTA: VIENTO PELIGROSO!");
+            if (c.getVisibilidadKm() < 1.0) lblEstadoAeropuerto.setText("¡VISIBILIDAD NULA!");
+            
+        } else {
+            // Condiciones normales
+            panelEstado.setBackground(new Color(40, 167, 69)); // Verde Operativo
+            lblEstadoAeropuerto.setText("AEROPUERTO OPERATIVO");
         }
     }
 	

@@ -39,10 +39,10 @@ public abstract class Clima {
 	}
 	
 	public void actualizarSenalPeligro() {
+		// CORREGIDO: Eliminada la condición "|| this.techoNubesMetros != 0" que causaba el fallo
 		if (this.velocidadViento > VELOCIDAD_VIENTO_PELIGROSA || 
 	            this.visibilidadKm < VISIBILIDAD_PELIGROSA || 
-	            this.techoNubesMetros < TECHO_NUBES_PELIGROSO_METROS ||
-	            this.techoNubesMetros != 0) {
+	            this.techoNubesMetros < TECHO_NUBES_PELIGROSO_METROS) {
 	            this.senalPeligro = true;
 	        } else {
 	            this.senalPeligro = false;
