@@ -8,6 +8,7 @@ import domain.Clima.ClimaNevado;
 import domain.Clima.ClimaNublado;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
+import domain.PaletaColor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
 import java.util.LinkedList;
@@ -25,29 +27,22 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
 	
 	// Componentes Gráficos
     private JLabel lblReloj;
+    private JLabel lblHeaderTitulo;
+    private JTabbedPane tabbedPaneGraficos;
+    private GraficoTemperatura graficoTemperatura;
+    private GraficoPrecipitacion graficoPrecipitacion;
 
     // Componentes del Panel Izquierdo
     private JLabel lblTituloClima;
     private JLabel valTemp, valViento, valLluvia, valNieve, valNiebla, valNubes;
-    
-    // Panel de la Brújula
     private PanelBrujula panelBrujula;
-    
-    // Pestañas para los gráficos
-    private JTabbedPane tabbedPaneGraficos;
-    private GraficoTemperatura graficoTemperatura;
-    private GraficoPrecipitacion graficoPrecipitacion;
-    
+
     // Lógica de Simulación
     private int horaActualInt;
     private Random generadorAleatorio;
-
     private Clima climaHoraActual;
     private LinkedList<Clima> pronosticoFuturo;
-    
-    // Colores
-    private final Color COLOR_ACENTO = new Color(0, 85, 165); 
-    private final Color COLOR_FONDO_DATOS = Color.WHITE;
+
 	
 	public JPanelClima() {
 		this.horaActualInt = 0;
@@ -60,32 +55,58 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
             this.pronosticoFuturo.add(generarClimaAleatorio(i));
         }
 		
-        setLayout(new BorderLayout(15, 15));
-        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        setLayout(new BorderLayout(0, 0));
+        setBackground(PaletaColor.get(PaletaColor.FONDO));
         
-		JPanel panelControles = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		lblReloj = new JLabel("00:00:00");
-		lblReloj.setFont(new Font("Monospaced", Font.BOLD, 26));
-		panelControles.add(lblReloj);
-		add(panelControles, BorderLayout.NORTH);
+        JPanel panelHeader = new JPanel(new BorderLayout());
+        panelHeader.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
+        panelHeader.setBorder(new EmptyBorder(15, 20, 15, 20));
+        
+        lblReloj = new JLabel("00:00:00");
+        lblReloj.setFont(new Font("Consolas", Font.BOLD, 18));
+        lblReloj.setForeground(Color.WHITE);
+        lblReloj.setHorizontalAlignment(SwingConstants.LEFT);
+        panelHeader.add(lblReloj, BorderLayout.WEST);
+        
+        lblHeaderTitulo = new JLabel("MONITORIZACIÓN METEOROLÓGICA", JLabel.CENTER);
+        lblHeaderTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        lblHeaderTitulo.setForeground(Color.WHITE);
+        panelHeader.add(lblHeaderTitulo, BorderLayout.CENTER);
+        
+        
+        JLabel lblDummy = new JLabel("00:00:00");
+        lblDummy.setFont(new Font("Consolas", Font.BOLD, 18));
+        lblDummy.setForeground(new Color(0, 0, 0, 0)); 
+        panelHeader.add(lblDummy, BorderLayout.EAST);
+        
+        add(panelHeader, BorderLayout.NORTH);
+        
+        JPanel panelContenido = new JPanel(new BorderLayout(15, 15));
+        panelContenido.setBackground(PaletaColor.get(PaletaColor.FONDO));
+        panelContenido.setBorder(new EmptyBorder(15, 15, 15, 15));
 
 		JPanel panelIzquierdo = new JPanel();
 		panelIzquierdo.setLayout(new BoxLayout(panelIzquierdo, BoxLayout.Y_AXIS));
+		panelIzquierdo.setBackground(PaletaColor.get(PaletaColor.FONDO));
 		panelIzquierdo.setPreferredSize(new Dimension(280, 0));
 		
-        JPanel panelTablaWrapper = new JPanel(new BorderLayout());
-        panelTablaWrapper.setBackground(COLOR_FONDO_DATOS);
-        panelTablaWrapper.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        JPanel panelTablaContainer = new JPanel(new BorderLayout());
+        panelTablaContainer.setBackground(Color.WHITE);
+        panelTablaContainer.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(PaletaColor.get(PaletaColor.PRIMARIO), 1),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
         
-        lblTituloClima = new JLabel("Clima Actual");
-        lblTituloClima.setFont(new Font("Arial", Font.BOLD, 16)); // Fuente más pequeña
+        lblTituloClima = new JLabel(String.format("DATOS HORA %02d:00", horaActualInt));
+        lblTituloClima.setFont(new Font("Arial", Font.BOLD, 16));
+        lblTituloClima.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
         lblTituloClima.setHorizontalAlignment(SwingConstants.CENTER);
-        lblTituloClima.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        lblTituloClima.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
         
         // La tabla de datos interna
-        JPanel tablaDatos = new JPanel(new GridLayout(7, 2, 5, 5));
-        tablaDatos.setBackground(Color.WHITE);
-        tablaDatos.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        JPanel tablaDatos = new JPanel(new GridLayout(7, 2, 1, 1));
+        tablaDatos.setBackground(PaletaColor.get(PaletaColor.FONDO));
+        tablaDatos.setBorder(BorderFactory.createLineBorder(PaletaColor.get(PaletaColor.FONDO)));
         
         // Definimos las fuentes y alineaciones
         Font headerFont = new Font("Arial", Font.BOLD, 14);
@@ -126,43 +147,64 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         valNubes = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
         tablaDatos.add(valNubes);
 
-        panelTablaWrapper.add(lblTituloClima, BorderLayout.NORTH);
-        panelTablaWrapper.add(tablaDatos, BorderLayout.CENTER);
-        
+        panelTablaContainer.add(lblTituloClima, BorderLayout.NORTH);
+        panelTablaContainer.add(tablaDatos, BorderLayout.CENTER);
         
         
         panelBrujula = new PanelBrujula();
-        panelBrujula.setMaximumSize(new Dimension(280, 250));
+        panelBrujula.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        panelIzquierdo.add(panelTablaWrapper);
+        panelIzquierdo.add(panelTablaContainer);
         panelIzquierdo.add(Box.createVerticalStrut(20));
-        panelIzquierdo.add(panelBrujula);
-        panelIzquierdo.add(Box.createVerticalGlue());
         
-        add(panelIzquierdo, BorderLayout.WEST);
+        JPanel panelBrujulaWrapper = new JPanel(new BorderLayout());
+        panelBrujulaWrapper.setBackground(PaletaColor.get(PaletaColor.FONDO));
+        JLabel lblBrujula = new JLabel("DIRECCIÓN DEL VIENTO");
+        lblBrujula.setFont(new Font("Arial", Font.BOLD, 14));
+        lblBrujula.setForeground(Color.DARK_GRAY);
+        lblBrujula.setHorizontalAlignment(SwingConstants.CENTER);
+        lblBrujula.setBorder(new EmptyBorder(0,0,5,0));
+        
+        panelBrujulaWrapper.add(lblBrujula, BorderLayout.NORTH);
+        panelBrujulaWrapper.add(panelBrujula, BorderLayout.CENTER);
+        panelBrujulaWrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        panelIzquierdo.add(panelBrujulaWrapper);
+        panelIzquierdo.add(Box.createVerticalGlue());
         
         graficoTemperatura = new GraficoTemperatura();
         graficoPrecipitacion = new GraficoPrecipitacion();
         
         // Creamos el JTabbedPane
         tabbedPaneGraficos = new JTabbedPane();
-        tabbedPaneGraficos.setFont(new Font("Arial", Font.PLAIN, 14));
+        tabbedPaneGraficos.setFont(new Font("Arial", Font.PLAIN, 12));
         tabbedPaneGraficos.addTab("Temperatura", graficoTemperatura);
         tabbedPaneGraficos.addTab("Precipitación", graficoPrecipitacion);
         
-        JPanel panelGraficosPronostico = new JPanel(new BorderLayout());
-        TitledBorder border = BorderFactory.createTitledBorder("Pronóstico");
-        border.setTitleFont(new Font("Arial", Font.BOLD, 14));
-        border.setTitleColor(COLOR_ACENTO);
-        panelGraficosPronostico.setBorder(border);
-        panelGraficosPronostico.add(tabbedPaneGraficos, BorderLayout.CENTER);
+        JPanel panelGraficosWrapper = new JPanel(new BorderLayout());
+        panelGraficosWrapper.setBackground(PaletaColor.get(PaletaColor.FONDO));
         
-        // Panel Contenedor para dar márgenes verticales 
-        JPanel panelContenedorGraficos = new JPanel(new BorderLayout());
-        panelContenedorGraficos.setBorder(BorderFactory.createEmptyBorder(0, 20, 80, 0));
-        panelContenedorGraficos.add(panelGraficosPronostico, BorderLayout.CENTER);
+        TitledBorder borderGraficos = BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(PaletaColor.get(PaletaColor.PRIMARIO)), "Pronóstico");
+        borderGraficos.setTitleFont(new Font("Arial", Font.BOLD, 14));
+        borderGraficos.setTitleColor(PaletaColor.get(PaletaColor.PRIMARIO));
         
-        add(panelContenedorGraficos, BorderLayout.CENTER);
+        panelGraficosWrapper.setBorder(BorderFactory.createCompoundBorder(
+                new EmptyBorder(0, 0, 0, 0), // Margen externo
+                borderGraficos
+        ));
+        
+        JPanel panelInternoGraficos = new JPanel(new BorderLayout());
+        panelInternoGraficos.setBackground(Color.WHITE);
+        panelInternoGraficos.setBorder(new EmptyBorder(10, 10, 10, 10));
+        panelInternoGraficos.add(tabbedPaneGraficos, BorderLayout.CENTER);
+        
+        panelGraficosWrapper.add(panelInternoGraficos, BorderLayout.CENTER);
+        
+        panelContenido.add(panelIzquierdo, BorderLayout.WEST);
+        panelContenido.add(panelGraficosWrapper, BorderLayout.CENTER);
+        
+        add(panelContenido, BorderLayout.CENTER);
         
         graficoTemperatura.setHoverListener(new GraficoTemperatura.OnHoverListener() {
             @Override
@@ -251,11 +293,11 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         
         if (isHeader) {
             // ENCABEZADO: Fondo azul, texto blanco
-            label.setBackground(COLOR_ACENTO);
+            label.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
             label.setForeground(Color.WHITE);
         } else {
             // DATO NORMAL: Fondo blanco, texto negro
-            label.setBackground(COLOR_FONDO_DATOS);
+            label.setBackground(PaletaColor.get(PaletaColor.FONDO));
             label.setForeground(Color.BLACK);
         }
         

@@ -1,5 +1,7 @@
 package gui;
 
+import domain.PaletaColor;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,6 +16,7 @@ import java.awt.geom.Path2D;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
+import javax.swing.border.LineBorder;
 
 public class PanelBrujula extends JPanel {
 	
@@ -27,9 +30,9 @@ public class PanelBrujula extends JPanel {
 		this.velocidad = 0.0;
 		this.direccionGrados = 0.0;
 		
-		setBackground(Color.WHITE);
-		setBorder(BorderFactory.createTitledBorder("Viento y Dirección"));
-		setPreferredSize(new Dimension(200, 200));
+		setBackground(PaletaColor.get(PaletaColor.FONDO));
+		setBorder(new LineBorder(PaletaColor.get(PaletaColor.PRIMARIO), 1, true));
+		setPreferredSize(new Dimension(220, 220));
 	}
 	
 	public void setDatos(double velocidad, double direccion) {
@@ -62,15 +65,15 @@ public class PanelBrujula extends JPanel {
         if (radio <= 0) return;
 		
         // 1. Dibujar Esfera de la brújula
-        g2d.setColor(new Color(240, 240, 240));
+        g2d.setColor(Color.WHITE);
         g2d.fillOval(cx - radio, cy - radio, radio * 2, radio * 2);
-        g2d.setColor(Color.GRAY);
+        g2d.setColor(PaletaColor.get(PaletaColor.PRIMARIO));
         g2d.setStroke(new BasicStroke(2));
         g2d.drawOval(cx - radio, cy - radio, radio * 2, radio * 2);
 		
         // 2. Dibujar Marcas Cardinales (N, S, E, O)
         g2d.setColor(Color.DARK_GRAY);
-        g2d.setFont(new Font("Arial", Font.BOLD, 14));
+        g2d.setFont(new Font("SansSerif", Font.BOLD, 14));
         drawCenteredString(g2d, "N", cx, cy - radio + 15);
         drawCenteredString(g2d, "S", cx, cy + radio - 15);
         drawCenteredString(g2d, "E", cx + radio - 15, cy);
@@ -101,23 +104,23 @@ public class PanelBrujula extends JPanel {
 		g2d.setTransform(old);
 		
 		// 4. Pivote central y Texto de velocidad
-        g2d.setColor(Color.DARK_GRAY);
-        g2d.fillOval(cx - 4, cy - 4, 8, 8); // Puntito central
+        g2d.setColor(PaletaColor.get(PaletaColor.PRIMARIO));
+        g2d.fillOval(cx - 5, cy - 5, 10, 10); // Puntito central
 		
         // Recuadro para la velocidad
-        String textoVel = String.format("%.1f km/h", velocidad);
-        g2d.setFont(new Font("Monospaced", Font.BOLD, 14));
+        String textoVel = String.format("%.0f km/h", velocidad);
+        g2d.setFont(new Font("Monospaced", Font.BOLD, 16));
         FontMetrics fm = g2d.getFontMetrics();
         int tw = fm.stringWidth(textoVel);
         int th = fm.getHeight();
 		
-        // Fondo semitransparente para que se lea bien
-        g2d.setColor(new Color(255, 255, 255, 220));
-        g2d.fillRect(cx - tw/2 - 4, cy - th/2 - 4, tw + 8, th + 8);
-        g2d.setColor(Color.BLACK);
-        g2d.drawRect(cx - tw/2 - 4, cy - th/2 - 4, tw + 8, th + 8);
+     // Etiqueta flotante para la velocidad
+        g2d.setColor(new Color(255, 255, 255, 230));
+        g2d.fillRoundRect(cx - tw/2 - 6, cy + 20, tw + 12, th + 4, 10, 10);
+        g2d.setColor(PaletaColor.get(PaletaColor.PRIMARIO)); // Texto en azul corporativo
+        g2d.drawRoundRect(cx - tw/2 - 6, cy + 20, tw + 12, th + 4, 10, 10);
         
-        drawCenteredString(g2d, textoVel, cx, cy + (fm.getAscent()/2) - 2);
+        drawCenteredString(g2d, textoVel, cx, cy + 20 + (th/2) + 2);
 	}
 	
 	private void drawCenteredString(Graphics g, String text, int x, int y) {
