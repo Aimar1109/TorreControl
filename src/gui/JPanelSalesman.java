@@ -83,7 +83,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
     }
 
     private void initComponents() {
-        // --- 1. HEADER (PANEL SUPERIOR) ---
+        // 1. Header, Panel superior
         JPanel panelSuperior = new JPanel(new BorderLayout());
         panelSuperior.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
         panelSuperior.setBorder(new EmptyBorder(15, 20, 15, 20));
@@ -108,7 +108,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 
         add(panelSuperior, BorderLayout.NORTH);
 
-        // --- 2. PANEL CENTRAL (SPLIT PANE) ---
+        // 2. Panel Central, SplitPane
         JPanel panelCentral = new JPanel(new BorderLayout());
         panelCentral.setBackground(PaletaColor.get(PaletaColor.FONDO));
         panelCentral.setBorder(new EmptyBorder(10, 10, 5, 10));
@@ -183,7 +183,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
 
         panelCentral.add(splitHorizontal, BorderLayout.CENTER);
 
-        // --- 3. PANEL INFERIOR ---
+        // 3. Panel Inferior
         panelInferior = new JPanel(new BorderLayout());
         panelInferior.setPreferredSize(new Dimension(0, 250));
         panelInferior.setBackground(Color.WHITE); 
@@ -193,7 +193,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
                 BorderFactory.createLineBorder(new Color(220, 220, 220), 1)
         ));
 
-        // --- CABECERA: Fondo Primario ---
+        // Cabecera
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(PaletaColor.get(PaletaColor.PRIMARIO)); 
         headerPanel.setPreferredSize(new Dimension(40,40));
@@ -222,8 +222,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         
     }
 
-    // --- ESTILIZADO DE COMPONENTES ---
-
+    // Estilizado de componentes
     private void estilizarBotonToggle(JToggleButton boton) {
         boton.setFont(new Font("Segoe UI", Font.BOLD, 12));
         boton.setPreferredSize(new Dimension(80, 35));
@@ -376,8 +375,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         });
     }
 
-    // --- CARGA DE DATOS ---
-
+    // Carga datos principales
     private void cargarVuelosReales() {
         modeloVuelos.setRowCount(0);
         for (Vuelo v : vuelos) {
@@ -409,9 +407,8 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         int m = (int) (f % 60);
         return h + "h " + m + "m";
     }
-
-    // --- INTERACCIÓN Y DINÁMICA ---
-
+    
+    // Interacción tabla dinámica
     private void attachListeners() {
         // Click en tabla vuelos
         tablaVuelos.getSelectionModel().addListSelectionListener(e -> {
@@ -493,8 +490,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         panelDinamico.repaint();
     }
 
-    // --- CARGA DE DATOS ESPECÍFICOS ---
-
+    // Carga datos específicos para tabla dinámica
     private void cargarPasajeros(Vuelo vuelo) {
         modeloDinamico.setColumnCount(0);
         modeloDinamico.addColumn("ID");
@@ -561,7 +557,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
                 }
             }
         }
-        // --- 1. CABECERA  ---
+        // 1. Cabecera
         JPanel pnlCabecera = new JPanel(new BorderLayout());
         pnlCabecera.setBackground(Color.WHITE);
         pnlCabecera.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, PaletaColor.get(PaletaColor.OCUPADO)));
@@ -580,7 +576,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         pnlLeyenda.add(crearItemLeyenda("OCUPADO", PaletaColor.get(PaletaColor.OCUPADO)));
         pnlCabecera.add(pnlLeyenda, BorderLayout.CENTER);
 
-        // --- 2. GRID DE ASIENTOS  ---
+        // 2. Grid de asientos
         JPanel grid = new JPanel(new GridLayout(filas, colsGrid, 5, 5));
         grid.setBackground(PaletaColor.get(PaletaColor.BLANCO));
         grid.setBorder(new EmptyBorder(20, 20, 20, 20)); 
@@ -615,11 +611,11 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
             grid.add(new JLabel("")); 
         }
 
-        // --- 3. SCROLL ---
+        // 3. Scroll
         JScrollPane scroll = new JScrollPane(grid);
         estilizarScrollPane(scroll);
 
-        // --- 4. AÑADIR AL PANEL PRINCIPAL ---
+        // 4. Añadido al panel
         panelSeatmap.add(pnlCabecera, BorderLayout.NORTH);
         panelSeatmap.add(scroll, BorderLayout.CENTER);
         
@@ -652,8 +648,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         return f + "" + l[c];
     }
 
-    // --- OBSERVADOR TIEMPO ---
-
+    // Observador de tiempo
     @Override
     public void actualizarTiempo(LocalDateTime nuevoTiempo) {
         SwingUtilities.invokeLater(() -> {
@@ -674,17 +669,15 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
             }
         });
     }
- // --- MÉTODOS DE ESTILO PARA EL SCROLLBAR  ---
-    // IAG
+    
+    // IAG: Configuración visual del ScrollPane con estilización para modernidad aplicada
     private void estilizarScrollPane(JScrollPane scroll) {
-        // Estilizar barra vertical
         scroll.getVerticalScrollBar().setUI(new ModernScrollBarUI());
         scroll.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0)); 
         scroll.getVerticalScrollBar().setUnitIncrement(16); 
         
         scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
-        // Estilizar barra horizontal
         scroll.getHorizontalScrollBar().setUI(new ModernScrollBarUI());
         scroll.getHorizontalScrollBar().setPreferredSize(new Dimension(0, 8));
         
@@ -692,15 +685,13 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         cornerTopRight.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
         scroll.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, cornerTopRight);
         
-        // Esquina blanca
         JPanel corner = new JPanel();
         corner.setBackground(Color.WHITE);
         scroll.setCorner(ScrollPaneConstants.LOWER_RIGHT_CORNER, corner);
         scroll.setBorder(null); 
     }
 
-    // Clase interna para dibujar la barra personalizada
-    // IAG
+    // IAG: Clase estética 
     private static class ModernScrollBarUI extends BasicScrollBarUI {
         @Override
         protected void configureScrollBarColors() {
@@ -732,7 +723,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         }
 
     }
-    // IAG
+    // IAG: Clase estética con funcionalidad solamente visual y moderna
     private void estilizarSplitPane(JSplitPane split) {
         split.setBorder(null); 
         split.setDividerSize(2); 
@@ -758,9 +749,7 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
     
 }
 
-
-//--- CLASE AUXILIAR SEATLABEL ---
-
+// Clase auxialiar seatlabel
 class SeatLabel extends JLabel {
  private static final long serialVersionUID = 1L;
  
@@ -794,7 +783,7 @@ class SeatLabel extends JLabel {
      });
  }
  
- // IAG
+ // Clase con funcionalidad estética para dibujar cada asiento en el seatmap
  @Override
  protected void paintComponent(Graphics g) {
      Graphics2D g2 = (Graphics2D) g.create();

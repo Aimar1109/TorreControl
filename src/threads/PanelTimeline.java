@@ -43,19 +43,22 @@ public class PanelTimeline extends JPanel implements ObservadorTiempo {
     
     private JPanel listPanel;
     private List<RadarTile> tiles;
+    
+    private ThreadAnimacion threadAnimacion;
+    private volatile boolean ejecutando;
+    private volatile LocalDateTime tiempoActual;
 
     public PanelTimeline(ArrayList<Vuelo> vuelos) {
         setLayout(new BorderLayout());
         setBackground(PaletaColor.get(PaletaColor.FONDO_OSCURO));
 
-        // Ordenar: Prioridad a los activos
+        // Ordenación inicial por prioridad	usando Comparator (Lambda)
         Collections.sort(vuelos, (v1, v2) -> {
             LocalDateTime now = RelojGlobal.getInstancia().getTiempoActual();
-            int score1 = getFlightScore(v1, now);
-            int score2 = getFlightScore(v2, now);
-            return Integer.compare(score1, score2);
+            return Integer.compare(getFlightScore(v1, now), getFlightScore(v2, now));
         });
-
+        
+        // BoxLayout vertical para apilar elementos dinámicamente
         listPanel = new JPanel();
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
         listPanel.setBackground(PaletaColor.get(PaletaColor.FONDO_OSCURO));
@@ -63,6 +66,7 @@ public class PanelTimeline extends JPanel implements ObservadorTiempo {
 
         tiles = new ArrayList<>();
         
+        // Generación de tarjetas visuales (RadarTile)
         for (Vuelo v : vuelos) {
             RadarTile tile = new RadarTile(v);
             listPanel.add(tile);
@@ -76,53 +80,78 @@ public class PanelTimeline extends JPanel implements ObservadorTiempo {
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         scroll.getViewport().setBackground(PaletaColor.get(PaletaColor.FONDO_OSCURO));
         add(scroll, BorderLayout.CENTER);
+        
+        // Inicialización del hilo de refresco
+        this.ejecutando = true;
+        this.tiempoActual = RelojGlobal.getInstancia().getTiempoActual();
+        iniciarAnimacion();
 
         RelojGlobal.getInstancia().addObservador(this);
     }
     
+    // Logica de priorización de vuelos
     private int getFlightScore(Vuelo v, LocalDateTime now) {
         LocalDateTime dep = v.getFechaHoraProgramada().plusMinutes(v.getDelayed());
         LocalDateTime arr = dep.plusMinutes((long)v.getDuracion());
         
-        if (now.isAfter(dep) && now.isBefore(arr)) return 1; 
-        if (now.isBefore(dep) && ChronoUnit.MINUTES.between(now, dep) < 60) return 2; 
-        if (now.isBefore(dep)) return 3; 
-        return 4; 
+        if (now.isAfter(dep) && now.isBefore(arr)) return 1; // En aire
+        if (now.isBefore(dep) && ChronoUnit.MINUTES.between(now, dep) < 60) return 2; //Saliendo
+        if (now.isBefore(dep)) return 3; //Futuro
+        return 4; // Pasado
+    }
+    
+    private void iniciarAnimacion() {
+        this.threadAnimacion = new ThreadAnimacion();
+        // Daemon: El hilo muere automáticamente si se cierra la aplicación
+        this.threadAnimacion.setDaemon(true);
+        this.threadAnimacion.start();
     }
 
     @Override
     public void actualizarTiempo(LocalDateTime nuevoTiempo) {
-        SwingUtilities.invokeLater(() -> {
-            for (RadarTile tile : tiles) {
-                tile.actualizarEstado(nuevoTiempo);
-            }
-            listPanel.repaint();
-        });
+    	this.tiempoActual = nuevoTiempo;
     }
 
-    @Override
-    public void cambioEstadoPausa(boolean pausa) {
-        repaint();
-    }
-    
+
     public void detener() {
+    	ejecutando = false; // Rompe el bucle del hilo
+        if (threadAnimacion != null) {
+            threadAnimacion.interrupt();
+        }
         RelojGlobal.getInstancia().eliminarObservador(this);
     }
+    
+    // Hilo dedicado a la actualización de estado y repintado
+    private class ThreadAnimacion extends Thread {
+        @Override
+        public void run() {
+            while (ejecutando) {
+                try {
+                    if (!RelojGlobal.getInstancia().isPausado() && tiempoActual != null) {
+                        // Actualización lógica
+                        for (RadarTile tile : tiles) {
+                            tile.actualizarEstado(tiempoActual);
+                        }
+                        // Actualización visual
+                        SwingUtilities.invokeLater(() -> listPanel.repaint());
+                    }
+                    Thread.sleep(40); // ~25 FPS
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+        }
+    }
 
-//--- MÉTODOS DE ESTILO PARA SCROLLBAR ---
-
-// IAG
+ // IAG: Configuración visual del ScrollPane con estilización para modernidad aplicada
+ // también en el panelsalesman
 private void estilizarScrollPane(JScrollPane scroll) {
-    // 1. Barra Vertical
     scroll.getVerticalScrollBar().setUI(new ModernScrollBarUI());
     scroll.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
-    scroll.getVerticalScrollBar().setUnitIncrement(16);
 
-    // 2. Barra Horizontal
     scroll.getHorizontalScrollBar().setUI(new ModernScrollBarUI());
     scroll.getHorizontalScrollBar().setPreferredSize(new Dimension(0, 8));
     
-    // 3. Esquina (Corner) - IMPORTANTE para evitar errores y fondo blanco
     JPanel corner = new JPanel();
     corner.setBackground(PaletaColor.get(PaletaColor.FONDO_OSCURO));
     scroll.setCorner(ScrollPaneConstants.LOWER_RIGHT_CORNER, corner);
@@ -130,13 +159,12 @@ private void estilizarScrollPane(JScrollPane scroll) {
     scroll.setBorder(null);
 }
 
-// IAG
+// IAG: Clase estética con mismo toque del panelsalesman
 private static class ModernScrollBarUI extends BasicScrollBarUI {
     @Override
     protected void configureScrollBarColors() {
-        // Colores oscuros específicos para este panel
-        this.thumbColor = new Color(80, 85, 90); // Gris oscuro para la barra
-        this.trackColor = PaletaColor.get(PaletaColor.FONDO_OSCURO); // Fondo igual al panel
+        this.thumbColor = new Color(80, 85, 90); 
+        this.trackColor = PaletaColor.get(PaletaColor.FONDO_OSCURO);
     }
 
     @Override
@@ -157,7 +185,6 @@ private static class ModernScrollBarUI extends BasicScrollBarUI {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
-        // Color un poco más claro al pasar el ratón
         g2.setPaint(isThumbRollover() ? new Color(120, 125, 130) : thumbColor);
         g2.fillRoundRect(thumbBounds.x, thumbBounds.y, thumbBounds.width, thumbBounds.height, 8, 8);
         g2.dispose();
@@ -165,14 +192,14 @@ private static class ModernScrollBarUI extends BasicScrollBarUI {
     
     @Override
     protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
-        // Pintamos el fondo oscuro para que se funda con el panel
         g.setColor(trackColor);
         g.fillRect(trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height);
     }
 }
 
 /**
- * Tarjeta estilo HUD.
+ * RadarTile: Componente gráfico que representa un vuelo individual.
+ * Utiliza Graphics2D para dibujar un HUD vectorial en lugar de componentes estándar.
  */
 class RadarTile extends JPanel {
     private static final long serialVersionUID = 1L;
@@ -187,10 +214,8 @@ class RadarTile extends JPanel {
     private boolean isHover = false;
     private boolean isEmergency = false;
     
-    // Datos lógicos
     private boolean esSalida; 
 
-    // Fuentes
     private static final Font FONT_CODE = new Font("Consolas", Font.BOLD, 22);
     private static final Font FONT_ROUTE = new Font("Segoe UI", Font.BOLD, 15);
     private static final Font FONT_DETAILS = new Font("Segoe UI", Font.PLAIN, 12);
@@ -209,6 +234,7 @@ class RadarTile extends JPanel {
         setPreferredSize(new Dimension(600, 95));
         setMaximumSize(new Dimension(Integer.MAX_VALUE, 95));
         
+        // MouseAdapter para interactividad
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -225,19 +251,20 @@ class RadarTile extends JPanel {
             }
         });
     }
-
+    // Este metodo calcula el estado en el que se encuentra cada vuelo
     public void actualizarEstado(LocalDateTime now) {
         this.isEmergency = vuelo.isEmergencia();
 
         LocalDateTime salida = vuelo.getFechaHoraProgramada().plusMinutes(vuelo.getDelayed());
         LocalDateTime llegada = salida.plusMinutes((long)vuelo.getDuracion());
-        // IAG
+
         long totalMin = ChronoUnit.MINUTES.between(salida, llegada);
         long elapsed = ChronoUnit.MINUTES.between(salida, now);
         long toGo = ChronoUnit.MINUTES.between(now, salida);
 
         isFlying = false;
-
+        
+        // Máquina de estados para determinar color y texto
         if (now.isAfter(llegada)) {
             progreso = 1f;
             estadoColor = PaletaColor.get(PaletaColor.TEXTO_SUAVE); 
@@ -246,7 +273,6 @@ class RadarTile extends JPanel {
             isFlying = true;
             progreso = (float)elapsed / (float)Math.max(totalMin, 1);
             
-            // LÓGICA DE EMERGENCIA EN VUELO
             if (isEmergency) {
                 estadoColor = new Color(255, 50, 50); // Rojo 
                 estadoTexto = "¡EMERGENCIA!";
@@ -278,29 +304,27 @@ class RadarTile extends JPanel {
             }
         }
         
-        // Animación de pulso (Más rápida si es emergencia)
-        // IAG
+        // Animación de pulso (Función Seno para animación suave)
         if (isFlying || isEmergency) { 
             long millis = System.currentTimeMillis();
-            double speed = isEmergency ? 100.0 : 250.0; // Emergencia parpadea rápido
+            double speed = isEmergency ? 100.0 : 250.0; // Emergencia parpadea más rápido
             pulseAlpha = (float) (0.3f + 0.2f * Math.sin(millis / speed)); 
         } else {
             pulseAlpha = 0f;
         }
-        repaint();
     }
     
-    //IAG
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
+        // IAG: Activamos Antialiasing para gráficos vectoriales suaves
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         int w = getWidth();
         int h = getHeight();
 
-        // --- 1. FONDO (Rojizo si es emergencia, Gris Azulado si no) ---
+        // Si hay emergencia, cambiamos el tono base a rojizo
         Color cInicio = isEmergency ? new Color(60, 20, 20) : PaletaColor.get(PaletaColor.TILE_INICIO);
         Color cFin    = isEmergency ? new Color(30, 10, 10) : PaletaColor.get(PaletaColor.TILE_FIN);
 
@@ -308,7 +332,7 @@ class RadarTile extends JPanel {
         g2.setPaint(bgGrad);
         g2.fillRoundRect(0, 0, w, h, 10, 10);
         
-        // --- 2. EFECTO HOVER (Azul Acero) ---
+        // Efecto hover
         if (isHover) {
             g2.setColor(new Color(176, 196, 222, 15)); 
             g2.fillRoundRect(0, 0, w, h, 10, 10);
@@ -318,6 +342,7 @@ class RadarTile extends JPanel {
             g2.drawRoundRect(0, 0, w-1, h-1, 10, 10);
         } else {
             if (isEmergency) {
+            	// Parpadeo del borde en emergencia usando Alpha
                 int alpha = (int)(100 + (pulseAlpha * 300)); 
                 if (alpha > 255) alpha = 255; if (alpha < 0) alpha = 0;
                 g2.setColor(new Color(255, 0, 0, alpha));
@@ -329,17 +354,16 @@ class RadarTile extends JPanel {
             g2.drawRoundRect(0, 0, w-1, h-1, 10, 10);
         }
         
-        // Barra lateral de estado
+        // Indicador lateral
         g2.setColor(estadoColor);
         g2.fillRoundRect(0, 0, 6, h, 10, 10);
 
-        // === 3. ICONO DIRECCIÓN ===
+        // Dibujo de datos
         int iconX = 25;
         int iconY = h/2;
-        // El icono se pinta rojo si hay emergencia
         dibujarIconoDireccion(g2, iconX, iconY, esSalida, isEmergency ? Color.RED : estadoColor);
 
-        // === 4. CÓDIGO Y AEROLÍNEA ===
+        // Codigo y aerolínea
         int textLeftX = iconX + 45;
         
         g2.setFont(FONT_AIRLINE);
@@ -351,12 +375,13 @@ class RadarTile extends JPanel {
         g2.setColor(PaletaColor.get(PaletaColor.BLANCO));
         g2.drawString(vuelo.getCodigo(), textLeftX, 48);
         
+        // Tipo de operación
         g2.setFont(new Font("Arial", Font.BOLD, 10));
         g2.setColor(PaletaColor.get(PaletaColor.BLANCO));
         String tagDir = esSalida ? "SALIDA" : "LLEGADA";
         g2.drawString(tagDir, textLeftX, 65);
 
-        // === 5. RUTA ===
+        // Ruta visual
         int routeX = textLeftX + 120;
         int routeY = h/2 - 5;
         
@@ -375,13 +400,15 @@ class RadarTile extends JPanel {
         g2.setColor(PaletaColor.get(PaletaColor.BLANCO)); 
         g2.drawString(destinoCode, arrowX + 40, routeY);
         
+        // Ciudad Origen - Destino
         g2.setFont(FONT_DETAILS);
         g2.setColor(PaletaColor.get(PaletaColor.TEXTO_SUAVE));
         String rutaFull = vuelo.getOrigen().getCiudad() + " - " + vuelo.getDestino().getCiudad();
+        // Acortar texto si es muy largo
         if (rutaFull.length() > 30) rutaFull = rutaFull.substring(0, 27) + "...";
         g2.drawString(rutaFull, routeX, routeY + 20);
 
-        // === 6. DETALLES TÉCNICOS ===
+        // Detalles técnicos
         int detailsX = w / 2 + 40; 
         drawDetail(g2, "Avión", vuelo.getAvion().getModelo(), detailsX, routeY - 5);
         drawDetail(g2, "Pasajeros", vuelo.getPasajeros().size() + " / " + vuelo.getAvion().getCapacidad(), detailsX, routeY + 20);
@@ -391,7 +418,7 @@ class RadarTile extends JPanel {
         drawDetail(g2, "Puerta", puerta, detailsX2, routeY - 5);
         drawDetail(g2, "Matrícula", vuelo.getAvion().getMatricula(), detailsX2, routeY + 20);
 
-        // === 7. ESTADO Y HORARIOS (LADO DERECHO) ===
+        // Estado y hora (Columna derecha)
         int rightMargin = w - 20;
         
         g2.setFont(FONT_STATUS);
@@ -401,6 +428,7 @@ class RadarTile extends JPanel {
         int sw = g2.getFontMetrics().stringWidth(statusStr);
         g2.drawString(statusStr, rightMargin - sw, 30);
         
+        // Formateo de horas y retrasos
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm");
         LocalDateTime scheduledTime = vuelo.getFechaHoraProgramada();
         LocalDateTime realTime = scheduledTime.plusMinutes(vuelo.getDelayed());
@@ -418,10 +446,11 @@ class RadarTile extends JPanel {
             String origStr = scheduledTime.format(fmt);
             String newStr = realTime.format(fmt);
             
+            // Hora nueva en rojo
             g2.setColor(isEmergency ? Color.RED : PaletaColor.get(PaletaColor.DELAYED));
             int wNew = g2.getFontMetrics().stringWidth(newStr);
             g2.drawString(newStr, rightMargin - wNew, 55);
-            
+            // Hora original tachada
             g2.setColor(PaletaColor.get(PaletaColor.TEXTO_SUAVE));
             int wOrig = g2.getFontMetrics().stringWidth(origStr);
             int xOrig = rightMargin - wNew - 15 - wOrig;
@@ -454,6 +483,7 @@ class RadarTile extends JPanel {
         }
     }
     
+    // Métodos auxiliares de dibujo
     private void drawDetail(Graphics2D g2, String label, String value, int x, int y) {
         g2.setFont(new Font("Segoe UI", Font.BOLD, 10)); 
         g2.setColor(PaletaColor.get(PaletaColor.TEXTO_SUAVE));
@@ -475,7 +505,8 @@ class RadarTile extends JPanel {
     }
     
     private void dibujarIconoDireccion(Graphics2D g2, int x, int y, boolean esSalida, Color color) {
-        int size = 34;
+    	// IAG: Cálculo vectorial manual para icono de avión (dibujo de líneas)
+    	int size = 34;
         int half = size / 2;
         
         g2.setColor(PaletaColor.get(PaletaColor.NEGRO_SUAVE));
@@ -499,7 +530,7 @@ class RadarTile extends JPanel {
             g2.drawLine(cx + 6, cy + 6, cx + 1, cy + 6); 
             g2.drawLine(cx + 6, cy + 6, cx + 6, cy + 1); 
         }
-        
+        // Efecto pulso (solo si está en vuelo o emergencia)
         if (isFlying || isEmergency) {
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, pulseAlpha));
             g2.setColor(color);
