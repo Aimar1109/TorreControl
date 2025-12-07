@@ -10,9 +10,10 @@ public abstract class Clima {
 	protected double visibilidadKm;				// En km
 	protected double precipitacion;				// En mm/h
 	protected int techoNubesMetros;				// Es similar relativamente a cantidad de nubes
-	protected double humedad; 			// Porcentaje (0-100)
+	protected double humedad; 					// Porcentaje (0-100)
 	protected double presionHPa; 				// Presión atmosférica
 	protected int probabilidadPrecipitacion;
+	protected double direccionViento;			// En grados (0-360)
 	
 	protected boolean senalPeligro;
 	
@@ -32,6 +33,7 @@ public abstract class Clima {
 		this.presionHPa = presionHPa;
 		this.senalPeligro = false;
 		this.probabilidadPrecipitacion = probabilidadPrecipitacion;
+		this.direccionViento = 0.0;
 		
 		this.actualizarSenalPeligro();
 	}
@@ -59,6 +61,8 @@ public abstract class Clima {
 	public double getHumedad() { return humedad; }
 	public double getPresionHPa() { return presionHPa; }
 	public int getProbabilidadPrecipitacion() { return probabilidadPrecipitacion; }
+	public double getDireccionViento() { return direccionViento; }
+	public void setDireccionViento(double grados) { this.direccionViento = grados; }
 	
 	public static class ClimaDespejado extends Clima {
 		
@@ -72,7 +76,6 @@ public abstract class Clima {
 
 		@Override
 	    public String getDescripcionParaPanel() {
-	        // (Esto lo usaremos para la ventana emergente de detalle)
 	        StringJoiner sj = new StringJoiner("\n");
 	        sj.add("Temperatura: " + temperatura + " °C");
 	        sj.add("Viento: " + velocidadViento + " km/h");
@@ -82,7 +85,7 @@ public abstract class Clima {
 	        sj.add("Humedad: " + humedad + " %");
 	        sj.add("Presión: " + presionHPa + " hPa");
 	        sj.add("---");
-	        sj.add("Intensidad Sol: " + this.intensidad); // Dato específico
+	        sj.add("Intensidad Sol: " + this.intensidad);
 	        sj.add("Prob. Precip: " + this.probabilidadPrecipitacion + " %");
 	        return sj.toString();
 	    }

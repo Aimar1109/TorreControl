@@ -11,12 +11,10 @@ import threads.RelojGlobal;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
-import javax.swing.Timer;
+
 import javax.swing.border.TitledBorder;
 
 import java.util.LinkedList;
@@ -25,27 +23,30 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
 
 	private static final long serialVersionUID = 1L;
 	
-	// --- Componentes Gráficos ---
+	// Componentes Gráficos
     private JLabel lblReloj;
 
-    // --- Componentes del Panel Izquierdo (Formato Tabla) ---
-    private JPanel panelHoraActual; 
+    // Componentes del Panel Izquierdo
     private JLabel lblTituloClima;
     private JLabel valTemp, valViento, valLluvia, valNieve, valNiebla, valNubes;
     
+    // Panel de la Brújula
+    private PanelBrujula panelBrujula;
+    
+    // Pestañas para los gráficos
+    private JTabbedPane tabbedPaneGraficos;
     private GraficoTemperatura graficoTemperatura;
     private GraficoPrecipitacion graficoPrecipitacion;
     
-    // --- Lógica de Simulación ---
+    // Lógica de Simulación
     private int horaActualInt;
     private Random generadorAleatorio;
 
-    private Clima climaHoraActual;	// Almacena T (Hora Actual)
-    private LinkedList<Clima> pronosticoFuturo; // Almacena T+1, T+2, T+3, T+4, T+5
+    private Clima climaHoraActual;
+    private LinkedList<Clima> pronosticoFuturo;
     
-
+    // Colores
     private final Color COLOR_ACENTO = new Color(0, 85, 165); 
-    // Blanco para el fondo de las áreas de datos (para que resalten sobre el gris de la ventana)
     private final Color COLOR_FONDO_DATOS = Color.WHITE;
 	
 	public JPanelClima() {
@@ -53,41 +54,43 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
 		this.generadorAleatorio = new Random();	
 		this.pronosticoFuturo = new LinkedList<>();
 		
-		// Generamos el clima actual (Hora 0)
+		// Generamos datos inciales
         this.climaHoraActual = generarClimaAleatorio(0);
-        // Generamos los 5 pronósticos futuros (Hora 1 a 5)
         for (int i = 1; i <= 5; i++) {
             this.pronosticoFuturo.add(generarClimaAleatorio(i));
         }
 		
-        setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setLayout(new BorderLayout(15, 15));
+        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
 		JPanel panelControles = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		lblReloj = new JLabel("00:00:00");
-		lblReloj.setFont(new Font("Monospaced", Font.BOLD, 24));
+		lblReloj.setFont(new Font("Monospaced", Font.BOLD, 26));
 		panelControles.add(lblReloj);
-		
 		add(panelControles, BorderLayout.NORTH);
+
+		JPanel panelIzquierdo = new JPanel();
+		panelIzquierdo.setLayout(new BoxLayout(panelIzquierdo, BoxLayout.Y_AXIS));
+		panelIzquierdo.setPreferredSize(new Dimension(280, 0));
 		
-		// El panel "wrapper" principal
-        panelHoraActual = new JPanel(new BorderLayout(0, 0)); // 0px h-gap, 5px v-gap
-        panelHoraActual.setBackground(COLOR_FONDO_DATOS); // Fondo gris claro
+        JPanel panelTablaWrapper = new JPanel(new BorderLayout());
+        panelTablaWrapper.setBackground(COLOR_FONDO_DATOS);
+        panelTablaWrapper.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
         
         lblTituloClima = new JLabel("Clima Actual");
-        lblTituloClima.setFont(new Font("Arial", Font.BOLD, 12)); // Fuente más pequeña
+        lblTituloClima.setFont(new Font("Arial", Font.BOLD, 16)); // Fuente más pequeña
         lblTituloClima.setHorizontalAlignment(SwingConstants.CENTER);
-        lblTituloClima.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
+        lblTituloClima.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         
         // La tabla de datos interna
-        JPanel tablaDatos = new JPanel(new GridLayout(7, 2, 0, 0)); // 7 filas, 2 col, 2px GAPS
-        tablaDatos.setBackground(Color.LIGHT_GRAY); // El gap será gris claro
-        tablaDatos.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        JPanel tablaDatos = new JPanel(new GridLayout(7, 2, 5, 5));
+        tablaDatos.setBackground(Color.WHITE);
+        tablaDatos.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
         // Definimos las fuentes y alineaciones
-        Font headerFont = new Font("Arial", Font.BOLD, 12);
-        Font typeFont = new Font("Arial", Font.PLAIN, 12);
-        Font valueFont = new Font("Monospaced", Font.PLAIN, 12);
+        Font headerFont = new Font("Arial", Font.BOLD, 14);
+        Font typeFont = new Font("Arial", Font.PLAIN, 14);
+        Font valueFont = new Font("Monospaced", Font.PLAIN, 14);
         
         // Fila 1: Cabeceras (Centradas)
         tablaDatos.add(crearCeldaTabla("Propiedad", SwingConstants.CENTER, headerFont, true));
@@ -123,97 +126,122 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         valNubes = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
         tablaDatos.add(valNubes);
 
-        // Montamos el panel izquierdo (Título + Tabla)
-        panelHoraActual.add(lblTituloClima, BorderLayout.NORTH);
-        panelHoraActual.add(tablaDatos, BorderLayout.CENTER);
+        panelTablaWrapper.add(lblTituloClima, BorderLayout.NORTH);
+        panelTablaWrapper.add(tablaDatos, BorderLayout.CENTER);
         
-        JPanel panelGraficosPronostico = new JPanel(new GridBagLayout());
-        TitledBorder borderGraficos = BorderFactory.createTitledBorder("Pronóstico Próximas 6 Horas");
-        borderGraficos.setTitleColor(COLOR_ACENTO);
-        borderGraficos.setTitleFont(new Font("Arial", Font.BOLD, 12));
-        panelGraficosPronostico.setBorder(borderGraficos);
+        
+        
+        panelBrujula = new PanelBrujula();
+        panelBrujula.setMaximumSize(new Dimension(280, 250));
+        
+        panelIzquierdo.add(panelTablaWrapper);
+        panelIzquierdo.add(Box.createVerticalStrut(20));
+        panelIzquierdo.add(panelBrujula);
+        panelIzquierdo.add(Box.createVerticalGlue());
+        
+        add(panelIzquierdo, BorderLayout.WEST);
         
         graficoTemperatura = new GraficoTemperatura();
         graficoPrecipitacion = new GraficoPrecipitacion();
         
-        GridBagConstraints cTemp = new GridBagConstraints();
-        cTemp.gridx = 0; cTemp.gridy = 0; cTemp.weightx = 1.0; cTemp.weighty = 0.6; cTemp.fill = GridBagConstraints.BOTH;
-        panelGraficosPronostico.add(graficoTemperatura, cTemp);
+        // Creamos el JTabbedPane
+        tabbedPaneGraficos = new JTabbedPane();
+        tabbedPaneGraficos.setFont(new Font("Arial", Font.PLAIN, 14));
+        tabbedPaneGraficos.addTab("Temperatura", graficoTemperatura);
+        tabbedPaneGraficos.addTab("Precipitación", graficoPrecipitacion);
         
-        GridBagConstraints cPrecip = new GridBagConstraints();
-        cPrecip.gridx = 0; cPrecip.gridy = 1; cPrecip.weightx = 1.0; cPrecip.weighty = 0.4; cPrecip.fill = GridBagConstraints.BOTH;
-        panelGraficosPronostico.add(graficoPrecipitacion, cPrecip);
+        JPanel panelGraficosPronostico = new JPanel(new BorderLayout());
+        TitledBorder border = BorderFactory.createTitledBorder("Pronóstico");
+        border.setTitleFont(new Font("Arial", Font.BOLD, 14));
+        border.setTitleColor(COLOR_ACENTO);
+        panelGraficosPronostico.setBorder(border);
+        panelGraficosPronostico.add(tabbedPaneGraficos, BorderLayout.CENTER);
         
-        JPanel panelWrapperIzquierdo = new JPanel(new BorderLayout());
-        panelWrapperIzquierdo.add(panelHoraActual, BorderLayout.NORTH);
+        // Panel Contenedor para dar márgenes verticales 
+        JPanel panelContenedorGraficos = new JPanel(new BorderLayout());
+        panelContenedorGraficos.setBorder(BorderFactory.createEmptyBorder(0, 20, 80, 0));
+        panelContenedorGraficos.add(panelGraficosPronostico, BorderLayout.CENTER);
         
-        JPanel mainContentPanel = new JPanel(new BorderLayout(10, 10));
-        mainContentPanel.add(panelWrapperIzquierdo, BorderLayout.WEST);
-        mainContentPanel.add(panelGraficosPronostico, BorderLayout.CENTER); // ¡Añadimos el panel de gráficos aquí!
-        add(mainContentPanel, BorderLayout.CENTER);
+        add(panelContenedorGraficos, BorderLayout.CENTER);
         
         graficoTemperatura.setHoverListener(new GraficoTemperatura.OnHoverListener() {
             @Override
             public void onPuntoHover(Clima climaHovered, int indiceOffset) {
                 int horaHovered = (horaActualInt + indiceOffset) % 24;
-                actualizarPanelHoraActual(climaHovered, horaHovered);
+                actualizarDatosUI(climaHovered, horaHovered);
             }
             @Override
             public void onPuntoExit() {
-                actualizarPanelHoraActual();
+                actualizarDatosUI(climaHoraActual, horaActualInt);
             }
         });
         
-        actualizarPanelHoraActual();
-        actualizarGraficosPronostico();
+        actualizarDatosUI(climaHoraActual, horaActualInt);
+        actualizarGraficos();
         
         RelojGlobal.getInstancia().addObservador(this);
 	}
+
+	private void actualizarDatosUI(Clima c, int hora) {
+        if (c == null) return;
+        
+        // Actualizar Título
+        lblTituloClima.setText(String.format("Clima (Hora %02d:00)", hora));
+        
+        // Actualizar Tabla
+        valTemp.setText(String.format("%.1f", c.getTemperatura()));
+        valTemp.setForeground(c.getTemperatura() > 30 ? Color.RED : (c.getTemperatura() < 0 ? Color.BLUE : Color.BLACK));
+        
+        valViento.setText(String.format("%.1f", c.getVelocidadViento()));
+        valNiebla.setText(String.format("%.1f", c.getVisibilidadKm()));
+        valNubes.setText(String.valueOf(c.getTechoNubesMetros()));
+        
+        // Lógica precipitación
+        if (c instanceof ClimaNevado) {
+            valLluvia.setText("0.0");
+            valNieve.setText(String.format("%.1f", c.getPrecipitacion()));
+        } else {
+            valLluvia.setText(String.format("%.1f", c.getPrecipitacion()));
+            valNieve.setText("0.0");
+        }
+        
+        // Actualizar Brújula
+        if (panelBrujula != null) {
+            panelBrujula.setDatos(c.getVelocidadViento(), c.getDireccionViento());
+        }
+    }
+	
+	private void actualizarGraficos() {
+        LinkedList<Clima> datos = new LinkedList<>(pronosticoFuturo);
+        datos.addFirst(climaHoraActual);
+        
+        if (graficoTemperatura != null) graficoTemperatura.setDatos(datos, horaActualInt);
+        if (graficoPrecipitacion != null) graficoPrecipitacion.setDatos(datos, horaActualInt);
+    }
 	
 	public void actualizarTiempo(LocalDateTime nuevoTiempo) {
-		
-		// 1. Actualizamos el reloj visual
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-		lblReloj.setText(nuevoTiempo.format(formatter));
-		
-		// 2. Comprobamos si ha cambiado la hora
-        int horaDelReloj = nuevoTiempo.getHour();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        lblReloj.setText(nuevoTiempo.format(formatter));
         
-        if (horaDelReloj != this.horaActualInt) {
-        	
-        	// Calculamos cuántas horas han pasado (por si el reloj salta varias horas de golpe)
-            // Nota: Esto es una simplificación. Si quieres manejar saltos de día, necesitarás más lógica.
-            // Por ahora asumimos avance de 1 en 1 o ajuste simple.
-        	
-        	this.horaActualInt = horaDelReloj;
-        	avanzarHora();
+        if (nuevoTiempo.getHour() != this.horaActualInt) {
+            this.horaActualInt = nuevoTiempo.getHour();
+            avanzarHora();
         }
-	}
+    }
 	
 	private void avanzarHora() {
-		
-		// 1. Sacamos el clima actual de la cola y lo ponemos como "actual"
-		if (!pronosticoFuturo.isEmpty()) {
-			this.climaHoraActual = pronosticoFuturo.poll();
-		} else {
-			this.climaHoraActual = generarClimaAleatorio(this.horaActualInt);
-		}
-		
-		// 2. Generamos un nuevo pronóstico para el final de la cola (Hora + 5)
-		int horaNuevoPronostico = (this.horaActualInt + 5) % 24;
-		Clima nuevoPronostico = generarClimaAleatorio(horaNuevoPronostico);
-		pronosticoFuturo.add(nuevoPronostico);
-		
-		// 3. Actualizamos la interfaz
-		actualizarPanelHoraActual();
-		actualizarGraficosPronostico();
-		
-		// IMPORTANTE: Aquí repintamos el panel para asegurar que los cambios se ven
-		revalidate();
-		repaint();
-	}
-	
-	// --- MÉTODOS ---
+        if (!pronosticoFuturo.isEmpty()) {
+            this.climaHoraActual = pronosticoFuturo.poll();
+        } else {
+            this.climaHoraActual = generarClimaAleatorio(this.horaActualInt);
+        }
+        
+        // Añadir nuevo pronóstico al final
+        pronosticoFuturo.add(generarClimaAleatorio((this.horaActualInt + 5) % 24));
+        
+        actualizarDatosUI(climaHoraActual, horaActualInt);
+        actualizarGraficos();
+    }
 	
 	private JLabel crearCeldaTabla(String texto, int alignment, Font font, boolean isHeader) {
         JLabel label = new JLabel(texto);
@@ -235,63 +263,9 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         return label;
     }
 	
-	private void actualizarPanelHoraActual(Clima climaForzado, int horaForzada) {
-        Clima climaAMostrar = (climaForzado != null) ? climaForzado : this.climaHoraActual;
-        int horaAMostrar = (climaForzado != null) ? horaForzada : this.horaActualInt;
-
-        if (climaAMostrar == null) return;
-
-        lblTituloClima.setText(String.format("Clima (Hora %02d:00)", (horaAMostrar % 24)));
-        
-        // --- 1. TEMPERATURA (CON ALERTA DE COLOR) ---
-        double temp = climaAMostrar.getTemperatura();
-        valTemp.setText(String.format("%.1f", temp));
-        
-        if (temp > 30) {
-            valTemp.setForeground(Color.RED);   // Alerta de Calor
-        } else if (temp < 0) {
-            valTemp.setForeground(Color.BLUE);  // Alerta de Frío
-        } else {
-            valTemp.setForeground(Color.BLACK); // Normal
-        }
-
-        // --- Resto de valores (Sin cambios de color) ---
-        valViento.setText(String.format("%.1f", climaAMostrar.getVelocidadViento()));
-        // Aseguramos que siempre esté negro por si acaso
-        valViento.setForeground(Color.BLACK); 
-
-        valNiebla.setText(String.format("%.1f", climaAMostrar.getVisibilidadKm()));
-        valNiebla.setForeground(Color.BLACK);
-        
-        valNubes.setText(climaAMostrar.getTechoNubesMetros() >= 10000 ? 
-            "N/A" : String.format("%d", climaAMostrar.getTechoNubesMetros()));
-
-        double precipitacion = climaAMostrar.getPrecipitacion();
-        if (climaAMostrar instanceof ClimaNevado) {
-            valLluvia.setText("0.0");
-            valNieve.setText(String.format("%.1f", precipitacion));
-        } else if (precipitacion > 0) { // Lluvioso
-            valLluvia.setText(String.format("%.1f", precipitacion));
-            valNieve.setText("0.0");
-        } else {
-            valLluvia.setText("0.0");
-            valNieve.setText("0.0");
-        }
-    }
 	
-	private void actualizarPanelHoraActual() {
-        actualizarPanelHoraActual(null, -1);
-    }
-
     
     
-    private void actualizarGraficosPronostico() {
-        // 1. Crear la lista temporal (T a T+5)
-        LinkedList<Clima> datos = new LinkedList<>(pronosticoFuturo);
-        datos.addFirst(climaHoraActual);
-        graficoTemperatura.setDatos(datos, horaActualInt);
-        graficoPrecipitacion.setDatos(datos, horaActualInt);
-    }
     
     private double round(double valor) {
         return Math.round(valor * 10.0) / 10.0;
@@ -303,74 +277,38 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         int tipoClima = generadorAleatorio.nextInt(4);
         boolean esDeNoche = (hora > 20 || hora < 6);
 
-        // --- 1. Generar valores base ---
         double temp = -3 + (35 * generadorAleatorio.nextDouble());
-        double viento = 120 * generadorAleatorio.nextDouble();
+        // Aseguramos viento mínimo para que la brújula se mueva algo (entre 5 y 100 km/h)
+        double viento = 5 + (95 * generadorAleatorio.nextDouble()); 
         double visi = 20 * generadorAleatorio.nextDouble();
         double humedad = 20 + (80 * generadorAleatorio.nextDouble());
         double presion = 980 + (50 * generadorAleatorio.nextDouble());
+        double direccion = generadorAleatorio.nextDouble() * 360; // Dirección aleatoria
 
         if (esDeNoche) { temp -= 5.0; }
 
-        // --- 2. Aplicar lógica de clima específica ---
+        Clima c = null;
         switch (tipoClima) {
-            
             case 0: // Despejado
-            {
-                // probPrecipitacion (0) se hardcodea en el constructor de ClimaDespejado
                 IntensidadSol intensidad = IntensidadSol.BAJA;
-                if (!esDeNoche) {
-                    IntensidadSol[] intensidades = {IntensidadSol.BAJA, IntensidadSol.MEDIA, IntensidadSol.ALTA};
-                    intensidad = intensidades[generadorAleatorio.nextInt(intensidades.length)];
-                }
-                
-                return new ClimaDespejado(round(temp), round(viento), round(visi), 
-                                        round(humedad), round(presion), intensidad);
-            }
-
+                if (!esDeNoche) intensidad = IntensidadSol.ALTA; // Simplificado
+                c = new ClimaDespejado(round(temp), round(viento), round(visi), round(humedad), round(presion), intensidad);
+                break;
             case 1: // Lluvioso
-            {
                 double precipitacion = 1 + (50 * generadorAleatorio.nextDouble());
-                int techoNubes = 100 + generadorAleatorio.nextInt(1000);
-                int probPrecipitacion = 70 + generadorAleatorio.nextInt(31); // 70-100%
-                boolean tormenta = generadorAleatorio.nextBoolean();
-                
-                if (precipitacion > 25) visi = visi / 3;
-                else if (precipitacion > 10) visi = visi / 2;
-                
-                return new ClimaLluvioso(round(temp), round(viento), round(visi), 
-                                      round(precipitacion), techoNubes, probPrecipitacion, 
-                                      round(humedad), round(presion), tormenta);
-            }
-
+                c = new ClimaLluvioso(round(temp), round(viento), round(visi), round(precipitacion), 1000, 80, round(humedad), round(presion), false);
+                break;
             case 2: // Nublado
-            {
-                int techoNubes = 150 + generadorAleatorio.nextInt(2000);
-                int probPrecipitacion = 10 + generadorAleatorio.nextInt(31); // 10-40%
-                
-                if (techoNubes < 300) visi = visi / 2;
-
-                return new ClimaNublado(round(temp), round(viento), round(visi), 
-                                    techoNubes, probPrecipitacion, 
-                                    round(humedad), round(presion));
-            }
-
+                c = new ClimaNublado(round(temp), round(viento), round(visi), 1000, 20, round(humedad), round(presion));
+                break;
             case 3: // Nevado
             default:
-            {
-                double precipitacion = 1 + (20 * generadorAleatorio.nextDouble());
-                int techoNubes = 100 + generadorAleatorio.nextInt(800);
-                int probPrecipitacion = 80 + generadorAleatorio.nextInt(21); // 80-100%
-                double acumulacion = 1 + (10 * generadorAleatorio.nextDouble());
-                
-                if (temp > 0) temp = - (temp / 5);
-                
-                visi = visi / 4; 
-                
-                return new ClimaNevado(round(temp), round(viento), round(visi), 
-                                     round(precipitacion), techoNubes, probPrecipitacion,
-                                     round(humedad), round(presion), round(acumulacion));
-            }
+                c = new ClimaNevado(round(temp), round(viento), round(visi), 5.0, 500, 90, round(humedad), round(presion), 2.0);
+                break;
         }
+        
+        // Importante: setear la dirección generada
+        if (c != null) c.setDireccionViento(direccion);
+        return c;
     }
 }
