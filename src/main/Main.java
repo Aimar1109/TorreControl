@@ -30,7 +30,6 @@ public class Main {
         // Generar vuelos de ejemplo
         ArrayList<Aerolinea> aers = generadorAerolinea(gestorBD);
         generarVuelosAleatorios(50, gestorBD);
-        List<Avion> avionesPrueba = crearAvionesPrueba();
 
         //Configuración RelojGlobal
         RelojGlobal relojGlobal = RelojGlobal.getInstancia();
@@ -38,7 +37,7 @@ public class Main {
 
 
         // Lanzar interfaz con los vuelos
-        SwingUtilities.invokeLater(() -> new JFramePrincipal(gestorBD, avionesPrueba));
+        SwingUtilities.invokeLater(() -> new JFramePrincipal(gestorBD));
     }
 
     private static void generarVuelosAleatorios(int cantidad, GestorBD gestorBD) {
@@ -80,6 +79,15 @@ public class Main {
         int targetDeparturesFromBIO = cantidad - targetArrivalsToBIO;
         int remainingArrivals = targetArrivalsToBIO;
         int remainingDepartures = targetDeparturesFromBIO;
+
+        //IAG (Claude): Generación de vuelos iniciales de prueba generada con IA y modificada para adaptarse a los minutos necesarios
+        //Vuelos manuales
+        int[] minutosLlegadaEarly = {1, 4, 5};
+        int[] minutosSalidaEarly = {1, 2, 3};
+        int targetEarlyArrivals = 3;
+        int targetEarlyDepartures = 3;
+        int earlyArrivalsAssigned = 0;
+        int earlyDeparturesAssigned = 0;
 
         for (int i = 0; i < cantidad; i++) {
             int codigo = 1000 + i;
@@ -138,6 +146,7 @@ public class Main {
             Pista pista;
 
             LocalDateTime ahora = LocalDateTime.now();
+            LocalDateTime horaLlegada;
 
             if (makeArrivalToBIO) {
                 // Vuelo que LLEGA a BIO: origen = otra ciudad, destino = BIO
@@ -146,8 +155,15 @@ public class Main {
                 destino = bilbao;
 
                 // Pista y puerta: asignadas en Bilbao (destino)
-                pista = new Pista("Pista BIO " + (i % 3 + 1), false);
+                pista = new Pista(String.valueOf(i % 3 + 1), false);
                 gestorBD.insertPista(pista);
+
+                if (earlyArrivalsAssigned < targetEarlyArrivals) {
+                    horaLlegada = ahora.plusMinutes(minutosLlegadaEarly[earlyArrivalsAssigned]);
+                    earlyArrivalsAssigned++;
+                } else {
+                    horaLlegada = ahora.plusHours(i);
+                }
 
                 remainingArrivals--;
             } else {
@@ -156,14 +172,21 @@ public class Main {
                 destino = aeropuertos.get(random.nextInt(aeropuertos.size()));
 
                 // Pista y puerta: asignadas en Bilbao (origen)
-                pista = new Pista("Pista BIO " + (i % 3 + 1), false);
+                pista = new Pista(String.valueOf(i % 3 + 1), false);
                 gestorBD.insertPista(pista);
+
+                if (earlyDeparturesAssigned < targetEarlyDepartures) {
+                    horaLlegada = ahora.plusMinutes(minutosSalidaEarly[earlyDeparturesAssigned]);
+                    earlyDeparturesAssigned++;
+                } else {
+                    horaLlegada = ahora.plusHours(i);
+                }
 
                 remainingDepartures--;
             }
 
-            Vuelo vuelo = new Vuelo( codigo,  origen,  destino,  gestorBD.loadAerolineas().get(0),  pista,
-                    puertas.get(random.nextInt(puertas.size())),  estado,  ahora.plusHours(i),  duracion,  avion,
+            Vuelo vuelo = new Vuelo( codigo,  origen,  destino,  gestorBD.loadAerolineas().get(0),
+                    puertas.get(random.nextInt(puertas.size())),  estado,  horaLlegada,  duracion,  avion,
                     emergencia,  pasajeros,  tripulacion,  delayed);
             gestorBD.insertVuelo(vuelo);
         }
@@ -206,20 +229,5 @@ public class Main {
         return aer;
     }
 
-    public static List<Avion> crearAvionesPrueba() {
-        List<Avion> aviones = new ArrayList<>();
-        Random random = new Random();
 
-        for (int i = 1; i <= 5; i++) {
-            int x = random.nextInt(900) + 50;
-            int y = random.nextInt(600) + 50;
-            double angulo = random.nextDouble() * 2 * Math.PI;
-
-            Avion avion = new Avion("" + i, "" + i, i, x, y, angulo);
-
-            aviones.add(avion);
-        }
-
-        return aviones;
-    }
 }

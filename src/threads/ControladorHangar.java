@@ -239,6 +239,7 @@ public class ControladorHangar implements ObservadorTiempo{
         //Si la pista está asignada(mediante las listas del panel principal) no se asigna en función del anterior vuelo
         if (pistaAsignada != null) {
             String nPista = pistaAsignada.getNumero();
+            pistaHorizontal = false;
 
             if (nPista.equals("1")) {
                 pistaHorizontal = true;
@@ -248,6 +249,11 @@ public class ControladorHangar implements ObservadorTiempo{
 
         } else {
             pistaHorizontal = siguientePistaAterrizajeHorizontal;
+            if (pistaHorizontal) {
+                vuelo.setPista(new Pista("1", false));
+            } else {
+                vuelo.setPista(new Pista("2", false));
+            }
             siguientePistaAterrizajeHorizontal = !siguientePistaAterrizajeHorizontal;
         }
 

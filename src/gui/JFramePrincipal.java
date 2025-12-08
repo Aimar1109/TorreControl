@@ -37,7 +37,7 @@ public class JFramePrincipal extends JFrame {
 
     private GestorBD gestorBD;
 
-    public JFramePrincipal(GestorBD gestorBD, List<Avion> avionesPrueba) {
+    public JFramePrincipal(GestorBD gestorBD) {
 
         this.gestorBD = gestorBD;
         // PANEL PRINCIPAL
@@ -80,7 +80,7 @@ public class JFramePrincipal extends JFrame {
         JPanelSalesman panelSalesman = new JPanelSalesman(gestorBD, vuelos);
 
         //
-        JPanelPrincipal jpPrincipal = new JPanelPrincipal(gestorBD, vuelos, avionesPrueba);
+        JPanelPrincipal jpPrincipal = new JPanelPrincipal(gestorBD, vuelos);
 
 
         JPanelClima panelClima = new JPanelClima();

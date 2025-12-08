@@ -76,7 +76,7 @@ public class Vuelo {
 		
 	}
 	
-	public Vuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aereolinea, Pista pista,
+	public Vuelo(Integer numero, Aeropuerto origen, Aeropuerto destino, Aerolinea aereolinea,
 			PuertaEmbarque puerta, boolean estado, LocalDateTime fechaHoraProgramada, float duracion, Avion avion,
 			boolean emergencia, ArrayList<Pasajero> pasajeros, ArrayList<Tripulante> tripulacion, int delayed) {
 		super();
