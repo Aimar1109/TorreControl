@@ -287,11 +287,13 @@ class RadarTile extends JPanel {
                 estadoColor = PaletaColor.get(PaletaColor.DELAYED); 
                 estadoTexto = "RETRASADO";             
             } else if (toGo < 60) {
-                estadoColor = PaletaColor.get(PaletaColor.ACENTO); 
                 if (esSalida) {
                     estadoTexto = "EMBARCANDO"; 
+                    estadoColor = PaletaColor.get(PaletaColor.ACENTO); 
                 } else {
-                    estadoTexto = "DESEMBARCANDO"; 
+                    estadoTexto = "ATERRIZANDO"; 
+                    estadoColor = PaletaColor.get(PaletaColor.EXITO); 
+
                 }
             } else {
                 estadoColor = PaletaColor.get(PaletaColor.SECUNDARIO); 
