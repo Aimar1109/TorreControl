@@ -7,6 +7,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -42,6 +44,9 @@ public class JFramePrincipal extends JFrame {
         this.gestorBD = gestorBD;
         // PANEL PRINCIPAL
         JPanel mainPanel = new JPanel(new BorderLayout());
+        
+        Image icon = new ImageIcon("resources/img/torre-de-control.png").getImage();
+        setIconImage(icon);
 
         // MENU DE ARRIBA
         JPanel menuPanel = new JPanel(new GridLayout(1, 4, 5, 5));
