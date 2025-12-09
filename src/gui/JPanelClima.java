@@ -29,7 +29,6 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
 	// Componentes Gráficos
     private JLabel lblReloj;
     private JLabel lblHeaderTitulo;
-    private JTabbedPane tabbedPaneGraficos;
     private GraficoTemperatura graficoTemperatura;
     private GraficoPrecipitacion graficoPrecipitacion;
     
@@ -41,7 +40,7 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
 
     // Componentes del Panel Izquierdo
     private JLabel lblTituloClima;
-    private JLabel valTemp, valViento, valLluvia, valNieve, valNiebla, valNubes;
+    private JLabel valTemp, valViento, valLluvia, valNieve, valNiebla, valNubes, valPresion;
     private PanelBrujula panelBrujula;
     private JLabel lblVelocidadViento;
 
@@ -50,6 +49,14 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
     private Random generadorAleatorio;
     private LinkedList<Clima> historiaDia;
     private JLabel lblEstadoAeropuerto;
+    
+ // FUENTES (Estandarizadas)
+    private final Font FONT_RELOJ = new Font("Consolas", Font.BOLD, 22);
+    private final Font FONT_TITULO = new Font("Segoe UI", Font.BOLD, 24);
+    private final Font FONT_SUBTITULO = new Font("Segoe UI", Font.BOLD, 16);
+    private final Font FONT_LABEL_TABLA = new Font("Segoe UI", Font.BOLD, 13);
+    private final Font FONT_VALOR_TABLA = new Font("Segoe UI", Font.PLAIN, 14);
+    private final Font FONT_BOTON = new Font("Segoe UI", Font.BOLD, 12);
 
 	
 	public JPanelClima() {
@@ -67,19 +74,19 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         panelHeader.setBorder(new EmptyBorder(15, 20, 15, 20));
         
         lblReloj = new JLabel("00:00:00");
-        lblReloj.setFont(new Font("Consolas", Font.BOLD, 18));
+        lblReloj.setFont(FONT_RELOJ);
         lblReloj.setForeground(Color.WHITE);
         lblReloj.setHorizontalAlignment(SwingConstants.LEFT);
         panelHeader.add(lblReloj, BorderLayout.WEST);
         
         lblHeaderTitulo = new JLabel("MONITORIZACIÓN METEOROLÓGICA", JLabel.CENTER);
-        lblHeaderTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        lblHeaderTitulo.setFont(FONT_TITULO);
         lblHeaderTitulo.setForeground(Color.WHITE);
         panelHeader.add(lblHeaderTitulo, BorderLayout.CENTER);
         
         
         JLabel lblDummy = new JLabel("00:00:00");
-        lblDummy.setFont(new Font("Consolas", Font.BOLD, 18));
+        lblDummy.setFont(FONT_RELOJ);
         lblDummy.setForeground(new Color(0, 0, 0, 0)); 
         panelHeader.add(lblDummy, BorderLayout.EAST);
         
@@ -102,7 +109,7 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         ));
         
         lblTituloClima = new JLabel(String.format("DATOS HORA %02d:00", horaActualInt));
-        lblTituloClima.setFont(new Font("Arial", Font.BOLD, 16));
+        lblTituloClima.setFont(FONT_SUBTITULO);
         lblTituloClima.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
         lblTituloClima.setHorizontalAlignment(SwingConstants.CENTER);
         lblTituloClima.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
@@ -112,66 +119,44 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         tablaDatos.setBackground(PaletaColor.get(PaletaColor.FONDO));
         tablaDatos.setBorder(BorderFactory.createLineBorder(PaletaColor.get(PaletaColor.FONDO)));
         
-        // Definimos las fuentes y alineaciones
-        Font headerFont = new Font("Arial", Font.BOLD, 14);
-        Font typeFont = new Font("Arial", Font.PLAIN, 14);
-        Font valueFont = new Font("Monospaced", Font.PLAIN, 14);
+        valTemp = crearLabelValor();
+        valViento = crearLabelValor();
+        valLluvia = crearLabelValor();
+        valNieve = crearLabelValor();
+        valNiebla = crearLabelValor();
+        valNubes = crearLabelValor();
+        valPresion = crearLabelValor();
+
+        agregarFilaEstilizada(tablaDatos, "Temperatura (°C)", valTemp);
+        agregarFilaEstilizada(tablaDatos, "Viento (km/h)", valViento);
+        agregarFilaEstilizada(tablaDatos, "Precipitación (mm)", valLluvia);
+        agregarFilaEstilizada(tablaDatos, "Nieve (cm)", valNieve);
+        agregarFilaEstilizada(tablaDatos, "Visibilidad (km)", valNiebla);
+        agregarFilaEstilizada(tablaDatos, "Nubes (m)", valNubes);
+        agregarFilaEstilizada(tablaDatos, "Presión (hPa)", valPresion);
         
-        // Fila 1: Cabeceras (Centradas)
-        tablaDatos.add(crearCeldaTabla("Propiedad", SwingConstants.CENTER, headerFont, true));
-        tablaDatos.add(crearCeldaTabla("Valor", SwingConstants.CENTER, headerFont, true));
-
-        // Fila 2: Temperatura (Izquierda, Derecha)
-        tablaDatos.add(crearCeldaTabla("Temperatura [°C]", SwingConstants.LEFT, typeFont, false));
-        valTemp = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
-        tablaDatos.add(valTemp);
-
-        // Fila 3: Viento (Izquierda, Derecha)
-        tablaDatos.add(crearCeldaTabla("Viento [km/h]", SwingConstants.LEFT, typeFont, false));
-        valViento = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
-        tablaDatos.add(valViento);
-
-        // Fila 4: Lluvia (Izquierda, Derecha)
-        tablaDatos.add(crearCeldaTabla("Lluvia [mm/h]", SwingConstants.LEFT, typeFont, false));
-        valLluvia = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
-        tablaDatos.add(valLluvia);
-
-        // Fila 5: Nieve (Izquierda, Derecha)
-        tablaDatos.add(crearCeldaTabla("Nieve [cm/h]", SwingConstants.LEFT, typeFont, false));
-        valNieve = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
-        tablaDatos.add(valNieve);
-
-        // Fila 6: Visibilidad (Izquierda, Derecha)
-        tablaDatos.add(crearCeldaTabla("Visibilidad [km]", SwingConstants.LEFT, typeFont, false));
-        valNiebla = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
-        tablaDatos.add(valNiebla);
-
-        // Fila 7: Nubes (Izquierda, Derecha)
-        tablaDatos.add(crearCeldaTabla("Nubes [m]", SwingConstants.LEFT, typeFont, false));
-        valNubes = crearCeldaTabla("---", SwingConstants.RIGHT, valueFont, false);
-        tablaDatos.add(valNubes);
-
         panelTablaContainer.add(lblTituloClima, BorderLayout.NORTH);
         panelTablaContainer.add(tablaDatos, BorderLayout.CENTER);
+        
+        panelIzquierdo.add(panelTablaContainer);
+        panelIzquierdo.add(Box.createVerticalStrut(20));
         
         
         panelBrujula = new PanelBrujula();
         panelBrujula.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        panelIzquierdo.add(panelTablaContainer);
-        panelIzquierdo.add(Box.createVerticalStrut(20));
         
         JPanel panelBrujulaWrapper = new JPanel(new BorderLayout());
         panelBrujulaWrapper.setBackground(PaletaColor.get(PaletaColor.FONDO));
         
         JLabel lblTituloBrujula = new JLabel("DIRECCIÓN Y VIENTO");
-        lblTituloBrujula.setFont(new Font("Arial", Font.BOLD, 14));
+        lblTituloBrujula.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblTituloBrujula.setForeground(Color.DARK_GRAY);
         lblTituloBrujula.setHorizontalAlignment(SwingConstants.CENTER);
         lblTituloBrujula.setBorder(new EmptyBorder(0,0,5,0));
         
         lblVelocidadViento = new JLabel("0 km/h");
-        lblVelocidadViento.setFont(new Font("Monospaced", Font.BOLD, 20));
+        lblVelocidadViento.setFont(new Font("Consolas", Font.BOLD, 20));
         lblVelocidadViento.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
         lblVelocidadViento.setHorizontalAlignment(SwingConstants.CENTER);
         lblVelocidadViento.setBorder(new EmptyBorder(5, 0, 5, 0));
@@ -184,7 +169,7 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         panelIzquierdo.add(Box.createVerticalStrut(20));
              
         lblEstadoAeropuerto = new JLabel("AEROPUERTO OPERATIVO");
-        lblEstadoAeropuerto.setFont(new Font("Arial", Font.BOLD, 16));
+        lblEstadoAeropuerto.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblEstadoAeropuerto.setForeground(Color.WHITE);
         lblEstadoAeropuerto.setBackground(new Color(34, 139, 34)); // Verde Forest
         lblEstadoAeropuerto.setOpaque(true); // Necesario para ver el color de fondo
@@ -243,7 +228,7 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         
         TitledBorder borderGraficos = BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(PaletaColor.get(PaletaColor.PRIMARIO)), "Pronóstico");
-        borderGraficos.setTitleFont(new Font("Arial", Font.BOLD, 14));
+        borderGraficos.setTitleFont(new Font("Segoe UI", Font.BOLD, 14));
         borderGraficos.setTitleColor(PaletaColor.get(PaletaColor.PRIMARIO));
         
         panelGraficosWrapper.setBorder(BorderFactory.createCompoundBorder(
@@ -287,7 +272,7 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
 	}
 	
 	private void estilizarBotonToggle(JToggleButton boton) {
-        boton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        boton.setFont(FONT_BOTON);
         boton.setPreferredSize(new Dimension(150, 35)); // Un poco más anchos para que quepa el texto
         boton.setFocusPainted(false);
         boton.setBorderPainted(false); 
@@ -361,6 +346,7 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         valViento.setText(String.format("%.1f", c.getVelocidadViento()));
         valNiebla.setText(String.format("%.1f", c.getVisibilidadKm()));
         valNubes.setText(String.valueOf(c.getTechoNubesMetros()));
+        valPresion.setText(String.format("%.1f", c.getPresionHPa()));
         
         if (c instanceof ClimaNevado) {
             valLluvia.setText("0.0");
@@ -435,26 +421,24 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         actualizarGraficos();
     }
 	
-	private JLabel crearCeldaTabla(String texto, int alignment, Font font, boolean isHeader) {
-        JLabel label = new JLabel(texto);
-        label.setFont(font);
-        label.setHorizontalAlignment(alignment);
-        label.setOpaque(true);
-        
-        if (isHeader) {
-            // ENCABEZADO: Fondo azul, texto blanco
-            label.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
-            label.setForeground(Color.WHITE);
-        } else {
-            // DATO NORMAL: Fondo blanco, texto negro
-            label.setBackground(PaletaColor.get(PaletaColor.FONDO));
-            label.setForeground(Color.BLACK);
-        }
-        
-        label.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-        return label;
+	private JLabel crearLabelValor() {
+        JLabel l = new JLabel("-");
+        l.setFont(FONT_VALOR_TABLA); // Segoe UI Plain 14
+        l.setHorizontalAlignment(SwingConstants.CENTER);
+        l.setBackground(Color.WHITE);
+        l.setOpaque(true);
+        return l;
     }
-	
+    
+    private void agregarFilaEstilizada(JPanel panel, String titulo, JLabel labelValor) {
+        JLabel lblTitulo = new JLabel(" " + titulo);
+        lblTitulo.setFont(FONT_LABEL_TABLA); // Segoe UI Bold 13
+        lblTitulo.setBackground(PaletaColor.get(PaletaColor.PRIMARIO)); 
+        lblTitulo.setForeground(Color.WHITE); 
+        lblTitulo.setOpaque(true);
+        panel.add(lblTitulo);
+        panel.add(labelValor);
+    }
 	
     
     
