@@ -39,12 +39,11 @@ public abstract class Clima {
 	}
 	
 	public void actualizarSenalPeligro() {
-		// CORREGIDO: Eliminada la condición "|| this.techoNubesMetros != 0" que causaba el fallo
 		if (this.velocidadViento > VELOCIDAD_VIENTO_PELIGROSA || 
 	            this.visibilidadKm < VISIBILIDAD_PELIGROSA || 
 	            this.techoNubesMetros < TECHO_NUBES_PELIGROSO_METROS) {
 	            this.senalPeligro = true;
-	        } else {
+	            } else {
 	            this.senalPeligro = false;
 	        }
 	}
@@ -62,7 +61,7 @@ public abstract class Clima {
 	public double getPresionHPa() { return presionHPa; }
 	public int getProbabilidadPrecipitacion() { return probabilidadPrecipitacion; }
 	public double getDireccionViento() { return direccionViento; }
-	public void setDireccionViento(double grados) { this.direccionViento = grados; }
+	public void setDireccionViento(double direccionViento) { this.direccionViento = direccionViento; }
 	
 	public static class ClimaDespejado extends Clima {
 		

@@ -13,7 +13,12 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
@@ -22,111 +27,124 @@ public class PanelBrujula extends JPanel {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private double velocidad;
+	private BufferedImage imagenFondo;
 	private double direccionGrados;
+	private String mensajeError = ""; // Para depurar en pantalla si falla
+	
+	// COLORES DE LA AGUJA (Mejorados para contraste)
+    private final Color COLOR_NORTE = new Color(255, 40, 40);   // Rojo más brillante
+    private final Color COLOR_SUR = new Color(220, 220, 220);   // Gris casi blanco
+    private final Color COLOR_BORDE_AGUJA = new Color(255, 255, 255, 150); // Borde claro sutil
+    private final Color COLOR_PIVOTE = new Color(40, 40, 40);   // Pivote oscuro
+    private final Color COLOR_PIVOTE_BRILLO = new Color(200, 200, 200); // Brillo metálico
 	
 	public PanelBrujula() {
-		
-		this.velocidad = 0.0;
+	
 		this.direccionGrados = 0.0;
 		
 		setBackground(PaletaColor.get(PaletaColor.FONDO));
-		setBorder(new LineBorder(PaletaColor.get(PaletaColor.PRIMARIO), 1, true));
-		setPreferredSize(new Dimension(220, 220));
+		setPreferredSize(new Dimension(240, 240));
+		
+		cargarImagen();
 	}
 	
-	public void setDatos(double velocidad, double direccion) {
-		this.velocidad = velocidad;
-		this.direccionGrados = direccion;
-		
-		revalidate();
-		repaint();
-	}
+	private void cargarImagen() {
+        String nombreArchivo = "brujula_fondo.png";
+        
+        try {
+            // INTENTO 1: Carga desde el Classpath (Recursos compilados)
+            // Esto funciona si 'resources' es una Source Folder
+            URL imgUrl = getClass().getResource("/img/" + nombreArchivo);
+            
+            if (imgUrl == null) {
+                // INTENTO 2: Carga directa desde el sistema de archivos (Proyecto/resources/img/...)
+                // Esto funciona al ejecutar desde Eclipse/IntelliJ si la carpeta está en la raíz
+                File archivo = new File("resources/img/" + nombreArchivo);
+                if (archivo.exists()) {
+                    imagenFondo = ImageIO.read(archivo);
+                    System.out.println("Imagen cargada desde archivo: " + archivo.getAbsolutePath());
+                } else {
+                    // INTENTO 3: Probar ruta sin 'resources' por si acaso
+                    File archivo2 = new File("img/" + nombreArchivo);
+                    if (archivo2.exists()) {
+                        imagenFondo = ImageIO.read(archivo2);
+                    } else {
+                        mensajeError = "No se encuentra: " + archivo.getAbsolutePath();
+                        System.err.println("ERROR: No se encuentra la imagen en ninguna ruta.");
+                    }
+                }
+            } else {
+                imagenFondo = ImageIO.read(imgUrl);
+                System.out.println("Imagen cargada desde URL: " + imgUrl);
+            }
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+            mensajeError = "Excepción IO: " + e.getMessage();
+        }
+    }
+	
+	public void setDireccion(double direccion) {
+        this.direccionGrados = direccion;
+        revalidate();
+        repaint();
+    }
 	
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2d = (Graphics2D) g;
 		
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		
-		int w = getWidth();
-		int h = getHeight();
-		
-		
-		Insets insets = getInsets();
-        int areaW = w - insets.left - insets.right;
-        int areaH = h - insets.top - insets.bottom;
+        int w = getWidth();
+        int h = getHeight();
+        int lado = Math.min(w, h); // Usamos el lado más pequeño para que sea cuadrado
+        int cx = w / 2;
+        int cy = h / 2;
         
-        int cx = insets.left + areaW / 2;
-        int cy = insets.top + areaH / 2;
-        int radio = Math.min(areaW, areaH) / 2 - 10;
+        int margen = 5;
+        int diametro = lado - 2 * margen;
+        int radio = diametro / 2;
         
         if (radio <= 0) return;
 		
-        // 1. Dibujar Esfera de la brújula
-        g2d.setColor(Color.WHITE);
-        g2d.fillOval(cx - radio, cy - radio, radio * 2, radio * 2);
-        g2d.setColor(PaletaColor.get(PaletaColor.PRIMARIO));
-        g2d.setStroke(new BasicStroke(2));
-        g2d.drawOval(cx - radio, cy - radio, radio * 2, radio * 2);
+        if (imagenFondo != null) {
+            g2d.drawImage(imagenFondo, cx - radio, cy - radio, diametro, diametro, this);
+        } else {
+            // Fallback...
+            g2d.setColor(new Color(220, 220, 220)); g2d.fillOval(cx - radio, cy - radio, diametro, diametro);
+            g2d.setColor(Color.RED); g2d.drawString("IMG ERROR", cx - 30, cy);
+        }
 		
-        // 2. Dibujar Marcas Cardinales (N, S, E, O)
-        g2d.setColor(Color.DARK_GRAY);
-        g2d.setFont(new Font("SansSerif", Font.BOLD, 14));
-        drawCenteredString(g2d, "N", cx, cy - radio + 15);
-        drawCenteredString(g2d, "S", cx, cy + radio - 15);
-        drawCenteredString(g2d, "E", cx + radio - 15, cy);
-        drawCenteredString(g2d, "O", cx - radio + 15, cy);
-		
-        // 3. Dibujar Aguja Rotada
+        // Dibujar Aguja Rotada
         AffineTransform old = g2d.getTransform();
         g2d.rotate(Math.toRadians(direccionGrados), cx, cy);
 		
-        // Flecha Norte (Roja)
         Path2D flechaNorte = new Path2D.Double();
-        flechaNorte.moveTo(cx, cy - radio + 25);
-        flechaNorte.lineTo(cx + 6, cy);          
-        flechaNorte.lineTo(cx - 6, cy);          
+        flechaNorte.moveTo(cx, cy - radio + 12); // Punta
+        flechaNorte.lineTo(cx + 7, cy);          // Base más ancha
+        flechaNorte.lineTo(cx - 7, cy);
         flechaNorte.closePath();
-        g2d.setColor(new Color(220, 50, 50));
-        g2d.fill(flechaNorte);
 		
-        // Flecha Sur (Gris)
         Path2D flechaSur = new Path2D.Double();
-        flechaSur.moveTo(cx, cy + radio - 25);
-        flechaSur.lineTo(cx + 6, cy);
-        flechaSur.lineTo(cx - 6, cy);
+        flechaSur.moveTo(cx, cy + radio - 12);
+        flechaSur.lineTo(cx + 7, cy);
+        flechaSur.lineTo(cx - 7, cy);
         flechaSur.closePath();
-        g2d.setColor(Color.LIGHT_GRAY);
-        g2d.fill(flechaSur);
-		
-		g2d.setTransform(old);
-		
-		// 4. Pivote central y Texto de velocidad
-        g2d.setColor(PaletaColor.get(PaletaColor.PRIMARIO));
-        g2d.fillOval(cx - 5, cy - 5, 10, 10); // Puntito central
-		
-        // Recuadro para la velocidad
-        String textoVel = String.format("%.0f km/h", velocidad);
-        g2d.setFont(new Font("Monospaced", Font.BOLD, 16));
-        FontMetrics fm = g2d.getFontMetrics();
-        int tw = fm.stringWidth(textoVel);
-        int th = fm.getHeight();
-		
-     // Etiqueta flotante para la velocidad
-        g2d.setColor(new Color(255, 255, 255, 230));
-        g2d.fillRoundRect(cx - tw/2 - 6, cy + 20, tw + 12, th + 4, 10, 10);
-        g2d.setColor(PaletaColor.get(PaletaColor.PRIMARIO)); // Texto en azul corporativo
-        g2d.drawRoundRect(cx - tw/2 - 6, cy + 20, tw + 12, th + 4, 10, 10);
+
+        g2d.setColor(COLOR_NORTE); g2d.fill(flechaNorte);
+        g2d.setColor(COLOR_SUR);   g2d.fill(flechaSur);
         
-        drawCenteredString(g2d, textoVel, cx, cy + 20 + (th/2) + 2);
-	}
-	
-	private void drawCenteredString(Graphics g, String text, int x, int y) {
-		FontMetrics metrics = g.getFontMetrics(g.getFont());
-		int xCentrado = x - (metrics.stringWidth(text) / 2);
-		int yCentrado = y - (metrics.getHeight() / 2) + metrics.getAscent();
-		g.drawString(text, xCentrado, yCentrado);
+        // Dibujar Borde (Para contraste)
+        g2d.setColor(COLOR_BORDE_AGUJA);
+        g2d.setStroke(new BasicStroke(1.2f)); // Borde fino
+        g2d.draw(flechaNorte);
+        g2d.draw(flechaSur);
+
+        g2d.setTransform(old);
+        
+        g2d.setColor(COLOR_PIVOTE); g2d.fillOval(cx - 6, cy - 6, 12, 12); 
+        g2d.setColor(COLOR_PIVOTE_BRILLO); g2d.fillOval(cx - 2, cy - 2, 4, 4);
 	}
 }
