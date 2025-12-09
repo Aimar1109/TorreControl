@@ -62,7 +62,6 @@ public class PanelBrujula extends JPanel {
                 File archivo = new File("resources/img/" + nombreArchivo);
                 if (archivo.exists()) {
                     imagenFondo = ImageIO.read(archivo);
-                    System.out.println("Imagen cargada desde archivo: " + archivo.getAbsolutePath());
                 } else {
                     // INTENTO 3: Probar ruta sin 'resources' por si acaso
                     File archivo2 = new File("img/" + nombreArchivo);
@@ -75,7 +74,6 @@ public class PanelBrujula extends JPanel {
                 }
             } else {
                 imagenFondo = ImageIO.read(imgUrl);
-                System.out.println("Imagen cargada desde URL: " + imgUrl);
             }
             
         } catch (IOException e) {

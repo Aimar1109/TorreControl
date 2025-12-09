@@ -29,7 +29,7 @@ public class Pista {
 
     @Override
     public String toString() {
-        return "Pista " + numero;
+        return ""+numero;
     }
 }
 

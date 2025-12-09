@@ -155,7 +155,7 @@ public class Main {
                 destino = bilbao;
 
                 // Pista y puerta: asignadas en Bilbao (destino)
-                pista = new Pista(String.valueOf(i % 3 + 1), false);
+                pista = new Pista(String.valueOf(i % 2 + 1), false);
                 gestorBD.insertPista(pista);
 
                 if (earlyArrivalsAssigned < targetEarlyArrivals) {
@@ -172,7 +172,7 @@ public class Main {
                 destino = aeropuertos.get(random.nextInt(aeropuertos.size()));
 
                 // Pista y puerta: asignadas en Bilbao (origen)
-                pista = new Pista(String.valueOf(i % 3 + 1), false);
+                pista = new Pista(String.valueOf(i % 2 + 1), false);
                 gestorBD.insertPista(pista);
 
                 if (earlyDeparturesAssigned < targetEarlyDepartures) {

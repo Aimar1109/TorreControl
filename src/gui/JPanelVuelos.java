@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultCellEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -49,6 +50,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
@@ -60,6 +62,7 @@ import domain.Aerolinea;
 import domain.Aeropuerto;
 import domain.Avion;
 import domain.PaletaColor;
+import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import jdbc.GestorBD;
@@ -332,7 +335,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         
         // Tabla
         String ae = esLlegada ? "ORIGEN": "DESTINO";
-        String[] columnas = {"VUELO", ae, "FECHA", "HORA", "RETRASO"};
+        String[] columnas = {"VUELO", ae, "FECHA", "HORA", "PUERTA", "PISTA", "RETRASO"};
          
         DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
         	@Override
@@ -381,11 +384,14 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         		continue;
         	}
         	String ciudad = esLlegada ? v.getOrigen().getCiudad() : v.getDestino().getCiudad();
+        	String pista = v.getPista()==null ? "": v.getPista().toString();
         	modelo.addRow(new Object[] {
         			v.getCodigo(),
         			ciudad,
         			v.getFechaHoraProgramada().format(formatterFecha),
         			v.getFechaHoraProgramada().format(formatterHora),
+        			v.getPuerta(),
+        			pista,
         			v.getDelayed()
         	});
         }
@@ -409,6 +415,63 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         sorter.setSortKeys(clavesOrden);
         // ordenar
         sorter.sort();
+        
+        // ComboBox para PUERTA
+        ArrayList<PuertaEmbarque> puertas = (ArrayList<PuertaEmbarque>) gestorBD.loadPuertasEmbarque();
+        JComboBox<String> comboPuerta = new JComboBox<>();
+        comboPuerta.addItem("");
+        for (PuertaEmbarque pu: puertas) {
+        	comboPuerta.addItem(pu.toString());
+        }
+        tabla.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(comboPuerta));
+        
+        // ComboBox para PISTA
+        ArrayList<Pista> pistas = (ArrayList<Pista>) gestorBD.loadPistas();
+        JComboBox<String> comboPista = new JComboBox<>();
+        comboPista.addItem("");
+        for (Pista p: pistas) {
+        	comboPista.addItem(p.getNumero());
+        }
+        tabla.getColumnModel().getColumn(5).setCellEditor(new DefaultCellEditor(comboPista));
+        
+        // Actualizaciones
+        modelo.addTableModelListener(e -> {
+            if (e.getType() == TableModelEvent.UPDATE) {
+                int fila = e.getFirstRow();
+                int columna = e.getColumn();
+                
+                if (fila >= 0 && (columna == 4 || columna == 5)) {
+                    // Convertir índice de vista a modelo (importante con filtros)
+                    int filaModelo = tabla.convertRowIndexToModel(fila);
+                    
+                    String codigoVuelo = (String) modelo.getValueAt(filaModelo, 0);
+                    Object nuevoValor = modelo.getValueAt(filaModelo, columna);
+                    
+                    // Buscar el vuelo en el ArrayList
+                    Vuelo vuelo = vuelos.stream()
+                        .filter(v -> v.getCodigo().equals(codigoVuelo))
+                        .findFirst()
+                        .orElse(null);
+                    
+                    if (vuelo != null) {
+                        if (columna == 4) { // PUERTA
+                            // Actualizar puerta
+                            PuertaEmbarque nuevaPuerta = gestorBD.getPuertaEmbarqueByCodigo((String) nuevoValor);
+                            vuelo.setPuerta(nuevaPuerta);
+                        } else if (columna == 5) { // PISTA
+                            // Actualizar pista
+                            Integer nuevaPista = nuevoValor.toString().isEmpty() ? 
+                                null : Integer.parseInt(nuevoValor.toString());
+                            Pista np = gestorBD.getPistaByNumero(nuevaPista.toString());
+                            vuelo.setPista(np);
+                        }
+                        
+                        // Actualizar en BD
+                        gestorBD.updateVuelo(vuelo);
+                    }
+                }
+            }
+        });
         
         // Tamaño minimo de las columnas
         int anchoMinimoTotal = 80*tabla.getModel().getColumnCount();
@@ -492,11 +555,14 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         		}
         		
         		if (coincide) {
+        			String pista = v.getPista() == null ? "" : v.getPista().toString();
         			modelo.addRow(new Object[] {
                 			v.getCodigo(),
                 			ciudad,
                 			v.getFechaHoraProgramada().format(formatterFecha),
                 			v.getFechaHoraProgramada().format(formatterHora),
+                			v.getPuerta().toString(),
+                			pista,
                 			v.getDelayed()
                 	});
         		}

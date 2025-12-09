@@ -141,7 +141,7 @@ public class GestorBD {
     		pstmt.setString(2,  avion.getModelo());
     		pstmt.setInt(3,  avion.getCapacidad());
 
-    		pstmt.executeUpdate();
+    		pstmt.execute();
     		
     		//System.out.format("- Vuelo '%s' insertado\n", vuelo.getCodigo());
             
@@ -493,7 +493,7 @@ public class GestorBD {
     public List<Pista> loadPistas() {
     	List<Pista> pistas = new ArrayList<Pista>();
 		
-		String sqlPista = "SELECT * FROM AEROLINEA";
+		String sqlPista = "SELECT * FROM PISTA";
 
         try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
              PreparedStatement pstPista = con.prepareStatement(sqlPista);) {
@@ -703,4 +703,35 @@ public class GestorBD {
 			
 		return tripulacion;
 	}
+	
+	public void updateVuelo(Vuelo vuelo) {
+
+	    String sql = "UPDATE VUELO SET "
+	            + "NUMERO_PISTA = ?, "
+	            + "CODIGO_PUERTAEMBARQUE = ?, "
+	            + "DELAYED = ? "
+	            + "WHERE CODIGO = ?";
+
+	    try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
+	         PreparedStatement pstmt = con.prepareStatement(sql)) {
+
+	        String pista = (vuelo.getPista() != null ? vuelo.getPista().getNumero() : null);
+	        pstmt.setString(1, pista);
+	        pstmt.setString(2, vuelo.getPuerta().getCodigo());
+	        pstmt.setInt(3, vuelo.getDelayed());
+	        pstmt.setString(4, vuelo.getCodigo().trim());
+
+	        int filas = pstmt.executeUpdate();
+
+	        if (filas == 0) {
+	            System.out.println("* No se encontró el vuelo con código " + vuelo.getCodigo());
+	        } /* else {
+	            System.out.println("✔ Vuelo '" + vuelo.getCodigo() + "' actualizado correctamente.");
+	        }*/
+	        
+	    } catch (SQLException e) {
+	        System.err.println("* Error al actualizar vuelo '" + vuelo.getCodigo() + "': " + e.getMessage());
+	    }
+	}
+
 }
