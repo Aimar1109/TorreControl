@@ -6,18 +6,16 @@ import domain.Vuelo;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class PistasDragListener implements MouseListener, MouseMotionListener {
+public class PistasDragListener implements MouseListener, MouseMotionListener, AWTEventListener {
 
     private JList<Vuelo> listaOrigen;
     private List<JList<Vuelo>> listasDestino;
-    private JPanel ventanaPrincipal;
+    //private JPanel ventanaPrincipal;
 
     private Vuelo vueloArrastrado = null;
     private int indiceArrastrado = -1;
@@ -40,30 +38,39 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
         this.listaOrigen = listaOrigen;
         this.listasDestino = new ArrayList<>();
         this.listasDestino.add(listaDestino);
-        this.ventanaPrincipal = ventanaPrincipal;
         this.pista1 = pista1;
         this.pista2 = pista2;
 
         inicializarVentanaFlotante();
         inicializarTimer();
+
+        //IAG (ChatGPT)
+        Toolkit.getDefaultToolkit().addAWTEventListener((AWTEventListener) this,
+                AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK);
     }
 
     //Constructor multiples listas destino
     public PistasDragListener(JList<Vuelo> listaOrigen, List<JList<Vuelo>> listasDestino, Pista pista1, Pista pista2) {
         this.listaOrigen = listaOrigen;
         this.listasDestino = listasDestino;
-        this.ventanaPrincipal = ventanaPrincipal;
         this.pista1 = pista1;
         this.pista2 = pista2;
 
         inicializarVentanaFlotante();
         inicializarTimer();
+
+        //IAG (ChatGPT)
+        Toolkit.getDefaultToolkit().addAWTEventListener((AWTEventListener) this,
+                AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK);
     }
 
     private void inicializarVentanaFlotante() {
         //Creación ventana flotante
         ventanaFlotante = new JWindow();
         ventanaFlotante.setAlwaysOnTop(true);
+        ventanaFlotante.setFocusableWindowState(false);
+        ventanaFlotante.setAutoRequestFocus(false);
+        ventanaFlotante.setType(Window.Type.POPUP);
 
         //Creo un JPanel para organizar el contenido dentro de la ventana flotante
         JPanel contenidoLabel = new JPanel(new BorderLayout(0, 2));
@@ -72,6 +79,11 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
                 BorderFactory.createLineBorder(new Color(50, 100, 150), 2),
                 BorderFactory.createEmptyBorder(8, 12, 8, 12)
         ));
+
+        //Se ignoran para no afectar al drag
+        contenidoLabel.setEnabled(false);
+        contenidoLabel.addMouseListener(new MouseAdapter() {
+        });
 
         //Label del codigo (contenido principal)
         labelCodigo = new JLabel();
@@ -86,12 +98,21 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
         labelRuta.setFont(new Font("Arial", Font.BOLD, 13));
         labelRuta.setOpaque(false);
         labelRuta.setHorizontalAlignment(JLabel.CENTER);
-        //labelRuta.setName("labelRuta");
 
         contenidoLabel.add(labelCodigo, BorderLayout.NORTH);
         contenidoLabel.add(labelRuta, BorderLayout.CENTER);
 
+        ventanaFlotante.setBackground(new Color(0,0,0,0));
         ventanaFlotante.add(contenidoLabel);
+        ventanaFlotante.pack();
+    }
+
+    //Solo los vuelos que aterricen serán arrastrables
+    private boolean esArrastrable(Vuelo vuelo) {
+        if (vuelo != null && vuelo.getDestino().getCiudad().equals("Bilbao")) {
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -104,19 +125,25 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
             vueloArrastrado = lista.getModel().getElementAt(indiceElemento);
             indiceArrastrado = indiceElemento;
 
+            if(!esArrastrable(vueloArrastrado)) {
+                lista.clearSelection();
+                vueloArrastrado = null;
+                indiceArrastrado = -1;
+                return;
+            }
+
             //Cambia el cursor
             lista.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 
             //Selecciona el elemento
             lista.setSelectedIndex(indiceElemento);
 
-            //Configuro la ventana flotante
+            //Configura la ventana flotante
+            configurarVentanaFlotante();
+
             Point puntoActual = e.getLocationOnScreen();
             ventanaFlotante.setLocation(puntoActual);
             ventanaFlotante.setVisible(true);
-
-            //Configura la ventana flotante
-            configurarVentanaFlotante();
 
             //Iniciar timer de actualización
             timerActualizacion.start();
@@ -125,24 +152,42 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
 
     @Override
     public void mouseDragged(MouseEvent e) {
-
+        //IAG: (ChatGPT)
+        PointerInfo pointerInfo = MouseInfo.getPointerInfo();
+        if (pointerInfo != null) setResaltados(pointerInfo.getLocation());
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        if (vueloArrastrado != null) {
+        Point punto = e.getLocationOnScreen();
+        JList<Vuelo> listaOrigen = (JList<Vuelo>) e.getSource();
+        drop(punto, listaOrigen);
+    }
+
+    //IAG: (ChatGPT) Metodo generado con IA
+    @Override
+    public void eventDispatched(AWTEvent event) {
+        if (!(event instanceof MouseEvent)) return;
+        MouseEvent me = (MouseEvent) event;
+        if (me.getID() == MouseEvent.MOUSE_RELEASED && vueloArrastrado != null) {
+            Component src = me.getComponent();
+            // Si el release vino del JWindow o fuera de listas, igual finalizamos
+            drop(me.getLocationOnScreen(), (src instanceof JList) ? (JList<Vuelo>) src : listaOrigen);
+        }
+    }
+
+    private void drop(Point punto, JList<Vuelo> listaOrigen) {
+        try {
             timerActualizacion.stop();
-
-            //Reestablecer configuraciones visuales originales
             ventanaFlotante.setVisible(false);
-            JList<Vuelo> lista = (JList<Vuelo>) e.getSource();
-            lista.setCursor(Cursor.getDefaultCursor());
 
-            Point puntoSoltar = e.getLocationOnScreen();
+            if (listaOrigen != null) {
+                listaOrigen.setCursor(Cursor.getDefaultCursor());
+            }
 
-            if (puntoSoltar != null) {
+            if (punto != null && vueloArrastrado != null && esArrastrable(vueloArrastrado)) {
                 for (JList<Vuelo> listaDestino : listasDestino) {
-                    Point puntoRelativo = new Point(puntoSoltar);
+                    Point puntoRelativo = new Point(punto);
                     SwingUtilities.convertPointFromScreen(puntoRelativo, listaDestino);
 
                     //Si esta en la lista destino se actua
@@ -172,10 +217,9 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
                 }
             }
 
-            //Restauro valores iniciales
+        } finally {
             vueloArrastrado = null;
             indiceArrastrado = -1;
-            punto = null;
             borrarResaltados();
         }
     }
@@ -234,27 +278,18 @@ public class PistasDragListener implements MouseListener, MouseMotionListener {
     }
 
     //IAG (herramienta: Claude)
+    //Codigo modificado
     private void inicializarTimer() {
         // Timer que lee la posición global del mouse y actualiza la ventana
         timerActualizacion = new Timer(INTERVALO_ACTUALIZACION, e -> {
             if (vueloArrastrado != null && ventanaFlotante.isVisible()) {
-                try {
-                    // Obtener posición GLOBAL del mouse
+                if (vueloArrastrado != null && ventanaFlotante.isVisible()) {
                     PointerInfo pointerInfo = MouseInfo.getPointerInfo();
                     if (pointerInfo != null) {
                         Point posicionMouse = pointerInfo.getLocation();
-
-                        // Actualizar posición de ventana flotante
-                        ventanaFlotante.setLocation(
-                                posicionMouse.x,
-                                posicionMouse.y
-                        );
-
-                        // Actualizar resaltado de listas
+                        ventanaFlotante.setLocation(posicionMouse.x, posicionMouse.y);
                         setResaltados(posicionMouse);
                     }
-                } catch (Exception ex) {
-                    // En caso de error, continuar
                 }
             }
         });
