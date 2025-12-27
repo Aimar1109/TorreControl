@@ -29,8 +29,9 @@ public class Avion {
     private Point estacionamientoHangar;
     private EstadoAvion estadoAvion;
 
+    private boolean marchaAtras;
+    private Point destinoMarchaAtras;
 
-    
 
     public Avion() {
         this.modelo = "";
@@ -140,6 +141,22 @@ public class Avion {
         this.imagen = imagen;
     }
 
+    public Point getDestinoMarchaAtras() {
+        return destinoMarchaAtras;
+    }
+
+    public void setDestinoMarchaAtras(Point destinoMarchaAtras) {
+        this.destinoMarchaAtras = destinoMarchaAtras;
+    }
+
+    public boolean isMarchaAtras() {
+        return marchaAtras;
+    }
+
+    public void setMarchaAtras(boolean marchaAtras) {
+        this.marchaAtras = marchaAtras;
+    }
+
     public void mover(int x, int y) {
         this.x += x;
         this.y += y;
@@ -157,6 +174,11 @@ public class Avion {
         double normalDy = dy/d;
 
         if (d < 0.0001) {
+            //Si hemos llegado al destino y era tambien el final de la marcha atras se desactiva
+            if (marchaAtras && destinoMarchaAtras != null && futureX == destinoMarchaAtras.x && futureY == destinoMarchaAtras.y) {
+                marchaAtras = false;
+                destinoMarchaAtras = null;
+            }
             return;
         }
 
@@ -168,7 +190,7 @@ public class Avion {
             int moveXi = (int) Math.round(moveX);
             int moveYi = (int) Math.round(moveY);
 
-            // Si el redondeo da 0 pero hay aunque sea un movimiento minimo, se fuerza que se mueva al menos 1 px
+            // Si el redondeo da 0, pero hay aunque sea un movimiento mínimo, se fuerza que se mueva al menos 1 px
             if (moveXi == 0 && Math.abs(moveX) > 0){
                 moveXi = (int) Math.signum(moveX);
             }
@@ -180,11 +202,24 @@ public class Avion {
             y += moveYi;
 
             //Se le suman piradianes ya que es el desfase.
-            angulo = Math.atan2(normalDy, normalDx) + Math.PI / 2;
+            double anguloIntermedio = Math.atan2(normalDy, normalDx) + Math.PI / 2;
+
+            //Si va marcha atrás se invierte el ángulo
+            if(marchaAtras && destinoMarchaAtras != null) {
+                anguloIntermedio = anguloIntermedio + Math.PI;
+            }
+
+            angulo = anguloIntermedio;
         } else {
             //Si está muy cerca (speed>d) se coloca directamente encima
             x = futureX;
             y = futureY;
+
+            //Si hemos llegado al destino y era también el final de la marcha atras, se desactiva
+            if (marchaAtras && destinoMarchaAtras != null && futureX == destinoMarchaAtras.x && futureY == destinoMarchaAtras.y) {
+                marchaAtras = false;
+                destinoMarchaAtras = null;
+            }
         }
     }
 
@@ -224,9 +259,7 @@ public class Avion {
     public void setSpeed(double speed) {
         this.speed = speed;
     }
-    
-    
-    
+
     @Override
     public boolean equals(Object o) {
     	 if (this == o) return true;

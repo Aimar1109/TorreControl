@@ -88,11 +88,6 @@ public class ControladorMovimiento implements ObservadorTiempo{
         verificarVuelosSalida(nuevoTiempo);
     }
 
-    @Override
-    public void cambioEstadoPausa(boolean pausa) {
-
-    }
-
     private void verificarVuelosSalida(LocalDateTime momentoActual) {
         for (Vuelo v : vuelos) {
             //Si la llegada no es Bilbao salta en el bucle
@@ -108,14 +103,14 @@ public class ControladorMovimiento implements ObservadorTiempo{
             long delay = v.getDelayed();
             LocalDateTime horaSalida = v.getFechaHoraProgramada().plusMinutes(delay);
 
-            //Si es mas tarde de la hora en la que debe aparecer o es la hora a la que debe aparecer aparece
+            //Si es más tarde de la hora en la que debe aparecer o es la hora a la que debe aparecer aparece
             if (momentoActual.isAfter(horaSalida) || momentoActual.equals(horaSalida)) {
                 Avion avion = v.getAvion();
 
                 //Verifico si el avión está ya en el aeropuerto
                 if (!avionesEnCurso.containsKey(avion.getMatricula())) {
                     //Si no está en el aeropuerto lo colocamos manualmente en el hangar
-                    colocarManualmente(avion);
+                    colocarManualmenteSalida(avion, v);
                     avionesEnCurso.put(avion.getMatricula(), avion);
 
                     mapPanel.addAvion(avion);
@@ -127,7 +122,23 @@ public class ControladorMovimiento implements ObservadorTiempo{
         }
     }
 
-    private void colocarManualmente(Avion avion) {
+    private void colocarManualmenteSalida(Avion avion, Vuelo vuelo) {
+        PuertaEmbarque puertaEmbarque = vuelo.getPuerta();
+        if (puertaEmbarque != null) {
+            Point p = getPuntoPuertaEmbarque(puertaEmbarque);
+            avion.setX((int) p.getX());
+            avion.setY((int) p.getY());
+            avion.setEstacionamientoHangar(null);
+            avion.setSpeed(0);
+            avion.setEstadoAvion(EstadoAvion.ESTACIONADO_PUERTA);
+            avion.setEnHangar(false);
+            puertaEmbarque.setOcupada(true);
+        } else {
+            colocarManualmenteHangar(avion);
+        }
+    }
+
+    private void colocarManualmenteHangar(Avion avion) {
         //Se coloca el avion aleatoriamente en el hangar
         Point posicionHangar = calcularPosicionHangar();
         avion.setX((int) posicionHangar.getX());
@@ -145,9 +156,26 @@ public class ControladorMovimiento implements ObservadorTiempo{
         pistaHorizontal = siguientePistaDespeguejeHorizontal;
         siguientePistaDespeguejeHorizontal = !siguientePistaDespeguejeHorizontal;
 
+        PuertaEmbarque puertaEmbarque = vuelo.getPuerta();
+
         //Se asigna la pista
         if (pistaHorizontal) {
-            setDespegueHorizontalHangar(avion, vuelo);
+            if (puertaEmbarque != null) {
+                switch (puertaEmbarque.getNumero()) {
+                    case 1 -> setDespegueHorizontalP1(avion, vuelo);
+                    case 2 -> setDespegueHorizontalP2(avion, vuelo);
+                    case 3 -> setDespegueHorizontalP3(avion, vuelo);
+                    case 4 -> setDespegueHorizontalP4(avion, vuelo);
+                    case 5 -> setDespegueHorizontalP5(avion, vuelo);
+                    case 6 -> setDespegueHorizontalP6(avion, vuelo);
+                    case 7 -> setDespegueHorizontalP7(avion, vuelo);
+                    case 8 -> setDespegueHorizontalP8(avion, vuelo);
+                    case 9 -> setDespegueHorizontalP9(avion, vuelo);
+                    default -> setDespegueHorizontalP1(avion, vuelo);
+                }
+            } else {
+                setDespegueHorizontalHangar(avion, vuelo);
+            }
         } else {
             setDespegueVerticalHangar(avion, vuelo);
         }
@@ -178,6 +206,222 @@ public class ControladorMovimiento implements ObservadorTiempo{
 
         avion.setRuta(ruta);
         avion.setSpeed(2);
+
+        avion.setEnHangar(false);
+        avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
+    }
+
+    //Función que establece la ruta global que todos los despegues horizontales desde las puertas de embarque siguen
+    private void despegueHorizontalPuertaGlobal(ArrayList<Point> ruta) {
+        //Sale de la terminal
+        Point puntoInicioAparcamiento = new Point((int) ENTRADATERMINAL.getX(), ALTURAAPARCAR);
+        ruta.add(puntoInicioAparcamiento);
+        ruta.add(ENTRADATERMINAL);
+        ruta.add(UNIONPISTAS1CENTRONORTH);
+
+        //Baja hasta la entre la pista de despegue 1
+        Point interseccionUnionPistas1PistaDespegue = new Point((int) UNIONPISTAS1CENTROSOUTH.getX(), (int) PISTADESPEGUEARRIBACENTROIZDA.getY());
+        ruta.add(interseccionUnionPistas1PistaDespegue);
+
+        //Recorre la pista hasta salir
+        ruta.add(PISTADESPEGUEARRIBACENTROIZDA);
+        Point puntoSalida = new Point(-1, (int) PISTADESPEGUEARRIBACENTRODCHA.getY());
+        ruta.add(puntoSalida);
+    }
+
+    private void setDespegueHorizontalP1(Avion avion, Vuelo vuelo) {
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Recorrido inicial particular a cada puerta de embarque
+        ruta.add(P1);
+        Point puntoParaleloAPuerta = new Point((int) P1.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+
+        //Se añaden a la ruta los puntos globales que todos los despegues horizontales desde la terminal siguen
+        despegueHorizontalPuertaGlobal(ruta);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+
+        //Se activa la marcha atras en el recorrido de la puerta de embarque hasta el punto de inicio de aparcamiento
+        avion.setMarchaAtras(true);
+        avion.setDestinoMarchaAtras(puntoParaleloAPuerta);
+
+        avion.setEnHangar(false);
+        avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
+    }
+
+    private void setDespegueHorizontalP2(Avion avion, Vuelo vuelo) {
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Recorrido inicial particular a cada puerta de embarque
+        ruta.add(P2);
+        Point puntoParaleloAPuerta = new Point((int) P2.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+
+        //Se añaden a la ruta los puntos globales que todos los despegues horizontales desde la terminal siguen
+        despegueHorizontalPuertaGlobal(ruta);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+
+        //Se activa la marcha atras en el recorrido de la puerta de embarque hasta el punto de inicio de aparcamiento
+        avion.setMarchaAtras(true);
+        avion.setDestinoMarchaAtras(puntoParaleloAPuerta);
+
+        avion.setEnHangar(false);
+        avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
+    }
+
+    private void setDespegueHorizontalP3(Avion avion, Vuelo vuelo) {
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Recorrido inicial particular a cada puerta de embarque
+        ruta.add(P3);
+        Point puntoParaleloAPuerta = new Point((int) P3.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+
+        //Se añaden a la ruta los puntos globales que todos los despegues horizontales desde la terminal siguen
+        despegueHorizontalPuertaGlobal(ruta);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+
+        //Se activa la marcha atras en el recorrido de la puerta de embarque hasta el punto de inicio de aparcamiento
+        avion.setMarchaAtras(true);
+        avion.setDestinoMarchaAtras(puntoParaleloAPuerta);
+
+        avion.setEnHangar(false);
+        avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
+    }
+
+    private void setDespegueHorizontalP4(Avion avion, Vuelo vuelo) {
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Recorrido inicial particular a cada puerta de embarque
+        ruta.add(P4);
+        Point puntoParaleloAPuerta = new Point((int) P4.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+
+        //Se añaden a la ruta los puntos globales que todos los despegues horizontales desde la terminal siguen
+        despegueHorizontalPuertaGlobal(ruta);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+
+        //Se activa la marcha atras en el recorrido de la puerta de embarque hasta el punto de inicio de aparcamiento
+        avion.setMarchaAtras(true);
+        avion.setDestinoMarchaAtras(puntoParaleloAPuerta);
+
+        avion.setEnHangar(false);
+        avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
+    }
+
+    private void setDespegueHorizontalP5(Avion avion, Vuelo vuelo) {
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Recorrido inicial particular a cada puerta de embarque
+        ruta.add(P5);
+        Point puntoParaleloAPuerta = new Point((int) P5.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+
+        //Se añaden a la ruta los puntos globales que todos los despegues horizontales desde la terminal siguen
+        despegueHorizontalPuertaGlobal(ruta);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+
+        //Se activa la marcha atras en el recorrido de la puerta de embarque hasta el punto de inicio de aparcamiento
+        avion.setMarchaAtras(true);
+        avion.setDestinoMarchaAtras(puntoParaleloAPuerta);
+
+        avion.setEnHangar(false);
+        avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
+    }
+
+    private void setDespegueHorizontalP6(Avion avion, Vuelo vuelo) {
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Recorrido inicial particular a cada puerta de embarque
+        ruta.add(P6);
+        Point puntoParaleloAPuerta = new Point((int) P6.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+
+        //Se añaden a la ruta los puntos globales que todos los despegues horizontales desde la terminal siguen
+        despegueHorizontalPuertaGlobal(ruta);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+
+        //Se activa la marcha atras en el recorrido de la puerta de embarque hasta el punto de inicio de aparcamiento
+        avion.setMarchaAtras(true);
+        avion.setDestinoMarchaAtras(puntoParaleloAPuerta);
+
+        avion.setEnHangar(false);
+        avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
+    }
+
+    private void setDespegueHorizontalP7(Avion avion, Vuelo vuelo) {
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Recorrido inicial particular a cada puerta de embarque
+        ruta.add(P7);
+        Point puntoParaleloAPuerta = new Point((int) P7.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+
+        //Se añaden a la ruta los puntos globales que todos los despegues horizontales desde la terminal siguen
+        despegueHorizontalPuertaGlobal(ruta);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+
+        //Se activa la marcha atras en el recorrido de la puerta de embarque hasta el punto de inicio de aparcamiento
+        avion.setMarchaAtras(true);
+        avion.setDestinoMarchaAtras(puntoParaleloAPuerta);
+
+        avion.setEnHangar(false);
+        avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
+    }
+
+    private void setDespegueHorizontalP8(Avion avion, Vuelo vuelo) {
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Recorrido inicial particular a cada puerta de embarque
+        ruta.add(P8);
+        Point puntoParaleloAPuerta = new Point((int) P8.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+
+        //Se añaden a la ruta los puntos globales que todos los despegues horizontales desde la terminal siguen
+        despegueHorizontalPuertaGlobal(ruta);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+
+        //Se activa la marcha atrás en el recorrido de la puerta de embarque hasta el punto de inicio de aparcamiento
+        avion.setMarchaAtras(true);
+        avion.setDestinoMarchaAtras(puntoParaleloAPuerta);
+
+        avion.setEnHangar(false);
+        avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
+    }
+
+    private void setDespegueHorizontalP9(Avion avion, Vuelo vuelo) {
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Recorrido inicial particular a cada puerta de embarque
+        ruta.add(P9);
+        Point puntoParaleloAPuerta = new Point((int) P9.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+
+        //Se añaden a la ruta los puntos globales que todos los despegues horizontales desde la terminal siguen
+        despegueHorizontalPuertaGlobal(ruta);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+
+        //Se activa la marcha atras en el recorrido de la puerta de embarque hasta el punto de inicio de aparcamiento
+        avion.setMarchaAtras(true);
+        avion.setDestinoMarchaAtras(puntoParaleloAPuerta);
 
         avion.setEnHangar(false);
         avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
@@ -914,6 +1158,23 @@ public class ControladorMovimiento implements ObservadorTiempo{
 
         if (x >= HANGARMINX && x <= HANGARMAXX && y >= HANGARMINY && y <= HANGARMAXY) {
             devolver = true;
+        }
+        return devolver;
+    }
+
+    private Point getPuntoPuertaEmbarque(PuertaEmbarque puertaEmbarque) {
+        Point devolver;
+        switch (puertaEmbarque.getNumero()) {
+            case 1 -> devolver = P1;
+            case 2 -> devolver = P2;
+            case 3 -> devolver = P3;
+            case 4 -> devolver = P4;
+            case 5 -> devolver = P5;
+            case 6 -> devolver = P6;
+            case 7 -> devolver = P7;
+            case 8 -> devolver = P8;
+            case 9 -> devolver = P9;
+            default -> devolver = P1;
         }
         return devolver;
     }

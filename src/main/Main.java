@@ -91,8 +91,8 @@ public class Main {
                     apellidos[random.nextInt(apellidos.length)]));
         }
 
-        Vuelo vueloInmediato = new Vuelo(9999, aeropuertos.get(0), bilbao, gestorBD.loadAerolineas().get(0),
-                puertas.get(0), true, LocalDateTime.now(), 120, avionInmediato,
+        Vuelo vueloInmediato = new Vuelo(9999, bilbao, aeropuertos.get(0), gestorBD.loadAerolineas().get(0),
+                puertas.get(3), true, LocalDateTime.now().plusMinutes(1), 120, avionInmediato,
                 false, pasajerosInmediatos, tripulacionInmediata, 0);
         gestorBD.insertVuelo(vueloInmediato);
 
