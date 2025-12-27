@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 
-public class ControladorHangar implements ObservadorTiempo{
+public class ControladorMovimiento implements ObservadorTiempo{
 
     private MapPanel mapPanel;
     private ArrayList<Vuelo> vuelos;
@@ -57,7 +57,22 @@ public class ControladorHangar implements ObservadorTiempo{
     private static final Point UNIONPISTAS1CENTRONORTH = new Point(713,370);
     private static final Point UNIONPISTAS1CENTROSOUTH = new Point(713,509);
 
-    public ControladorHangar(MapPanel mapPanel, ArrayList<Vuelo> vuelos) {
+    //Puertas de embarque
+    private static final Point P1 = new Point(312, 209);
+    private static final Point P2 = new Point(364, 209);
+    private static final Point P3 = new Point(444, 272);
+    private static final Point P4 = new Point(493, 272);
+    private static final Point P5 = new Point(543, 272);
+    private static final Point P6 = new Point(593, 272);
+    private static final Point P7 = new Point(643, 272);
+    private static final Point P8 = new Point(713, 210);
+    private static final Point P9 = new Point(765, 210);
+
+    //Auxiliares terminal
+    private static final Point ENTRADATERMINAL = new Point(713,331);
+    private static final int ALTURAAPARCAR = 303;
+
+    public ControladorMovimiento(MapPanel mapPanel, ArrayList<Vuelo> vuelos) {
         this.mapPanel = mapPanel;
         this.vuelos = vuelos;
         this.avionesEnCurso = new HashMap<>();

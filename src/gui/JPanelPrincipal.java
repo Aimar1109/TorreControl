@@ -5,7 +5,7 @@ import domain.ComparadorFechaVuelos;
 import domain.Pista;
 import domain.Vuelo;
 import jdbc.GestorBD;
-import threads.ControladorHangar;
+import threads.ControladorMovimiento;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
 
@@ -36,7 +36,7 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
     private Pista pista2 = new Pista("2", true);
 
     //Animacion despegue, aterrizaje y estacionamiento
-    private ControladorHangar controladorHangar;
+    private ControladorMovimiento controladorHangar;
 
     //Comparator vuelos
     private ComparadorFechaVuelos comparadorVuelos;
@@ -105,7 +105,7 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         efectoHover(listaVuelosPista1);
         efectoHover(listaVuelosPista2);
 
-        this.controladorHangar = new ControladorHangar(mapa, vuelos);
+        this.controladorHangar = new ControladorMovimiento(mapa, vuelos);
 
         //Configurar instancia RelojPrincial
         RelojGlobal instanciaReloj = RelojGlobal.getInstancia();

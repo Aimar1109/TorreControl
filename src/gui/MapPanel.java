@@ -5,6 +5,8 @@ import domain.Avion;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
@@ -13,49 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-import static threads.ControladorHangar.estaEnHangar;
+import static threads.ControladorMovimiento.estaEnHangar;
 
 public class MapPanel extends JPanel {
-
-    //Coordenadas
-
-    //Pista 1 Aterrizaje
-    private static final Point[] PISTAATERRIZAJEABAJO = {new Point(29,509), new Point(29,459), new Point(738, 459), new Point(738,509)};
-    private static final Point PISTAATERRIZAJEABAJOCENTROIZDA = new Point(30,485);
-    private static final Point PISTAATERRIZAJEABAJOCENTRODCHA = new Point(738,485);
-
-    //Pista 1 Despegue
-    private static final Point[] PISTADESPEGUEARRIBA = {new Point(29,418), new Point(29,367), new Point(738, 367), new Point(738,418)};
-    private static final Point PISTADESPEGUEARRIBACENTROIZDA = new Point(30,392);
-    private static final Point PISTADESPEGUEARRIBACENTRODCHA = new Point(738,392);
-
-    //Pista 2 Aterrizaje
-    private static final Point[] PISTAATERRIZAJEDERECHA = {new Point(149,667), new Point(149,69), new Point(198, 69), new Point(198,667)};
-    private static final Point PISTAATERRIZAJEDERECHACENTRONORTH = new Point(174,69);
-    private static final Point PISTAATERRIZAJEDERECHACENTROSOUTH = new Point(174,669);
-
-    //Pista 2 Despegue
-    private static final Point[] PISTADESPEGUEIZQUIERDA = {new Point(59,667), new Point(59,69), new Point(108, 69), new Point(108,667)};
-    private static final Point PISTADESPEGUEIZQUIERDACENTRONORTH = new Point(84,69);
-    private static final Point PISTADESPEGUEIZQUIERDACENTROSOUTH = new Point(84,669);
-
-    //Pìstas Auxiliares: Unión Pista 1
-    private static final Point[] UNIONPISTAS1 = {new Point(690,509), new Point(690,370), new Point(738, 376), new Point(738,509)};
-    private static final Point UNIONPISTAS1CENTRONORTH = new Point(713,370);
-    private static final Point UNIONPISTAS1CENTROSOUTH = new Point(713,509);
-
-    //Hangar: Area
-    private static final Point[] AREAHANGAR = {new Point(410,655), new Point(410,540), new Point(607, 540), new Point(607,655)};
-
-    //Hangar: Entrada Norte
-    private static final Point[] ENTRADANORTE = {new Point(470, 655), new Point(548, 655)};
-    private static final Point CENTROENTRADANORTE = new Point(509, 655);
-    private static final Point[] PISTAENTRADANORTE = {new Point(470, 537), new Point(470, 510), new Point(548,510), new Point(548,537)};
-
-    //Hangar: Entrada Oeste
-    private static final Point[] ENTRADAOESTE = {new Point(409, 578), new Point(409, 620)};
-    private static final Point CENTROENTRADAOESTE = new Point(409, 599);
-    private static final Point[] PISTAENTRADAOESTE = {new Point(200, 620), new Point(200, 578), new Point(407,578), new Point(407,620)};
 
     //Tamaño lógico fijo para evitar problemas con el escalado de coordenadas al variar el tamaño de la ventana.
     private final int widthReal = 1000;
@@ -78,6 +40,7 @@ public class MapPanel extends JPanel {
         cargarImagenMapa();
         cargarImagenesAviones();
         setBackground(Color.BLACK);
+        registrarImpresionClicks();
     }
 
     //Actualiza lista aviones
@@ -174,12 +137,12 @@ public class MapPanel extends JPanel {
 
 
         //Tamaño base del avion
-        int tamañoBaseX = 20;
-        int tamañoBaseY = 30;
+        int tamanoBaseX = 20;
+        int tamanoBaseY = 30;
 
         //Escalado en función del tamaño del mapa
-        int tamañoRealX = (int) Math.max(tamañoBaseX * escaladoX, 10);
-        int tamañoRealY = (int) Math.max(tamañoBaseY * escaladoY, 15);
+        int tamanoRealX = (int) Math.max(tamanoBaseX * escaladoX, 10);
+        int tamanoRealY = (int) Math.max(tamanoBaseY * escaladoY, 15);
 
         //Transformación inicial
         AffineTransform transformacionInicial = g2d.getTransform();
@@ -188,18 +151,18 @@ public class MapPanel extends JPanel {
         g2d.translate(x, y);
         g2d.rotate(avion.getAngulo());
 
-        int mitadX = tamañoRealX/2;
-        int mitadY = tamañoRealY/2;
+        int mitadX = tamanoRealX/2;
+        int mitadY = tamanoRealY/2;
 
         //Si la imagen existe se dibuja
         if (avion.getImagen() != null) {
-            Image imagenAvionCacheEscalada = obtenerImagenCache(avion.getImagen(), tamañoRealX, tamañoRealY);
+            Image imagenAvionCacheEscalada = obtenerImagenCache(avion.getImagen(), tamanoRealX, tamanoRealY);
             g2d.drawImage(imagenAvionCacheEscalada,-mitadX, -mitadY, this);
         }
         //Si no se consigue acceder a la imagen, se crea un avión(polígono) manualmente
         else {
-            int[] xPoint = {0, -(int)(tamañoRealX * 0.4), (int)(tamañoRealX * 0.4)};
-            int[] yPoint = {-(int)(tamañoRealY * 0.5), (int)(tamañoRealY * 0.5), (int)(tamañoRealY * 0.5)};
+            int[] xPoint = {0, -(int)(tamanoRealX * 0.4), (int)(tamanoRealX * 0.4)};
+            int[] yPoint = {-(int)(tamanoRealY * 0.5), (int)(tamanoRealY * 0.5), (int)(tamanoRealY * 0.5)};
 
             g2d.setColor(Color.CYAN);
             g2d.fillPolygon(xPoint, yPoint, 3);
@@ -226,7 +189,7 @@ public class MapPanel extends JPanel {
             try {
                 Image imagenAvion = ImageIO.read(new File("resources/img/" + nombreAvion));
                 imagenesAviones.add(imagenAvion);
-            } catch (IOException e) {
+            } catch (IOException ignored) {
             }
         }
     }
@@ -262,5 +225,23 @@ public class MapPanel extends JPanel {
     public void limpiarCache() {
         cacheImagenes.clear();
         mapaCache = null;
+    }
+
+    //Métodos temporales para descubrir coordenadas
+
+    public void imprimirCoordenadasLogicas(int xPixel, int yPixel) {
+        int xLogico = (int) Math.round((xPixel / (double) getWidth()) * widthReal);
+        int yLogico = (int) Math.round((yPixel / (double) getHeight()) * heightReal);
+
+        System.out.println(xLogico + ", " + yLogico);
+    }
+
+    private void registrarImpresionClicks() {
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                imprimirCoordenadasLogicas(e.getX(), e.getY());
+            }
+        });
     }
 }
