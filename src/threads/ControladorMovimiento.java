@@ -1,9 +1,6 @@
 package threads;
 
-import domain.Avion;
-import domain.EstadoAvion;
-import domain.Pista;
-import domain.Vuelo;
+import domain.*;
 import gui.MapPanel;
 
 import java.awt.*;
@@ -150,13 +147,13 @@ public class ControladorMovimiento implements ObservadorTiempo{
 
         //Se asigna la pista
         if (pistaHorizontal) {
-            setDespegueHorizontal(avion, vuelo);
+            setDespegueHorizontalHangar(avion, vuelo);
         } else {
-            setDespegueVertical(avion, vuelo);
+            setDespegueVerticalHangar(avion, vuelo);
         }
     }
 
-    private void setDespegueHorizontal(Avion avion, Vuelo vuelo) {
+    private void setDespegueHorizontalHangar(Avion avion, Vuelo vuelo) {
         ArrayList<Point> ruta = new ArrayList<>();
 
         //El primer punto es la salida norte
@@ -186,7 +183,7 @@ public class ControladorMovimiento implements ObservadorTiempo{
         avion.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
     }
 
-    private void setDespegueVertical(Avion avion, Vuelo vuelo) {
+    private void setDespegueVerticalHangar(Avion avion, Vuelo vuelo) {
         ArrayList<Point> ruta = new ArrayList<>();
 
         //El primer punto es la salida norte
@@ -238,14 +235,14 @@ public class ControladorMovimiento implements ObservadorTiempo{
 
             //Si es mas tarde de la hora en la que debe aparecer o es la hora a la que debe aparecer aparece
             if (momentoActual.isAfter(horaAparece) || momentoActual.equals(horaAparece)) {
-                iniciarVuelo(v);
+                iniciarVueloLlegada(v);
                 vuelosProcesados.add(v);
             }
 
         }
     }
 
-    private void iniciarVuelo(Vuelo vuelo)  {
+    private void iniciarVueloLlegada(Vuelo vuelo)  {
         Avion avion = vuelo.getAvion();
 
         boolean pistaHorizontal;
@@ -272,11 +269,33 @@ public class ControladorMovimiento implements ObservadorTiempo{
             siguientePistaAterrizajeHorizontal = !siguientePistaAterrizajeHorizontal;
         }
 
+        //Puerta de embarque
+        PuertaEmbarque puertaEmbarque = vuelo.getPuerta();
+
         //Se asigna la pista
         if (pistaHorizontal) {
-            setAterrizajeHorizontal(avion, vuelo);
+            if (puertaEmbarque == null) {
+                setAterrizajeHorizontalHangar(avion, vuelo);
+            }
+            switch (puertaEmbarque.getNumero()) {
+                case 1 -> setAterrizajeHorizontalP1(avion, vuelo);
+                case 2 -> setAterrizajeHorizontalP2(avion, vuelo);
+                case 3 -> setAterrizajeHorizontalP3(avion, vuelo);
+                case 4 -> setAterrizajeHorizontalP4(avion, vuelo);
+                case 5 -> setAterrizajeHorizontalP5(avion, vuelo);
+                case 6 -> setAterrizajeHorizontalP6(avion, vuelo);
+                case 7 -> setAterrizajeHorizontalP7(avion, vuelo);
+                case 8 -> setAterrizajeHorizontalP8(avion, vuelo);
+                case 9 -> setAterrizajeHorizontalP9(avion, vuelo);
+                default -> setAterrizajeHorizontalHangar(avion, vuelo);
+            }
         } else {
-            setAterrizajeVertical(avion, vuelo);
+            if (puertaEmbarque == null) {
+                setAterrizajeVerticalHangar(avion, vuelo);
+            }
+            switch (puertaEmbarque.getNumero()) {
+                default -> setAterrizajeVerticalHangar(avion, vuelo);
+            }
         }
 
         //Agrego el avión al mapa
@@ -287,13 +306,17 @@ public class ControladorMovimiento implements ObservadorTiempo{
         mapPanel.setAviones(avionesMapPanel);
     }
 
-    private void setAterrizajeHorizontal(Avion avion, Vuelo vuelo) {
+    private void setAterrizajeHorizontalHangar(Avion avion, Vuelo vuelo) {
         //El avión entra por el este
         avion.setX(1050);
         int alturaPista = (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY();
         avion.setY(alturaPista);
 
         ArrayList<Point> ruta = new ArrayList<>();
+
+        //Creo un punto inicial fuera de pista para que la velocidad mientras vuela sea la adecuada
+        Point inicial = new Point(1000, (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY());
+        ruta.add(inicial);
 
         //Recorre prácticamente toda la pista
         ruta.add(PISTAATERRIZAJEABAJOCENTRODCHA);
@@ -312,7 +335,295 @@ public class ControladorMovimiento implements ObservadorTiempo{
         avion.setSpeed(2);
     }
 
-    private void setAterrizajeVertical(Avion avion, Vuelo vuelo) {
+    private void setAterrizajeHorizontalP1(Avion avion, Vuelo vuelo) {
+        //El avión entra por el este
+        avion.setX(1050);
+        int alturaPista = (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY();
+        avion.setY(alturaPista);
+
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Creo un punto inicial fuera de pista para que la velocidad mientras vuela sea la adecuada
+        Point inicial = new Point(1000, (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY());
+        ruta.add(inicial);
+
+        //Recorre prácticamente toda la pista
+        ruta.add(PISTAATERRIZAJEABAJOCENTRODCHA);
+        Point finalAterrizaje = new Point((int) (PISTAATERRIZAJEABAJOCENTROIZDA.getX() + 5), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(finalAterrizaje);
+
+        //Vuelve y sube a la terminal
+        Point unionPistasAlturaAdecuada = new Point((int) UNIONPISTAS1CENTROSOUTH.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(unionPistasAlturaAdecuada);
+        ruta.add(UNIONPISTAS1CENTRONORTH);
+        ruta.add(ENTRADATERMINAL);
+        Point puntoInicioAparcamiento = new Point((int) ENTRADATERMINAL.getX(), ALTURAAPARCAR);
+        ruta.add(puntoInicioAparcamiento);
+        Point puntoParaleloAPuerta = new Point((int) P1.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+        ruta.add(P1);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+    }
+
+    private void setAterrizajeHorizontalP2(Avion avion, Vuelo vuelo) {
+        //El avión entra por el este
+        avion.setX(1050);
+        int alturaPista = (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY();
+        avion.setY(alturaPista);
+
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Creo un punto inicial fuera de pista para que la velocidad mientras vuela sea la adecuada
+        Point inicial = new Point(1000, (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY());
+        ruta.add(inicial);
+
+        //Recorre prácticamente toda la pista
+        ruta.add(PISTAATERRIZAJEABAJOCENTRODCHA);
+        Point finalAterrizaje = new Point((int) (PISTAATERRIZAJEABAJOCENTROIZDA.getX() + 5), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(finalAterrizaje);
+
+        //Vuelve y sube a la terminal
+        Point unionPistasAlturaAdecuada = new Point((int) UNIONPISTAS1CENTROSOUTH.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(unionPistasAlturaAdecuada);
+        ruta.add(UNIONPISTAS1CENTRONORTH);
+        ruta.add(ENTRADATERMINAL);
+        Point puntoInicioAparcamiento = new Point((int) ENTRADATERMINAL.getX(), ALTURAAPARCAR);
+        ruta.add(puntoInicioAparcamiento);
+        Point puntoParaleloAPuerta = new Point((int) P2.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+        ruta.add(P2);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+    }
+
+    private void setAterrizajeHorizontalP3(Avion avion, Vuelo vuelo) {
+        //El avión entra por el este
+        avion.setX(1050);
+        int alturaPista = (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY();
+        avion.setY(alturaPista);
+
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Creo un punto inicial fuera de pista para que la velocidad mientras vuela sea la adecuada
+        Point inicial = new Point(1000, (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY());
+        ruta.add(inicial);
+
+        //Recorre prácticamente toda la pista
+        ruta.add(PISTAATERRIZAJEABAJOCENTRODCHA);
+        Point finalAterrizaje = new Point((int) (PISTAATERRIZAJEABAJOCENTROIZDA.getX() + 5), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(finalAterrizaje);
+
+        //Vuelve y sube a la terminal
+        Point unionPistasAlturaAdecuada = new Point((int) UNIONPISTAS1CENTROSOUTH.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(unionPistasAlturaAdecuada);
+        ruta.add(UNIONPISTAS1CENTRONORTH);
+        ruta.add(ENTRADATERMINAL);
+        Point puntoInicioAparcamiento = new Point((int) ENTRADATERMINAL.getX(), ALTURAAPARCAR);
+        ruta.add(puntoInicioAparcamiento);
+        Point puntoParaleloAPuerta = new Point((int) P3.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+        ruta.add(P3);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+    }
+
+    private void setAterrizajeHorizontalP4(Avion avion, Vuelo vuelo) {
+        //El avión entra por el este
+        avion.setX(1050);
+        int alturaPista = (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY();
+        avion.setY(alturaPista);
+
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Creo un punto inicial fuera de pista para que la velocidad mientras vuela sea la adecuada
+        Point inicial = new Point(1000, (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY());
+        ruta.add(inicial);
+
+        //Recorre prácticamente toda la pista
+        ruta.add(PISTAATERRIZAJEABAJOCENTRODCHA);
+        Point finalAterrizaje = new Point((int) (PISTAATERRIZAJEABAJOCENTROIZDA.getX() + 5), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(finalAterrizaje);
+
+        //Vuelve y sube a la terminal
+        Point unionPistasAlturaAdecuada = new Point((int) UNIONPISTAS1CENTROSOUTH.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(unionPistasAlturaAdecuada);
+        ruta.add(UNIONPISTAS1CENTRONORTH);
+        ruta.add(ENTRADATERMINAL);
+        Point puntoInicioAparcamiento = new Point((int) ENTRADATERMINAL.getX(), ALTURAAPARCAR);
+        ruta.add(puntoInicioAparcamiento);
+        Point puntoParaleloAPuerta = new Point((int) P4.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+        ruta.add(P4);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+    }
+
+    private void setAterrizajeHorizontalP5(Avion avion, Vuelo vuelo) {
+        //El avión entra por el este
+        avion.setX(1050);
+        int alturaPista = (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY();
+        avion.setY(alturaPista);
+
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Creo un punto inicial fuera de pista para que la velocidad mientras vuela sea la adecuada
+        Point inicial = new Point(1000, (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY());
+        ruta.add(inicial);
+
+        //Recorre prácticamente toda la pista
+        ruta.add(PISTAATERRIZAJEABAJOCENTRODCHA);
+        Point finalAterrizaje = new Point((int) (PISTAATERRIZAJEABAJOCENTROIZDA.getX() + 5), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(finalAterrizaje);
+
+        //Vuelve y sube a la terminal
+        Point unionPistasAlturaAdecuada = new Point((int) UNIONPISTAS1CENTROSOUTH.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(unionPistasAlturaAdecuada);
+        ruta.add(UNIONPISTAS1CENTRONORTH);
+        ruta.add(ENTRADATERMINAL);
+        Point puntoInicioAparcamiento = new Point((int) ENTRADATERMINAL.getX(), ALTURAAPARCAR);
+        ruta.add(puntoInicioAparcamiento);
+        Point puntoParaleloAPuerta = new Point((int) P5.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+        ruta.add(P5);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+    }
+
+    private void setAterrizajeHorizontalP6(Avion avion, Vuelo vuelo) {
+        //El avión entra por el este
+        avion.setX(1050);
+        int alturaPista = (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY();
+        avion.setY(alturaPista);
+
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Creo un punto inicial fuera de pista para que la velocidad mientras vuela sea la adecuada
+        Point inicial = new Point(1000, (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY());
+        ruta.add(inicial);
+
+        //Recorre prácticamente toda la pista
+        ruta.add(PISTAATERRIZAJEABAJOCENTRODCHA);
+        Point finalAterrizaje = new Point((int) (PISTAATERRIZAJEABAJOCENTROIZDA.getX() + 5), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(finalAterrizaje);
+
+        //Vuelve y sube a la terminal
+        Point unionPistasAlturaAdecuada = new Point((int) UNIONPISTAS1CENTROSOUTH.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(unionPistasAlturaAdecuada);
+        ruta.add(UNIONPISTAS1CENTRONORTH);
+        ruta.add(ENTRADATERMINAL);
+        Point puntoInicioAparcamiento = new Point((int) ENTRADATERMINAL.getX(), ALTURAAPARCAR);
+        ruta.add(puntoInicioAparcamiento);
+        Point puntoParaleloAPuerta = new Point((int) P6.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+        ruta.add(P6);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+    }
+
+    private void setAterrizajeHorizontalP7(Avion avion, Vuelo vuelo) {
+        //El avión entra por el este
+        avion.setX(1050);
+        int alturaPista = (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY();
+        avion.setY(alturaPista);
+
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Creo un punto inicial fuera de pista para que la velocidad mientras vuela sea la adecuada
+        Point inicial = new Point(1000, (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY());
+        ruta.add(inicial);
+
+        //Recorre prácticamente toda la pista
+        ruta.add(PISTAATERRIZAJEABAJOCENTRODCHA);
+        Point finalAterrizaje = new Point((int) (PISTAATERRIZAJEABAJOCENTROIZDA.getX() + 5), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(finalAterrizaje);
+
+        //Vuelve y sube a la terminal
+        Point unionPistasAlturaAdecuada = new Point((int) UNIONPISTAS1CENTROSOUTH.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(unionPistasAlturaAdecuada);
+        ruta.add(UNIONPISTAS1CENTRONORTH);
+        ruta.add(ENTRADATERMINAL);
+        Point puntoInicioAparcamiento = new Point((int) ENTRADATERMINAL.getX(), ALTURAAPARCAR);
+        ruta.add(puntoInicioAparcamiento);
+        Point puntoParaleloAPuerta = new Point((int) P7.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+        ruta.add(P7);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+    }
+
+    private void setAterrizajeHorizontalP8(Avion avion, Vuelo vuelo) {
+        //El avión entra por el este
+        avion.setX(1050);
+        int alturaPista = (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY();
+        avion.setY(alturaPista);
+
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Creo un punto inicial fuera de pista para que la velocidad mientras vuela sea la adecuada
+        Point inicial = new Point(1000, (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY());
+        ruta.add(inicial);
+
+        //Recorre prácticamente toda la pista
+        ruta.add(PISTAATERRIZAJEABAJOCENTRODCHA);
+        Point finalAterrizaje = new Point((int) (PISTAATERRIZAJEABAJOCENTROIZDA.getX() + 5), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(finalAterrizaje);
+
+        //Vuelve y sube a la terminal
+        Point unionPistasAlturaAdecuada = new Point((int) UNIONPISTAS1CENTROSOUTH.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(unionPistasAlturaAdecuada);
+        ruta.add(UNIONPISTAS1CENTRONORTH);
+        ruta.add(ENTRADATERMINAL);
+        Point puntoInicioAparcamiento = new Point((int) ENTRADATERMINAL.getX(), ALTURAAPARCAR);
+        ruta.add(puntoInicioAparcamiento);
+        Point puntoParaleloAPuerta = new Point((int) P8.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+        ruta.add(P8);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+    }
+
+    private void setAterrizajeHorizontalP9(Avion avion, Vuelo vuelo) {
+        //El avión entra por el este
+        avion.setX(1050);
+        int alturaPista = (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY();
+        avion.setY(alturaPista);
+
+        ArrayList<Point> ruta = new ArrayList<>();
+
+        //Creo un punto inicial fuera de pista para que la velocidad mientras vuela sea la adecuada
+        Point inicial = new Point(1000, (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY());
+        ruta.add(inicial);
+
+        //Recorre prácticamente toda la pista
+        ruta.add(PISTAATERRIZAJEABAJOCENTRODCHA);
+        Point finalAterrizaje = new Point((int) (PISTAATERRIZAJEABAJOCENTROIZDA.getX() + 5), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(finalAterrizaje);
+
+        //Vuelve y sube a la terminal
+        Point unionPistasAlturaAdecuada = new Point((int) UNIONPISTAS1CENTROSOUTH.getX(), (int) PISTAATERRIZAJEABAJOCENTROIZDA.getY());
+        ruta.add(unionPistasAlturaAdecuada);
+        ruta.add(UNIONPISTAS1CENTRONORTH);
+        ruta.add(ENTRADATERMINAL);
+        Point puntoInicioAparcamiento = new Point((int) ENTRADATERMINAL.getX(), ALTURAAPARCAR);
+        ruta.add(puntoInicioAparcamiento);
+        Point puntoParaleloAPuerta = new Point((int) P9.getX(), ALTURAAPARCAR);
+        ruta.add(puntoParaleloAPuerta);
+        ruta.add(P9);
+
+        avion.setRuta(ruta);
+        avion.setSpeed(2);
+    }
+
+    private void setAterrizajeVerticalHangar(Avion avion, Vuelo vuelo) {
         //El avión entra por el este
         int anchoPista = (int) PISTAATERRIZAJEDERECHACENTRONORTH.getX();
         avion.setX(anchoPista);
@@ -407,12 +718,14 @@ public class ControladorMovimiento implements ObservadorTiempo{
                 avion.setEnHangar(true);
                 avion.setSpeed(0);
             } else {
+                Point posicionActual;
                 ArrayList<Point> ruta = avion.getRutaActual();
                 int i = avion.getPointIndex();
                 if (ruta != null && i >= 0 && i < ruta.size()) {
+                    posicionActual = new Point(avion.getX(), avion.getY());
                     Point destino = ruta.get(i);
 
-                    if (estaVolando(destino)) {
+                    if (estaVolando(posicionActual)) {
                         avion.setEstadoAvion(EstadoAvion.DESPEGANDO);
                         avion.setSpeed(4);
                     } else if (estaEnPista(destino)) {

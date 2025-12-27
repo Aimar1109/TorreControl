@@ -73,6 +73,28 @@ public class Main {
 
         ArrayList<PuertaEmbarque> puertas = (ArrayList<PuertaEmbarque>) gestorBD.loadPuertasEmbarque();
 
+        // IAG: (Claude) Vuelo temporal generado con IA para probar el funcionamiento del aterrizaje a puerta de embarque
+        Avion avionInmediato = new Avion("Boeing 737", "EC-IMM", 180);
+        gestorBD.insertAvion(avionInmediato);
+        Pista pistaInmediata = new Pista("1", false);
+        gestorBD.insertPista(pistaInmediata);
+
+        ArrayList<Pasajero> pasajerosInmediatos = new ArrayList<>();
+        for (int j = 0; j < 100; j++) {
+            pasajerosInmediatos.add(new Pasajero(nombres[random.nextInt(nombres.length)] + " " +
+                    apellidos[random.nextInt(apellidos.length)]));
+        }
+
+        ArrayList<Tripulante> tripulacionInmediata = new ArrayList<>();
+        for (int j = 0; j < 6; j++) {
+            tripulacionInmediata.add(new Tripulante(nombres[random.nextInt(nombres.length)] + " " +
+                    apellidos[random.nextInt(apellidos.length)]));
+        }
+
+        Vuelo vueloInmediato = new Vuelo(9999, aeropuertos.get(0), bilbao, gestorBD.loadAerolineas().get(0),
+                puertas.get(0), true, LocalDateTime.now(), 120, avionInmediato,
+                false, pasajerosInmediatos, tripulacionInmediata, 0);
+        gestorBD.insertVuelo(vueloInmediato);
 
         // Queremos aproximadamente la mitad llegadas a BIO y la mitad salidas desde BIO
         int targetArrivalsToBIO = cantidad / 2;
