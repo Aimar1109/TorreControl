@@ -76,7 +76,7 @@ public class Main {
         // IAG: (Claude) Vuelo temporal generado con IA para probar el funcionamiento del aterrizaje a puerta de embarque
         Avion avionInmediato = new Avion("Boeing 737", "EC-IMM", 180);
         gestorBD.insertAvion(avionInmediato);
-        Pista pistaInmediata = new Pista("1", false);
+        Pista pistaInmediata = new Pista("2", false);
         gestorBD.insertPista(pistaInmediata);
 
         ArrayList<Pasajero> pasajerosInmediatos = new ArrayList<>();
