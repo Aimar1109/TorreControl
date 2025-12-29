@@ -1328,7 +1328,7 @@ public class ControladorMovimiento implements ObservadorTiempo{
                     posicionActual = new Point(avion.getX(), avion.getY());
                     Point destino = ruta.get(i);
 
-                    if (estaVolando(posicionActual)) {
+                    if (estaVolando(posicionActual) || estaVolando(destino)) {
                         avion.setEstadoAvion(EstadoAvion.DESPEGANDO);
                         avion.setSpeed(4);
                     } else if (estaEnPista(destino)) {

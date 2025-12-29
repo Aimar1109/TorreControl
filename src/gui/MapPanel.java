@@ -5,8 +5,6 @@ import domain.Avion;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +38,6 @@ public class MapPanel extends JPanel {
         cargarImagenMapa();
         cargarImagenesAviones();
         setBackground(Color.BLACK);
-        registrarImpresionClicks();
     }
 
     //Actualiza lista aviones
@@ -225,23 +222,5 @@ public class MapPanel extends JPanel {
     public void limpiarCache() {
         cacheImagenes.clear();
         mapaCache = null;
-    }
-
-    //Métodos temporales para descubrir coordenadas
-
-    public void imprimirCoordenadasLogicas(int xPixel, int yPixel) {
-        int xLogico = (int) Math.round((xPixel / (double) getWidth()) * widthReal);
-        int yLogico = (int) Math.round((yPixel / (double) getHeight()) * heightReal);
-
-        System.out.println(xLogico + ", " + yLogico);
-    }
-
-    private void registrarImpresionClicks() {
-        this.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                imprimirCoordenadasLogicas(e.getX(), e.getY());
-            }
-        });
     }
 }

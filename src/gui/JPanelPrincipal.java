@@ -1,9 +1,6 @@
 package gui;
 
-import domain.Avion;
-import domain.ComparadorFechaVuelos;
-import domain.Pista;
-import domain.Vuelo;
+import domain.*;
 import jdbc.GestorBD;
 import threads.ControladorMovimiento;
 import threads.ObservadorTiempo;
@@ -11,6 +8,7 @@ import threads.RelojGlobal;
 
 import java.awt.event.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.awt.*;
 import java.util.ArrayList;
@@ -18,13 +16,18 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
+
+    private static final long serialVersionUID = 1L;
+
     //Referencias
     private JList<Vuelo> listaVuelosCercanos;
     private JList<Vuelo> listaVuelosPista1;
     private JList<Vuelo> listaVuelosPista2;
     private MapPanel mapa;
+    private JLabel labelReloj;
 
     //Y sus respectivos modelos
     private DefaultListModel<Vuelo> modeloVuelosCercanos;
@@ -41,6 +44,8 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
     //Comparator vuelos
     private ComparadorFechaVuelos comparadorVuelos;
 
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+
     public JPanelPrincipal(GestorBD gestorBD, ArrayList<Vuelo> vuelos) {
         this(gestorBD, vuelos, new ArrayList<>());
     }
@@ -50,36 +55,49 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         this.comparadorVuelos = new ComparadorFechaVuelos();
 
         //Panel Principal
-        setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
+        setLayout(new BorderLayout());
+        setBackground(PaletaColor.get(PaletaColor.FONDO));
 
-        //Configuración Común
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.insets = new Insets(5, 5, 5,5);
+        //Panel superior
+        JPanel panelSuperior = crearPanelSuperior();
+        add(panelSuperior, BorderLayout.NORTH);
+
+        //El resto irá dentro de un gridBagLayout
+        JPanel panelIntermedio = new JPanel(new GridBagLayout());
+        panelIntermedio.setBackground(PaletaColor.get(PaletaColor.FONDO));
+
+        Insets insets = new Insets(5, 5, 5,5);
 
         //Vuelos Cercanos
         JPanel panelVuelos = crearPanelListaOrigen("Vuelos Cercanos", vuelos);
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        gbc.gridheight = 2;
-        gbc.weightx = 0.4;
-        gbc.weighty = 1;
-        add(panelVuelos, gbc);
+        GridBagConstraints gbcIzda = new GridBagConstraints();
+        gbcIzda.gridx = 0;
+        gbcIzda.gridy = 1;
+        gbcIzda.gridwidth = 1;
+        gbcIzda.gridheight = 2;
+        gbcIzda.weightx = 0.4;
+        gbcIzda.weighty = 1;
+        gbcIzda.insets = insets;
+        gbcIzda.fill = GridBagConstraints.BOTH;
+        panelIntermedio.add(panelVuelos, gbcIzda);
 
         //Panel Mapa
         mapa = new MapPanel();
         mapa.setPreferredSize(new Dimension(1000, 700));
         mapa.setAviones(aviones);
 
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        gbc.gridheight = 1;
-        gbc.weightx = 0.6;
-        gbc.weighty = 0.7;
-        add(mapa, gbc);
+        GridBagConstraints gbcPrincipal = new GridBagConstraints();
+
+        gbcPrincipal.gridx = 1;
+        gbcPrincipal.gridy = 1;
+        gbcPrincipal.gridwidth = 1;
+        gbcPrincipal.gridheight = 1;
+        gbcPrincipal.weightx = 0.6;
+        gbcPrincipal.weighty = 0.7;
+        gbcPrincipal.insets = insets;
+        gbcPrincipal.fill = GridBagConstraints.BOTH;
+        panelIntermedio.add(mapa, gbcPrincipal);
 
         //Pistas
         JPanel panelPistas = new JPanel(new GridLayout(1, 2, 5, 0));
@@ -88,18 +106,23 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         panelPistas.add(pista1);
         panelPistas.add(pista2);
 
-        gbc.gridx = 1;
-        gbc.gridy = 2;
-        gbc.gridwidth = 1;
-        gbc.gridheight = 1;
-        gbc.weightx = 0.75;
-        gbc.weighty = 0.3;
-        add(panelPistas, gbc);
+        GridBagConstraints gbcInferior = new GridBagConstraints();
+        gbcInferior.gridx = 1;
+        gbcInferior.gridy = 2;
+        gbcInferior.gridwidth = 1;
+        gbcInferior.gridheight = 1;
+        gbcInferior.weightx = 0.75;
+        gbcInferior.weighty = 0.3;
+        gbcInferior.insets = insets;
+        gbcInferior.fill = GridBagConstraints.BOTH;
+        panelIntermedio.add(panelPistas, gbcInferior);
+
+        add(panelIntermedio, BorderLayout.CENTER);
 
         //Configuración de la ventana
-        configuraciónDraglistaVuelosCercanos();
-        configuraciónDraglistaVuelos1();
-        configuraciónDraglistaVuelos2();
+        configuracionDraglistaVuelosCercanos();
+        configuracionDraglistaVuelos1();
+        configuracionDraglistaVuelos2();
         asignarPorTeclado();
         efectoHover(listaVuelosCercanos);
         efectoHover(listaVuelosPista1);
@@ -115,6 +138,32 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         ordenarLista(modeloVuelosCercanos);
         ordenarLista(modeloVuelosPista1);
         ordenarLista(modeloVuelosPista2);
+    }
+
+    private JPanel crearPanelSuperior() {
+        JPanel panelSuperior = new JPanel(new BorderLayout());
+        panelSuperior.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
+        panelSuperior.setBorder(new EmptyBorder(15, 20, 15, 20));
+
+        //Reloj
+        labelReloj = new JLabel();
+        labelReloj.setPreferredSize(new Dimension(120, 0));
+        labelReloj.setFont(new Font("Consolas", Font.BOLD, 18));
+        labelReloj.setForeground(PaletaColor.get(PaletaColor.BLANCO));
+        panelSuperior.add(labelReloj, BorderLayout.WEST);
+
+        //Título
+        JLabel titulo = new JLabel("PANEL PRINCIPAL", SwingConstants.CENTER);
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titulo.setForeground(PaletaColor.get(PaletaColor.BLANCO));
+        panelSuperior.add(titulo, BorderLayout.CENTER);
+
+        JLabel panelVacio = new JLabel("");
+        panelVacio.setPreferredSize(new Dimension(120, 0));
+        panelVacio.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 15));
+        panelSuperior.add(panelVacio, BorderLayout.EAST);
+
+        return panelSuperior;
     }
 
     private JPanel crearPanelListaOrigen(String titulo, List<Vuelo> vuelos) {
@@ -169,7 +218,7 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         return panel;
     }
 
-    private void configuraciónDraglistaVuelosCercanos() {
+    private void configuracionDraglistaVuelosCercanos() {
         List<JList<Vuelo>> destinos = new ArrayList<>();
         destinos.add(listaVuelosPista1);
         destinos.add(listaVuelosPista2);
@@ -180,7 +229,7 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         listaVuelosCercanos.addMouseMotionListener(listener);
     }
 
-    private void configuraciónDraglistaVuelos1() {
+    private void configuracionDraglistaVuelos1() {
         List<JList<Vuelo>> destinos = new ArrayList<>();
         destinos.add(listaVuelosCercanos);
         destinos.add(listaVuelosPista2);
@@ -191,7 +240,7 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         listaVuelosPista1.addMouseMotionListener(listener);
     }
 
-    private void configuraciónDraglistaVuelos2() {
+    private void configuracionDraglistaVuelos2() {
         List<JList<Vuelo>> destinos = new ArrayList<>();
         destinos.add(listaVuelosPista1);
         destinos.add(listaVuelosCercanos);
@@ -280,11 +329,24 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
             limpiarVuelos(modeloVuelosPista1, nuevoTiempo);
             limpiarVuelos(modeloVuelosPista2, nuevoTiempo);
         });
+
+        SwingUtilities.invokeLater(() -> {
+            if (labelReloj != null) labelReloj.setText(nuevoTiempo.format(formatter));
+        });
     }
 
     @Override
     public void cambioEstadoPausa(boolean pausa) {
-
+        SwingUtilities.invokeLater(() -> {
+            if (labelReloj != null) {
+                if (pausa) {
+                    labelReloj.setForeground(PaletaColor.get(PaletaColor.DELAYED));
+                    labelReloj.setText(labelReloj.getText() + " (PAUSA)");
+                } else {
+                    labelReloj.setForeground(Color.WHITE);
+                }
+            }
+        });
     }
 
     private void ordenarLista(DefaultListModel<Vuelo> modelo) {
