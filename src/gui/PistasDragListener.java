@@ -5,10 +5,11 @@ import domain.Pista;
 import domain.Vuelo;
 
 import javax.swing.*;
+import javax.swing.Timer;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
 
 public class PistasDragListener implements MouseListener, MouseMotionListener, AWTEventListener {
@@ -32,6 +33,8 @@ public class PistasDragListener implements MouseListener, MouseMotionListener, A
     //Pistas
     private Pista pista1;
     private Pista pista2;
+
+    private Map<JScrollPane, Border> bordersOriginales = new HashMap<>();
 
     //Constructor una única lista destino
     public PistasDragListener(JList<Vuelo> listaOrigen, JList<Vuelo> listaDestino, Pista pista1, Pista pista2) {
@@ -258,23 +261,32 @@ public class PistasDragListener implements MouseListener, MouseMotionListener, A
 
     private void setResaltados(Point posicion) {
         for (JList<Vuelo> lista : listasDestino) {
+            JScrollPane scrollPane = getScrollPane(lista);
+
             Point puntoRelativo = new Point(posicion);
             SwingUtilities.convertPointFromScreen(puntoRelativo, lista);
             if (lista.contains(puntoRelativo)) {
-                lista.setBorder(BorderFactory.createLineBorder(
-                        new Color(70, 130, 180), 3
+                scrollPane.setBorder(BorderFactory.createLineBorder(
+                        new Color(70, 130, 180), 5
                 ));
             } else {
-                lista.setBorder(null);
+                scrollPane.setBorder(null);
             }
         }
     }
 
     private void borrarResaltados() {
-        listaOrigen.setBorder(null);
         for (JList lista : listasDestino) {
-            lista.setBorder(null);
+            JScrollPane scrollPane = getScrollPane(lista);
+            if (scrollPane != null) {
+                scrollPane.setBorder(null);
+            }
         }
+    }
+
+    //IAG: (Chat-GPT)
+    private JScrollPane getScrollPane(JComponent comp) {
+        return (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, comp);
     }
 
     //IAG (herramienta: Claude)

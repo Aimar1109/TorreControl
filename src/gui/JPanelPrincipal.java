@@ -17,6 +17,7 @@ import java.util.List;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 
 public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
 
@@ -198,6 +199,7 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         listaVuelosCercanos.setFixedCellHeight(60);
 
         JScrollPane scrollAviones = new JScrollPane(listaVuelosCercanos);
+        estilizarScrollPane(scrollAviones);
         panel.add(scrollAviones, BorderLayout.CENTER);
 
         return panel;
@@ -216,6 +218,7 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         listaVuelosPista1.setFixedCellHeight(60);
 
         JScrollPane scrollAviones = new JScrollPane(listaVuelosPista1);
+        estilizarScrollPane(scrollAviones);
         panel.add(scrollAviones, BorderLayout.CENTER);
 
         return panel;
@@ -234,6 +237,7 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         listaVuelosPista2.setFixedCellHeight(60);
 
         JScrollPane scrollAviones = new JScrollPane(listaVuelosPista2);
+        estilizarScrollPane(scrollAviones);
         panel.add(scrollAviones, BorderLayout.CENTER);
 
         return panel;
@@ -409,4 +413,58 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         }
     }
 
+    // IAG: Configuración visual del ScrollPane con estilización para modernidad aplicada
+    //Codigo reutilizado de JPanelSalesman
+    private void estilizarScrollPane(JScrollPane scroll) {
+        scroll.getVerticalScrollBar().setUI(new ModernScrollBarUI());
+        scroll.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+
+        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+        scroll.getHorizontalScrollBar().setUI(new ModernScrollBarUI());
+        scroll.getHorizontalScrollBar().setPreferredSize(new Dimension(0, 8));
+
+        JPanel cornerTopRight = new JPanel();
+        cornerTopRight.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
+        scroll.setCorner(ScrollPaneConstants.UPPER_RIGHT_CORNER, cornerTopRight);
+
+        JPanel corner = new JPanel();
+        corner.setBackground(Color.WHITE);
+        scroll.setCorner(ScrollPaneConstants.LOWER_RIGHT_CORNER, corner);
+        scroll.setBorder(null);
+    }
+
+    // IAG: Clase estética (Codigo reutilizado de JPanelSalesman)
+    private static class ModernScrollBarUI extends BasicScrollBarUI {
+        @Override
+        protected void configureScrollBarColors() {
+            this.thumbColor = new Color(180, 180, 180);
+            this.trackColor = Color.WHITE;
+        }
+
+        @Override
+        protected JButton createDecreaseButton(int orientation) { return createZeroButton(); }
+
+        @Override
+        protected JButton createIncreaseButton(int orientation) { return createZeroButton(); }
+
+        private JButton createZeroButton() {
+            JButton btn = new JButton();
+            btn.setPreferredSize(new Dimension(0, 0));
+            return btn;
+        }
+
+        @Override
+        protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
+            if (thumbBounds.isEmpty() || !scrollbar.isEnabled()) return;
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setPaint(isThumbRollover() ? PaletaColor.get(PaletaColor.SECUNDARIO) : new Color(190, 195, 200));
+            g2.fillRoundRect(thumbBounds.x, thumbBounds.y, thumbBounds.width, thumbBounds.height, 8, 8);
+            g2.dispose();
+        }
+
+    }
 }
