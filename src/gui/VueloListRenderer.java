@@ -1,5 +1,6 @@
 package gui;
 
+import domain.PaletaColor;
 import domain.Vuelo;
 
 import javax.swing.*;
@@ -19,11 +20,12 @@ public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo>
         setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
         setOpaque(true);
 
-        //Label Código
+        //Label Estado
         cod = new JLabel();
-        cod.setFont(new Font("Arial", Font.BOLD, 13));
+        cod.setFont(new Font("Arial", Font.PLAIN, 13));
         cod.setOpaque(false);
         cod.setPreferredSize(new Dimension(50, 50));
+        cod.setHorizontalAlignment(SwingConstants.LEFT);
         add(cod, BorderLayout.WEST);
 
         //Panel Central
@@ -33,24 +35,25 @@ public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo>
 
         //Label origen y destino
         or_des = new JLabel();
-        or_des.setFont(new Font("Arial", Font.BOLD, 13));
+        or_des.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         or_des.setOpaque(false);
         or_des.setVerticalAlignment(SwingConstants.CENTER);
         panelCentral.add(or_des);
 
         //Label info
         info = new JLabel();
-        info.setFont(new Font("Arial", Font.BOLD, 13));
+        info.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         info.setOpaque(false);
         info.setVerticalAlignment(SwingConstants.CENTER);
         panelCentral.add(info);
 
         add(panelCentral, BorderLayout.CENTER);
 
-        //Label Estado
+        //Label Llegada
         llegada = new JLabel();
         llegada.setOpaque(false);
-        llegada.setFont(new Font("Arial", Font.BOLD, 13));
+        llegada.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        llegada.setHorizontalAlignment(SwingConstants.RIGHT);
         add(llegada, BorderLayout.EAST);
     }
 
@@ -64,7 +67,7 @@ public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo>
             or_des.setText(origen + " → " + destino);
 
             //Codigo
-            cod.setText("" + value.getCodigo());
+            cod.setText(value.getCodigo());
 
             //Información
             String ciudadOrigen = value.getOrigen().getCiudad();
@@ -79,21 +82,39 @@ public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo>
         }
 
         //Colores
-        cod.setForeground(Color.BLACK);
-        or_des.setForeground(Color.BLACK);
-        info.setForeground(Color.BLACK);
-        llegada.setForeground(Color.BLACK);
+        cod.setForeground(PaletaColor.get(PaletaColor.TEXTO));
+        or_des.setForeground(PaletaColor.get(PaletaColor.TEXTO));
+        info.setForeground(PaletaColor.get(PaletaColor.TEXTO));
+        llegada.setForeground(PaletaColor.get(PaletaColor.TEXTO));
 
         if (isSelected) {
-            setBackground(new Color(173, 216, 230));
+            setBackground(PaletaColor.get(PaletaColor.HOVER));
+            cod.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
+            or_des.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
+            info.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
+            llegada.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
+            cod.setFont(cod.getFont().deriveFont(Font.BOLD));
+            or_des.setFont(cod.getFont().deriveFont(Font.BOLD));
+            info.setFont(cod.getFont().deriveFont(Font.BOLD));
+            llegada.setFont(cod.getFont().deriveFont(Font.BOLD));
         }
         else {
-            if (value.getDelayed() > 0) {
-                setBackground(new Color(255, 248, 228));
-            } else if (value.isEmergencia()) {
-                setBackground(new Color(255, 240, 240));
+            Color zebra;
+            if (index % 2 == 0) {
+                zebra = PaletaColor.get(PaletaColor.BLANCO);
             } else {
-                setBackground(new Color(240, 248, 255));
+                zebra = PaletaColor.get(PaletaColor.FILA_ALT);
+            }
+            setBackground(zebra);
+            cod.setFont(cod.getFont().deriveFont(Font.PLAIN));
+            or_des.setFont(cod.getFont().deriveFont(Font.PLAIN));
+            info.setFont(cod.getFont().deriveFont(Font.PLAIN));
+            llegada.setFont(cod.getFont().deriveFont(Font.PLAIN));
+        }
+
+        if (!isSelected) {
+            if (value != null && value.getDelayed() > 0) {
+                llegada.setForeground(PaletaColor.get(PaletaColor.DELAYED));
             }
         }
 

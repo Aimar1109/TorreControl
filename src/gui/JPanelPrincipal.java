@@ -166,9 +166,26 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         return panelSuperior;
     }
 
+    private JPanel crearHeader(String titulo) {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(PaletaColor.get(PaletaColor.PRIMARIO));
+        header.setPreferredSize(new Dimension(0, 40));
+
+        JLabel labelTitulo = new JLabel();
+        labelTitulo.setText(titulo);
+        labelTitulo.setHorizontalAlignment(SwingConstants.CENTER);
+        labelTitulo.setForeground(PaletaColor.get(PaletaColor.BLANCO));
+        labelTitulo.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        header.add(labelTitulo, BorderLayout.CENTER);
+
+        return header;
+    }
+
     private JPanel crearPanelListaOrigen(String titulo, List<Vuelo> vuelos) {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createTitledBorder(titulo));
+
+        JPanel header = crearHeader(titulo);
+        panel.add(header, BorderLayout.NORTH);
 
         modeloVuelosCercanos = new DefaultListModel<>();
         for (Vuelo vuelo : vuelos) {
@@ -188,7 +205,9 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
 
     private JPanel crearPanelListaPanel1(String titulo) {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createTitledBorder(titulo));
+
+        JPanel header = crearHeader(titulo);
+        panel.add(header, BorderLayout.NORTH);
 
         modeloVuelosPista1 = new DefaultListModel<>();
         listaVuelosPista1 = new JList<>(modeloVuelosPista1);
@@ -204,7 +223,9 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
 
     private JPanel crearPanelListaPanel2(String titulo) {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createTitledBorder(titulo));
+
+        JPanel header = crearHeader(titulo);
+        panel.add(header, BorderLayout.NORTH);
 
         modeloVuelosPista2 = new DefaultListModel<>();
         listaVuelosPista2 = new JList<>(modeloVuelosPista2);
