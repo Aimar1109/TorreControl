@@ -74,9 +74,9 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         panelHeader.setBorder(new EmptyBorder(15, 20, 15, 20));
         
         lblReloj = new JLabel("00:00:00");
-        lblReloj.setFont(FONT_RELOJ);
-        lblReloj.setForeground(Color.WHITE);
-        lblReloj.setHorizontalAlignment(SwingConstants.LEFT);
+        lblReloj.setPreferredSize(new Dimension(120, 0));
+        lblReloj.setFont(new Font("Consolas", Font.BOLD, 18));
+        lblReloj.setForeground(PaletaColor.get(PaletaColor.BLANCO));        
         panelHeader.add(lblReloj, BorderLayout.WEST);
         
         lblHeaderTitulo = new JLabel("MONITORIZACIÓN METEOROLÓGICA", JLabel.CENTER);

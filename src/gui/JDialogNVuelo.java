@@ -311,7 +311,7 @@ public class JDialogNVuelo extends 	JDialog {
 			Vuelo v = new Vuelo(numero, origen, destino, aerolinea, puerta, fechaHoraProgramada, duracion, avion);
 			gestorBD.insertVuelo(v);
 			Aeropuerto ciudad;
-			if (origen.getCiudad() == "Bilbao") {
+			if (origen.getCiudad().equals("Bilbao")) {
 				ciudad = destino;
 			} else {
 				ciudad = origen;
