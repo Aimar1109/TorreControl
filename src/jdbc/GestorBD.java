@@ -387,6 +387,67 @@ public class GestorBD {
 		return vuelos;
 	}
     
+    public List<Vuelo> getVueloHoraNumero(LocalDateTime hora, int num) {
+    	
+    	List<Vuelo> vuelos = new ArrayList<Vuelo>();
+    	
+    	String sqlVuelo = "SELECT * FROM VUELO "
+    	        + "WHERE FECHAHORAPROGRAMADA > ? "
+    	        + "ORDER BY FECHAHORAPROGRAMADA "
+    	        + "LIMIT ?";
+
+    	
+    	try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
+                PreparedStatement pstVuelo = con.prepareStatement(sqlVuelo);) {
+    		
+    		   pstVuelo.setString(1, hora.toString());
+    		   pstVuelo.setInt(2, num);
+               ResultSet rsVuelo = pstVuelo.executeQuery();
+               
+               ResultSetMetaData rsmd = rsVuelo.getMetaData();
+               boolean existePista = false;
+               
+               for (int i = 1; i <= num; i++) {
+                   if (rsmd.getColumnName(i).equalsIgnoreCase("NUMERO_PISTA")) {
+                   	existePista = true;
+                       break;
+                   }
+               }
+
+               
+               while (rsVuelo.next()) {
+               	Integer numero = rsVuelo.getInt("NUMERO");
+               	Aeropuerto origen = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_ORIGEN"));
+               	Aeropuerto destino = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_DESTINO"));
+               	Aerolinea aerolinea = getAerolineaByCodigo(rsVuelo.getString("CODIGO_AEROLINEA"));
+               	Pista pista = existePista ? getPistaByNumero(rsVuelo.getString("NUMERO_PISTA")) : null;
+               	PuertaEmbarque puerta = getPuertaEmbarqueByCodigo(rsVuelo.getString("CODIGO_PUERTAEMBARQUE"));
+               	Boolean estado = rsVuelo.getBoolean("ESTADO");
+               	LocalDateTime fecha = LocalDateTime.parse(rsVuelo.getString("FECHAHORAPROGRAMADA"));
+               	Float duracion = rsVuelo.getFloat("DURACION");
+               	Avion avion = getAvionByMatricula(rsVuelo.getString("MATRICULA_AVION"));
+               	Boolean emergencia = rsVuelo.getBoolean("EMERGENCIA");
+               	Integer delayed = rsVuelo.getInt("DELAYED");
+               	
+               	Vuelo vuelo = new Vuelo(numero, origen, destino, aerolinea, pista, puerta, estado, fecha, duracion, avion, emergencia, delayed);
+               	
+               	ArrayList<Pasajero> pasajeros = getVueloListaPasajeros(vuelo);
+               	ArrayList<Tripulante> tripulacion = getVueloListaTripulacion(vuelo);
+               	
+               	vuelo.setPasajeros(pasajeros);
+               	vuelo.setTripulacion(tripulacion);
+               	
+               	vuelos.add(vuelo);            
+               }
+               
+               rsVuelo.close();
+           } catch (Exception e) {
+           	System.err.format("\n* Error recuperando vuelos: %s.", e.getMessage());
+           }
+   				
+   		return vuelos;
+    }
+    
     public List<Aeropuerto> loadAeropuertos() {
     	List<Aeropuerto> aeropuertos = new ArrayList<Aeropuerto>();
 		
@@ -703,6 +764,7 @@ public class GestorBD {
 			
 		return tripulacion;
 	}
+
 	
 	public void updateVuelo(Vuelo vuelo) {
 

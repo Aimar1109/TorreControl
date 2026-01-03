@@ -66,6 +66,7 @@ import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import jdbc.GestorBD;
+import threads.ControladorP;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
 
@@ -143,6 +144,9 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         
         mainVuelos.add(panelCentral, BorderLayout.CENTER);
 		add(mainVuelos);
+		
+		ControladorP cp = new ControladorP(gestorBD);
+		cp.asignarPuertas();
 		
 		// Al final del constructor de JPanelVuelos:
 		RelojGlobal.getInstancia().addObservador(this);
