@@ -12,14 +12,17 @@ import threads.RelojGlobal;
 
 public class ControladorP {
 	
-	private Boolean[] puertas;
+	private PuertaEmbarque[] puertas;
 	private Boolean[] pistas;
 	private GestorBD gestorBD;
 	
 	
 	
 	public ControladorP(GestorBD gestorBD) {
-		this.puertas = new Boolean[9];
+		this.puertas = new PuertaEmbarque[9];
+		for (PuertaEmbarque p: gestorBD.loadPuertasEmbarque()) {
+			this.puertas[p.getNumero()-1] = p;
+		}
 		this.pistas = new Boolean[2];
 		this.gestorBD = gestorBD;
 		
@@ -27,8 +30,8 @@ public class ControladorP {
 	
 	public void updatePuerta(PuertaEmbarque p) {
 		
-		this.puertas[p.getNumero()-1] = p.isOcupada();
-		gestorBD.updateEstadoPuerta(p);
+		this.puertas[p.getNumero()-1] = p;
+		gestorBD.updatePuerta(p);
 	}
 	
 	
@@ -141,21 +144,44 @@ public class ControladorP {
 			}
 		}
 
-		
-		List<PuertaEmbarque> puertasBD = gestorBD.loadPuertasEmbarque();
-		
 		// Asignar llegadas		
 		for (Vuelo v: tvuelos.get(1)) {
-			if ( v.getPuerta() == null) {
+			if ( v.getPuerta() != null) {
+				
 				for (int i=0; i<puertas.length; i++) {
-					if (!puertas[i]) {
-						v.setPuerta(puertasBD.get(i));
-						puertasBD.get(i).setOcupada(true);
-						updatePuerta(puertasBD.get(i));
+					if(puertas[i].getLlegada()==null) {
+						// Si la puerta tiene un avion ya que su salida es mas tarde de que este vuelo llege no puede ir a esa puerta
+						if (puertas[i].getSalida() != null ) {
+							LocalDateTime sH = puertas[i].getSalida().getFechaHoraProgramada().plusMinutes((long) (puertas[i].getSalida().getDelayed()+puertas[i].getSalida().getDuracion()));
+							if (puertas[i].getSalida().getFechaHoraProgramada().isAfter(sH) ) {
+								continue;
+							}
+						}
+						v.setPuerta(puertas[i]);
+						puertas[i].setLlegada(v);
+						gestorBD.updatePuerta(puertas[i]);
+						gestorBD.updatePuertaVuelo(v);
+						break;
 					}
 				}
+			}	
+		}
+		
+		// Asignar salidas intentado enlazar con llegadas
+		for(Vuelo v: tvuelos.get(0)) {
+			if (v.getPuerta()!=null) {
+				for (int i=0; i<puertas.length; i++) {
+					
+					if (puertas[i].getSalida()==null && puertas[i].getLlegada()!=null) {
+						v.setPuerta(puertas[i]);
+						puertas[i].setSalida(v);
+						gestorBD.updatePuerta(puertas[i]);
+						gestorBD.updatePuertaVuelo(v);
+						break;
+					}
+					
+				}
 			}
-
 		}
 		
 	}

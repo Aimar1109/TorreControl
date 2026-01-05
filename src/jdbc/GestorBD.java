@@ -930,17 +930,29 @@ public class GestorBD {
 	    }
 	}
 	
-	public void updateEstadoPuerta(PuertaEmbarque p) {
+	public void updatePuerta(PuertaEmbarque p) {
 		
-		String sql = "UPDATE PUERTAEMBARQUE SET"
-				+ "OCUPADA=?"
-				+ "WHERE CODIGO=?";
+		String sql = "UPDATE PUERTAEMBARQUE SET "
+				+ " OCUPADA = ?, "
+				+ " COD_LLEGADA = ?,"
+				+ " COD_SALIDA = ? "
+				+ " WHERE CODIGO = ?";
 		
 		try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
 		         PreparedStatement pstmt = con.prepareStatement(sql)) {
 			
 			pstmt.setBoolean(1, p.isOcupada());
-			pstmt.setString(2, p.getCodigo());
+			if (p.getLlegada()!=null) {
+				pstmt.setString(2, p.getLlegada().getCodigo());
+			} else {
+				pstmt.setString(2, null);
+			}
+			if (p.getSalida()!=null) {
+				pstmt.setString(3, p.getSalida().getCodigo());
+			} else {
+				pstmt.setString(3, null);
+			}
+			pstmt.setString(4, p.getCodigo());
 			
 			int filas = pstmt.executeUpdate();
 			
@@ -951,6 +963,28 @@ public class GestorBD {
 		} catch (SQLException e) {
 	        System.err.println("* Error al actualizar puerta '" + p.getCodigo() + "': " + e.getMessage());
 		}		
+	}
+	
+	public void updatePuertaVuelo(Vuelo v) {
+		
+		String sql = "UPDATE VUELO SET "
+				+ "CODIGO_PUERTAEMBARQUE=? "
+				+ "WHERE CODIGO=?";
+		
+		try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
+		         PreparedStatement pstmt = con.prepareStatement(sql)) {
+			
+			pstmt.setString(1, v.getPuerta().getCodigo());
+			pstmt.setString(2, v.getCodigo());
+			
+			pstmt.executeUpdate();
+			
+			
+		} catch (SQLException e) {
+	        System.err.println("* Error al actualizar puerta de vuelo: " + v.getCodigo() + e.getMessage());
+		}
+		
+		
 	}
 	
 	public void estadosVuelo() {
