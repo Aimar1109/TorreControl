@@ -78,7 +78,6 @@ public class ControladorP {
 				if ( sv.getFechaHoraProgramada().plusMinutes(sv.getDelayed()).isAfter(avL.minusMinutes(1)) &&
 						sv.getFechaHoraProgramada().plusMinutes(sv.getDelayed()).isBefore(avL.plusMinutes(1)) ) {
 					if (sv.isEmergencia()) {
-						
 						av.setDelayed(av.getDelayed()+1);
 						gestorBD.updatePistaPuertaVuelo(av);
 						//System.out.println(av.toString()+" updated");
@@ -89,6 +88,8 @@ public class ControladorP {
 						//System.out.println(sv.toString()+" updated");
 						
 					} else {
+						
+						
 						av.setDelayed(av.getDelayed()+1);
 						gestorBD.updatePistaPuertaVuelo(av);
 						//System.out.println(av.toString()+" updated");
@@ -101,13 +102,22 @@ public class ControladorP {
 					Vuelo av1 = tvuelos.get(1).get(x+1);
 					LocalDateTime avL1 = av1.getFechaHoraProgramada().plusMinutes((long) (av1.getDelayed()+av.getDuracion()));
 					if(avL.isAfter(avL1.minusMinutes(1)) && avL.isBefore(avL1.plusMinutes(1))) {
-						// si el primero es emergencia se retrasa el otro en cualquier otro case se retrasa el primero
+						// prioridad emergencia
 						if (av.isEmergencia()) {
-							av1.setDelayed(av1.getDelayed()+1);
+							av1.setDelayed(av1.getDelayed()+2);
 							gestorBD.updatePistaPuertaVuelo(av1);
-						} else {
-							av.setDelayed(av.getDelayed()+1);
+						} if (av1.isEmergencia()) {
+							av.setDelayed(av.getDelayed()+2);
 							gestorBD.updatePistaPuertaVuelo(av);
+						} else {
+							// se retrasa el ultimo que llege
+							if (avL.isBefore(avL1)) {
+								av1.setDelayed(av1.getDelayed()+1);
+								gestorBD.updatePistaPuertaVuelo(av1);
+							} else {
+								av.setDelayed(av.getDelayed()+1);
+								gestorBD.updatePistaPuertaVuelo(av);
+							}
 						}
 					}
 				}
@@ -119,12 +129,12 @@ public class ControladorP {
 				
 				if (sv.getFechaHoraProgramada().isAfter(sv1.getFechaHoraProgramada().minusMinutes(1)) 
 						&& sv.getFechaHoraProgramada().isBefore(sv1.getFechaHoraProgramada().plusMinutes(1))) {
-					// lo mismo que con las salidas
-					if (sv.isEmergencia()) {
-						sv1.setDelayed(sv1.getDelayed()+1);
+					// Como las salidas estan en orden a no ser que el segundo vuelo sea una emergencia siempre se retrasa este
+					if (sv1.isEmergencia()) {
+						sv.setDelayed(sv.getDelayed()+3);
 						gestorBD.updatePistaPuertaVuelo(sv1);
 					} else {
-						sv.setDelayed(sv.getDelayed()+1);
+						sv1.setDelayed(sv1.getDelayed()+1);
 						gestorBD.updatePistaPuertaVuelo(sv1);
 					}
 				}
@@ -134,8 +144,8 @@ public class ControladorP {
 		
 		List<PuertaEmbarque> puertasBD = gestorBD.loadPuertasEmbarque();
 		
+		// Asignar llegadas		
 		for (Vuelo v: tvuelos.get(1)) {
-			//System.out.println(v);
 			if ( v.getPuerta() == null) {
 				for (int i=0; i<puertas.length; i++) {
 					if (!puertas[i]) {

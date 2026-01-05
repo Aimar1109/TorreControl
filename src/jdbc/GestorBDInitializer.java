@@ -79,7 +79,11 @@ public class GestorBDInitializer {
             String sqlPuertas = "CREATE TABLE IF NOT EXISTS PUERTAEMBARQUE (\n"
                     + " CODIGO TEXT PRIMARY KEY NOT NULL,\n"
                     + " NUMERO INTEGER NOT NULL,\n"
-                    + " OCUPADA BOOLEAN NOT NULL\n"
+                    + " OCUPADA BOOLEAN NOT NULL,\n"
+                    + " COD_LLEGADA TEXT,\n"
+                    + " COD_SALIDA TEXT,\n"
+                    + " FOREIGN KEY(COD_LLEGADA) REFERENCES VUELO(CODIGO),\n"
+                    + " FOREIGN KEY(COD_SALIDA) REFERENCES VUELO(CODIGO)\n"
                     + ");";
             
             String sqlPistas = "CREATE TABLE IF NOT EXISTS PISTA (\n"
@@ -138,8 +142,6 @@ public class GestorBDInitializer {
             System.err.format("* Error al crear las tablas: %s\n", e.getMessage());
         }
     }
-    
-    
 
 	
 }

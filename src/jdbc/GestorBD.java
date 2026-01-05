@@ -157,8 +157,8 @@ public class GestorBD {
     public void insertPuerta(PuertaEmbarque puerta) {
     	
     	String sql = "INSERT OR IGNORE INTO PUERTAEMBARQUE"
-    	+ "(CODIGO, NUMERO, OCUPADA)"
-    	+ "VALUES (?, ?, ?)";
+    	+ "(CODIGO, NUMERO, OCUPADA, COD_LLEGADA, COD_SALIDA)"
+    	+ "VALUES (?, ?, ?, ?, ?)";
     	
     	try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
                 PreparedStatement pstmt = con.prepareStatement(sql)) {
@@ -166,6 +166,16 @@ public class GestorBD {
     		pstmt.setString(1,  puerta.getCodigo());
     		pstmt.setInt(2,  puerta.getNumero());
     		pstmt.setBoolean(3,  puerta.isOcupada());
+    		if (puerta.getLlegada()==(null)) {
+    			pstmt.setString(4, null);
+    		} else {
+    			pstmt.setString(4, puerta.getLlegada().getCodigo());
+    		}
+    		if (puerta.getSalida()==(null)) {
+    			pstmt.setString(5, null);
+    		} else {
+    			pstmt.setString(5, puerta.getSalida().getCodigo());
+    		}
 
     		pstmt.executeUpdate();
     		
@@ -390,6 +400,49 @@ public class GestorBD {
 		return vuelos;
 	}
     
+    public Vuelo getVueloCodigo(String codigo) {
+    	Vuelo vuelo = null;
+    	
+    	String sqlVuelo = "SELECT * FROM VUELO WHERE CODIGO=?";
+    	
+    	 try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
+                 PreparedStatement pstVuelo = con.prepareStatement(sqlVuelo);) {
+                ResultSet rsVuelo = pstVuelo.executeQuery();
+                 
+                if (rsVuelo.next()) {
+                	Integer numero = rsVuelo.getInt("NUMERO");
+                	Aeropuerto origen = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_ORIGEN"));
+                	Aeropuerto destino = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_DESTINO"));
+                	Aerolinea aerolinea = getAerolineaByCodigo(rsVuelo.getString("CODIGO_AEROLINEA"));
+                	Pista pista = null;
+                	if (!(rsVuelo.getString("NUMERO_PISTA")==null)) {
+                		pista = new Pista(rsVuelo.getString("NUMERO_PISTA"), true);
+                	}
+                	PuertaEmbarque puerta = getPuertaEmbarqueByCodigo(rsVuelo.getString("CODIGO_PUERTAEMBARQUE"));
+                	Boolean estado = rsVuelo.getBoolean("ESTADO");
+                	LocalDateTime fecha = LocalDateTime.parse(rsVuelo.getString("FECHAHORAPROGRAMADA"));
+                	Float duracion = rsVuelo.getFloat("DURACION");
+                	Avion avion = getAvionByMatricula(rsVuelo.getString("MATRICULA_AVION"));
+                	Boolean emergencia = rsVuelo.getBoolean("EMERGENCIA");
+                	Integer delayed = rsVuelo.getInt("DELAYED");
+                	
+                	vuelo = new Vuelo(numero, origen, destino, aerolinea, pista, puerta, estado, fecha, duracion, avion, emergencia, delayed);
+                	
+                	ArrayList<Pasajero> pasajeros = getVueloListaPasajeros(vuelo);
+                	ArrayList<Tripulante> tripulacion = getVueloListaTripulacion(vuelo);
+                	
+                	vuelo.setPasajeros(pasajeros);
+                	vuelo.setTripulacion(tripulacion);
+                	
+                	rsVuelo.close();
+                }
+            } catch (Exception e) {
+            	System.err.format("\n* Error recuperando vuelos: %s.", e.getMessage());
+            }
+    	
+    	return vuelo;
+    }
+    
     public List<List<Vuelo>> getVueloControlP(LocalDateTime hora, int num) {
     	
     	List<Vuelo> vuelos1 = new ArrayList<Vuelo>();
@@ -598,8 +651,16 @@ public class GestorBD {
             	String codigo = rsPuertaEmbarque.getString("CODIGO");
             	Integer numero = rsPuertaEmbarque.getInt("NUMERO");
             	Boolean ocupada = rsPuertaEmbarque.getBoolean("OCUPADA");
+            	Vuelo llegada = null;
+            	if (!(rsPuertaEmbarque.getString("COD_LLEGADA")==null)) {
+            		llegada = getVueloCodigo(rsPuertaEmbarque.getString("COD_LLEGADA"));
+            	}
+            	Vuelo salida = null;
+            	if (!(rsPuertaEmbarque.getString("COD_SALIDA")==null)) {
+            		salida = llegada = getVueloCodigo(rsPuertaEmbarque.getString("COD_SALIDA"));
+            	}
             	
-            	PuertaEmbarque puerta = new PuertaEmbarque(codigo, numero, ocupada);
+            	PuertaEmbarque puerta = new PuertaEmbarque(codigo, numero, ocupada, llegada, salida);
             	puertas.add(puerta);
             }
             
@@ -735,9 +796,22 @@ public class GestorBD {
 
 			//Se procesa el único resultado
 			if (rsPuertaEmbarque.next()) {
-				puerta = new PuertaEmbarque(rsPuertaEmbarque.getString("CODIGO"),
-											rsPuertaEmbarque.getInt("NUMERO"),
-											rsPuertaEmbarque.getBoolean("OCUPADA")
+            	Integer numero = rsPuertaEmbarque.getInt("NUMERO");
+            	Boolean ocupada = rsPuertaEmbarque.getBoolean("OCUPADA");
+            	Vuelo llegada = null;
+            	if (!(rsPuertaEmbarque.getString("COD_LLEGADA")==null)) {
+            		llegada = getVueloCodigo(rsPuertaEmbarque.getString("COD_LLEGADA"));
+            	}
+            	Vuelo salida = null;
+            	if (!(rsPuertaEmbarque.getString("COD_SALIDA")==null)) {
+            		salida = llegada = getVueloCodigo(rsPuertaEmbarque.getString("COD_SALIDA"));
+            	}
+            	
+				puerta = new PuertaEmbarque(codigo,
+											numero,
+											ocupada,
+											llegada,
+											salida
 						);
 			}
 			
