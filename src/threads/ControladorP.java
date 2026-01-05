@@ -49,11 +49,11 @@ public class ControladorP {
 				
 		for(int i=0; i<tvuelos.get(0).size(); i++) {
 			Vuelo sv = tvuelos.get(0).get(i);
-			System.out.println(sv+" - "+sv.getFechaHoraProgramada() + " - "+sv.getDelayed());
+			
 			for(int x=0; x<tvuelos.get(1).size(); x++) {
 				Vuelo av = tvuelos.get(1).get(x);
 				LocalDateTime avL = av.getFechaHoraProgramada().plusMinutes((long) (av.getDelayed()+av.getDuracion()));
-				System.out.println(av.toString()+" - "+avL.toString());
+
 				if ( sv.getFechaHoraProgramada().plusMinutes(sv.getDelayed()).isAfter(avL.minusMinutes(1)) &&
 						sv.getFechaHoraProgramada().plusMinutes(sv.getDelayed()).isBefore(avL.plusMinutes(1)) ) {
 					if (sv.isEmergencia()) {
@@ -74,9 +74,34 @@ public class ControladorP {
 						
 					}
 				}
+				
+				if (x<tvuelos.get(1).size()-1) {
+					System.out.println(x + " - " + tvuelos.get(1).size());
+					Vuelo av1 = tvuelos.get(1).get(x+1);
+					LocalDateTime avL1 = av1.getFechaHoraProgramada().plusMinutes((long) (av1.getDelayed()+av.getDuracion()));
+					if(avL.isAfter(avL1.minusMinutes(1)) && avL.isBefore(avL1.plusMinutes(1))) {
+						av1.setDelayed(av1.getDelayed()+1);
+						gestorBD.updatePistaPuertaVuelo(av1);
+						System.out.println("Update llegada");
+					}
+				}
 			}
-			System.out.println("");
+			
+			if (i<tvuelos.get(0).size()-1) {
+				Vuelo sv1 = tvuelos.get(0).get(i+1);
+				
+				if (sv.getFechaHoraProgramada().isAfter(sv1.getFechaHoraProgramada().minusMinutes(1)) 
+						&& sv.getFechaHoraProgramada().isBefore(sv1.getFechaHoraProgramada().plusMinutes(1))) {
+					sv1.setDelayed(sv1.getDelayed()+1);
+					gestorBD.updatePistaPuertaVuelo(sv1);
+					System.out.println("Update salida");
+				}
+			}
 		}
+		
+		// Margen entre llegadas
+		
+		
 		
 		List<PuertaEmbarque> puertasBD = gestorBD.loadPuertasEmbarque();
 		
