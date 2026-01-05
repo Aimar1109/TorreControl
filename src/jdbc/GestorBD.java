@@ -9,7 +9,9 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import domain.Aerolinea;
 import domain.Aeropuerto;
@@ -19,6 +21,7 @@ import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Tripulante;
 import domain.Vuelo;
+import threads.RelojGlobal;
 
 public class GestorBD {
 	
@@ -387,9 +390,10 @@ public class GestorBD {
 		return vuelos;
 	}
     
-    public List<Vuelo> getVueloHoraNumero(LocalDateTime hora, int num) {
+    public List<List<Vuelo>> getVueloControlP(LocalDateTime hora, int num) {
     	
-    	List<Vuelo> vuelos = new ArrayList<Vuelo>();
+    	List<Vuelo> vuelos1 = new ArrayList<Vuelo>();
+    	List<Vuelo> vuelos2 = new ArrayList<Vuelo>();
     	
     	String sqlVuelo = "SELECT * FROM VUELO "
     	        + "WHERE FECHAHORAPROGRAMADA > ? "
@@ -437,15 +441,71 @@ public class GestorBD {
                	vuelo.setPasajeros(pasajeros);
                	vuelo.setTripulacion(tripulacion);
                	
-               	vuelos.add(vuelo);            
+               	vuelos1.add(vuelo);            
                }
                
                rsVuelo.close();
-           } catch (Exception e) {
-           	System.err.format("\n* Error recuperando vuelos: %s.", e.getMessage());
-           }
-   				
-   		return vuelos;
+        } catch (Exception e) {
+        	System.err.format("\n* Error recuperando vuelos: %s.", e.getMessage());
+        }
+    	
+
+    	sqlVuelo = "SELECT * FROM VUELO "
+    	         + "WHERE ESTADO = TRUE "
+    	         + "AND CODIGO_DESTINO = 'LEBB' "
+    	         + "ORDER BY FECHAHORAPROGRAMADA";
+
+    	
+    	try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
+                PreparedStatement pstVuelo = con.prepareStatement(sqlVuelo);) {
+               ResultSet rsVuelo = pstVuelo.executeQuery();
+               
+               ResultSetMetaData rsmd = rsVuelo.getMetaData();
+               boolean existePista = false;
+               
+               for (int i = 1; i <= num; i++) {
+                   if (rsmd.getColumnName(i).equalsIgnoreCase("NUMERO_PISTA")) {
+                   	existePista = true;
+                       break;
+                   }
+               }
+
+               
+               while (rsVuelo.next()) {
+               	Integer numero = rsVuelo.getInt("NUMERO");
+               	Aeropuerto origen = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_ORIGEN"));
+               	Aeropuerto destino = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_DESTINO"));
+               	Aerolinea aerolinea = getAerolineaByCodigo(rsVuelo.getString("CODIGO_AEROLINEA"));
+               	Pista pista = existePista ? getPistaByNumero(rsVuelo.getString("NUMERO_PISTA")) : null;
+               	PuertaEmbarque puerta = getPuertaEmbarqueByCodigo(rsVuelo.getString("CODIGO_PUERTAEMBARQUE"));
+               	Boolean estado = rsVuelo.getBoolean("ESTADO");
+               	LocalDateTime fecha = LocalDateTime.parse(rsVuelo.getString("FECHAHORAPROGRAMADA"));
+               	Float duracion = rsVuelo.getFloat("DURACION");
+               	Avion avion = getAvionByMatricula(rsVuelo.getString("MATRICULA_AVION"));
+               	Boolean emergencia = rsVuelo.getBoolean("EMERGENCIA");
+               	Integer delayed = rsVuelo.getInt("DELAYED");
+               	
+               	Vuelo vuelo = new Vuelo(numero, origen, destino, aerolinea, pista, puerta, estado, fecha, duracion, avion, emergencia, delayed);
+               	
+               	ArrayList<Pasajero> pasajeros = getVueloListaPasajeros(vuelo);
+               	ArrayList<Tripulante> tripulacion = getVueloListaTripulacion(vuelo);
+               	
+               	vuelo.setPasajeros(pasajeros);
+               	vuelo.setTripulacion(tripulacion);
+               	
+               	vuelos2.add(vuelo);            
+               }
+               
+               rsVuelo.close();
+        } catch (Exception e) {
+        	System.err.format("\n* Error recuperando vuelos: %s.", e.getMessage());
+        }
+    	
+
+    	List<List<Vuelo>> vs = new ArrayList<List<Vuelo>>();
+    	vs.add(vuelos1);
+    	vs.add(vuelos2);
+   		return vs;
     }
     
     public List<Aeropuerto> loadAeropuertos() {
@@ -766,7 +826,7 @@ public class GestorBD {
 	}
 
 	
-	public void updateVuelo(Vuelo vuelo) {
+	public void updatePistaPuertaVuelo(Vuelo vuelo) {
 
 	    String sql = "UPDATE VUELO SET "
 	            + "NUMERO_PISTA = ?, "
@@ -795,5 +855,109 @@ public class GestorBD {
 	        System.err.println("* Error al actualizar vuelo '" + vuelo.getCodigo() + "': " + e.getMessage());
 	    }
 	}
-
+	
+	public void updateEstadoPuerta(PuertaEmbarque p) {
+		
+		String sql = "UPDATE PUERTAEMBARQUE SET"
+				+ "OCUPADA=?"
+				+ "WHERE CODIGO=?";
+		
+		try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
+		         PreparedStatement pstmt = con.prepareStatement(sql)) {
+			
+			pstmt.setBoolean(1, p.isOcupada());
+			pstmt.setString(2, p.getCodigo());
+			
+			int filas = pstmt.executeUpdate();
+			
+			if (filas == 0) {
+	            System.out.println("* No se encontró la puerta con código " + p.getCodigo());
+	        }
+			
+		} catch (SQLException e) {
+	        System.err.println("* Error al actualizar puerta '" + p.getCodigo() + "': " + e.getMessage());
+		}		
+	}
+	
+	public void estadosVuelo() {
+		
+		ArrayList<Vuelo> vs = new ArrayList<Vuelo>();
+		
+		String sql = "SELECT * FROM VUELO "
+		           + "WHERE FECHAHORAPROGRAMADA < ? "
+		           + "OR FECHAHORAPROGRAMADA = ? "
+		           + "ORDER BY FECHAHORAPROGRAMADA";
+		
+		LocalDateTime hora_aq = RelojGlobal.getInstancia().getTiempoActual();
+		
+		
+		try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
+		         PreparedStatement pstmt = con.prepareStatement(sql)) {
+			
+			pstmt.setString(1, hora_aq.toString());
+			pstmt.setString(2, hora_aq.toString());
+			
+			boolean existePista = false;
+			
+			ResultSet rsVuelo = pstmt.executeQuery();
+			while(rsVuelo.next()) {
+				Integer numero = rsVuelo.getInt("NUMERO");
+               	Aeropuerto origen = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_ORIGEN"));
+               	Aeropuerto destino = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_DESTINO"));
+               	Aerolinea aerolinea = getAerolineaByCodigo(rsVuelo.getString("CODIGO_AEROLINEA"));
+               	Pista pista = existePista ? getPistaByNumero(rsVuelo.getString("NUMERO_PISTA")) : null;
+               	PuertaEmbarque puerta = getPuertaEmbarqueByCodigo(rsVuelo.getString("CODIGO_PUERTAEMBARQUE"));
+               	Boolean estado = rsVuelo.getBoolean("ESTADO");
+               	LocalDateTime fecha = LocalDateTime.parse(rsVuelo.getString("FECHAHORAPROGRAMADA"));
+               	Float duracion = rsVuelo.getFloat("DURACION");
+               	Avion avion = getAvionByMatricula(rsVuelo.getString("MATRICULA_AVION"));
+               	Boolean emergencia = rsVuelo.getBoolean("EMERGENCIA");
+               	Integer delayed = rsVuelo.getInt("DELAYED");
+               	
+               	Vuelo vuelo = new Vuelo(numero, origen, destino, aerolinea, pista, puerta, estado, fecha, duracion, avion, emergencia, delayed);
+               	
+               	ArrayList<Pasajero> pasajeros = getVueloListaPasajeros(vuelo);
+               	ArrayList<Tripulante> tripulacion = getVueloListaTripulacion(vuelo);
+               	
+               	vuelo.setPasajeros(pasajeros);
+               	vuelo.setTripulacion(tripulacion);
+               	
+               	vs.add(vuelo);
+			}
+			rsVuelo.close();
+			
+		} catch (SQLException e) {
+	        System.err.println("* Error al extraer vuelos: " + e.getMessage());
+		}
+		
+		for (Vuelo v: vs) {
+			Boolean est = false;
+			v.setEstado(est);
+			
+			
+			if(v.getFechaHoraProgramada().isBefore(hora_aq) && v.getFechaHoraProgramada().plusMinutes((long) (v.getDelayed()+v.getDuracion())).isAfter(hora_aq.plusMinutes(2)) ) {
+				
+				est = true;
+				v.setEstado(est);
+			}
+			
+			String sql2 = "UPDATE VUELO "
+					+ "SET ESTADO = ?"
+					+ "WHERE CODIGO = ?";
+			
+			try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
+			         PreparedStatement pstmt = con.prepareStatement(sql2)) {
+				
+				pstmt.setBoolean(1, v.isEstado());
+				pstmt.setString(2, v.getCodigo());
+				
+				pstmt.executeUpdate();					
+				
+			} catch (SQLException e) {
+				System.err.println("* Error al actualizar estado de vuelo: " + v.getCodigo() + ": " + e.getMessage());
+			}
+			System.out.println("");
+		}
+		
+	}
 }

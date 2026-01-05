@@ -34,6 +34,8 @@ public class Main {
         //Configuración RelojGlobal
         RelojGlobal relojGlobal = RelojGlobal.getInstancia();
         relojGlobal.iniciar();
+        
+        gestorBD.estadosVuelo(); // Para poner todos los vuelos activos con sus estados
 
 
         // Lanzar interfaz con los vuelos
@@ -95,6 +97,26 @@ public class Main {
                 puertas.get(3), true, LocalDateTime.now().plusMinutes(1), 120, avionInmediato,
                 false, pasajerosInmediatos, tripulacionInmediata, 0);
         gestorBD.insertVuelo(vueloInmediato);
+        
+        Vuelo vueloInmediato2 = new Vuelo(9998, bilbao, aeropuertos.get(0), gestorBD.loadAerolineas().get(0),
+                puertas.get(2), true, LocalDateTime.now().minusMinutes(20), 10, avionInmediato,
+                false, pasajerosInmediatos, tripulacionInmediata, 0);
+        gestorBD.insertVuelo(vueloInmediato2);
+        
+        Vuelo vueloInmediato3 = new Vuelo(9997, bilbao, aeropuertos.get(0), gestorBD.loadAerolineas().get(0),
+                puertas.get(2), true, LocalDateTime.now().minusMinutes(20), 30, avionInmediato,
+                false, pasajerosInmediatos, tripulacionInmediata, 0);
+        gestorBD.insertVuelo(vueloInmediato3);
+        
+        Vuelo vueloInmediato4 = new Vuelo(9996, aeropuertos.get(0), bilbao, gestorBD.loadAerolineas().get(0),
+                puertas.get(2), true, LocalDateTime.now().plusMinutes(-120), 125, avionInmediato,
+                false, pasajerosInmediatos, tripulacionInmediata, 0);
+        gestorBD.insertVuelo(vueloInmediato4);
+        
+        Vuelo vueloInmediato5 = new Vuelo(9995, bilbao, aeropuertos.get(0), gestorBD.loadAerolineas().get(0),
+                puertas.get(2), true, LocalDateTime.now().plusMinutes(5), 125, avionInmediato,
+                false, pasajerosInmediatos, tripulacionInmediata, 0);
+        gestorBD.insertVuelo(vueloInmediato5);
 
         // Queremos aproximadamente la mitad llegadas a BIO y la mitad salidas desde BIO
         int targetArrivalsToBIO = cantidad / 2;
@@ -208,10 +230,12 @@ public class Main {
             }
 
             Vuelo vuelo = new Vuelo( codigo,  origen,  destino,  gestorBD.loadAerolineas().get(0),
-                    puertas.get(random.nextInt(puertas.size())),  estado,  horaLlegada,  duracion,  avion,
+                    puertas.get(random.nextInt(puertas.size())),  false,  horaLlegada,  duracion,  avion,
                     emergencia,  pasajeros,  tripulacion,  delayed);
             gestorBD.insertVuelo(vuelo);
         }
+        
+
     }
 
     public static ArrayList<Aerolinea> generadorAerolinea(GestorBD gestorBD) {

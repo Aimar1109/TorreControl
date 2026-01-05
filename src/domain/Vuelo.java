@@ -15,7 +15,7 @@ public class Vuelo {
 	private Aerolinea aereolinea;
 	private Pista pista;
 	private PuertaEmbarque puerta;
-	private boolean estado;
+	private boolean estado; // True - En vuelo
 	private LocalDateTime fechaHoraProgramada;
 	private float duracion;
 	private Avion avion;

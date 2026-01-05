@@ -145,9 +145,6 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         mainVuelos.add(panelCentral, BorderLayout.CENTER);
 		add(mainVuelos);
 		
-		ControladorP cp = new ControladorP(gestorBD);
-		cp.asignarPuertas();
-		
 		// Al final del constructor de JPanelVuelos:
 		RelojGlobal.getInstancia().addObservador(this);
 		// Mostrar tiempo inicial inmediatamente
@@ -471,7 +468,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
                         }
                         
                         // Actualizar en BD
-                        gestorBD.updateVuelo(vuelo);
+                        gestorBD.updatePistaPuertaVuelo(vuelo);
                     }
                 }
             }

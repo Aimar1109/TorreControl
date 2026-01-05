@@ -138,6 +138,8 @@ public class GestorBDInitializer {
             System.err.format("* Error al crear las tablas: %s\n", e.getMessage());
         }
     }
+    
+    
 
 	
 }

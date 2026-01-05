@@ -30,6 +30,7 @@ import domain.PaletaColor;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import jdbc.GestorBD;
+import threads.ControladorP;
 
 public class JFramePrincipal extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -135,6 +136,9 @@ public class JFramePrincipal extends JFrame {
             mainPanel.revalidate();
             mainPanel.repaint();
         });
+        
+        ControladorP cp = new ControladorP(gestorBD);
+		cp.asignarPuertas();
 
         // CONFIGURACION DE LA VENTANA
         this.add(mainPanel);
