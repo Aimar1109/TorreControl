@@ -96,26 +96,37 @@ public class ControladorP {
 					}
 				}
 				
+				// llegadas
 				if (x<tvuelos.get(1).size()-1) {
 					Vuelo av1 = tvuelos.get(1).get(x+1);
 					LocalDateTime avL1 = av1.getFechaHoraProgramada().plusMinutes((long) (av1.getDelayed()+av.getDuracion()));
 					if(avL.isAfter(avL1.minusMinutes(1)) && avL.isBefore(avL1.plusMinutes(1))) {
-						av1.setDelayed(av1.getDelayed()+1);
-						gestorBD.updatePistaPuertaVuelo(av1);
-						//System.out.println("Update llegada de "+av1.toString()+" - "+av.toString());
+						// si el primero es emergencia se retrasa el otro en cualquier otro case se retrasa el primero
+						if (av.isEmergencia()) {
+							av1.setDelayed(av1.getDelayed()+1);
+							gestorBD.updatePistaPuertaVuelo(av1);
+						} else {
+							av.setDelayed(av.getDelayed()+1);
+							gestorBD.updatePistaPuertaVuelo(av);
+						}
 					}
 				}
 			}
 			
+			// salidas
 			if (i<tvuelos.get(0).size()-1) {
 				Vuelo sv1 = tvuelos.get(0).get(i+1);
 				
 				if (sv.getFechaHoraProgramada().isAfter(sv1.getFechaHoraProgramada().minusMinutes(1)) 
 						&& sv.getFechaHoraProgramada().isBefore(sv1.getFechaHoraProgramada().plusMinutes(1))) {
-					sv1.setDelayed(sv1.getDelayed()+1);
-					gestorBD.updatePistaPuertaVuelo(sv1);
-					//System.out.println("Update salida de "+sv1.toString() + "("+ sv1.getFechaHoraProgramada().toString()+")"+" - "
-					//+sv.toString()+"("+sv.getFechaHoraProgramada().toString()+")");
+					// lo mismo que con las salidas
+					if (sv.isEmergencia()) {
+						sv1.setDelayed(sv1.getDelayed()+1);
+						gestorBD.updatePistaPuertaVuelo(sv1);
+					} else {
+						sv.setDelayed(sv.getDelayed()+1);
+						gestorBD.updatePistaPuertaVuelo(sv1);
+					}
 				}
 			}
 		}
