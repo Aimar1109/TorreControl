@@ -355,24 +355,16 @@ public class GestorBD {
         try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
              PreparedStatement pstVuelo = con.prepareStatement(sqlVuelo);) {
             ResultSet rsVuelo = pstVuelo.executeQuery();
-            
-            ResultSetMetaData rsmd = rsVuelo.getMetaData();
-            boolean existePista = false;
-            
-            for (int i = 1; i <= rsmd.getColumnCount(); i++) {
-                if (rsmd.getColumnName(i).equalsIgnoreCase("NUMERO_PISTA")) {
-                	existePista = true;
-                    break;
-                }
-            }
-
-            
+                      
             while (rsVuelo.next()) {
             	Integer numero = rsVuelo.getInt("NUMERO");
             	Aeropuerto origen = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_ORIGEN"));
             	Aeropuerto destino = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_DESTINO"));
             	Aerolinea aerolinea = getAerolineaByCodigo(rsVuelo.getString("CODIGO_AEROLINEA"));
-            	Pista pista = existePista ? getPistaByNumero(rsVuelo.getString("NUMERO_PISTA")) : null;
+            	Pista pista = null;
+            	if (!(rsVuelo.getString("NUMERO_PISTA")==null)) {
+            		pista = getPistaByNumero(rsVuelo.getString("NUMERO_PISTA"));
+            	}
             	PuertaEmbarque puerta = getPuertaEmbarqueByCodigo(rsVuelo.getString("CODIGO_PUERTAEMBARQUE"));
             	Boolean estado = rsVuelo.getBoolean("ESTADO");
             	LocalDateTime fecha = LocalDateTime.parse(rsVuelo.getString("FECHAHORAPROGRAMADA"));
@@ -416,7 +408,7 @@ public class GestorBD {
                 	Aerolinea aerolinea = getAerolineaByCodigo(rsVuelo.getString("CODIGO_AEROLINEA"));
                 	Pista pista = null;
                 	if (!(rsVuelo.getString("NUMERO_PISTA")==null)) {
-                		pista = new Pista(rsVuelo.getString("NUMERO_PISTA"), true);
+                		pista = getPistaByNumero(rsVuelo.getString("NUMERO_PISTA"));
                 	}
                 	PuertaEmbarque puerta = getPuertaEmbarqueByCodigo(rsVuelo.getString("CODIGO_PUERTAEMBARQUE"));
                 	Boolean estado = rsVuelo.getBoolean("ESTADO");
@@ -461,23 +453,15 @@ public class GestorBD {
     		   pstVuelo.setInt(2, num);
                ResultSet rsVuelo = pstVuelo.executeQuery();
                
-               ResultSetMetaData rsmd = rsVuelo.getMetaData();
-               boolean existePista = false;
-               
-               for (int i = 1; i <= num; i++) {
-                   if (rsmd.getColumnName(i).equalsIgnoreCase("NUMERO_PISTA")) {
-                   	existePista = true;
-                       break;
-                   }
-               }
-
-               
                while (rsVuelo.next()) {
                	Integer numero = rsVuelo.getInt("NUMERO");
                	Aeropuerto origen = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_ORIGEN"));
                	Aeropuerto destino = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_DESTINO"));
                	Aerolinea aerolinea = getAerolineaByCodigo(rsVuelo.getString("CODIGO_AEROLINEA"));
-               	Pista pista = existePista ? getPistaByNumero(rsVuelo.getString("NUMERO_PISTA")) : null;
+               	Pista pista = null;
+            	if (!(rsVuelo.getString("NUMERO_PISTA")==null)) {
+            		pista = getPistaByNumero(rsVuelo.getString("NUMERO_PISTA"));
+            	}
                	PuertaEmbarque puerta = getPuertaEmbarqueByCodigo(rsVuelo.getString("CODIGO_PUERTAEMBARQUE"));
                	Boolean estado = rsVuelo.getBoolean("ESTADO");
                	LocalDateTime fecha = LocalDateTime.parse(rsVuelo.getString("FECHAHORAPROGRAMADA"));
@@ -512,24 +496,16 @@ public class GestorBD {
     	try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
                 PreparedStatement pstVuelo = con.prepareStatement(sqlVuelo);) {
                ResultSet rsVuelo = pstVuelo.executeQuery();
-               
-               ResultSetMetaData rsmd = rsVuelo.getMetaData();
-               boolean existePista = false;
-               
-               for (int i = 1; i <= num; i++) {
-                   if (rsmd.getColumnName(i).equalsIgnoreCase("NUMERO_PISTA")) {
-                   	existePista = true;
-                       break;
-                   }
-               }
-
-               
+                             
                while (rsVuelo.next()) {
                	Integer numero = rsVuelo.getInt("NUMERO");
                	Aeropuerto origen = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_ORIGEN"));
                	Aeropuerto destino = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_DESTINO"));
                	Aerolinea aerolinea = getAerolineaByCodigo(rsVuelo.getString("CODIGO_AEROLINEA"));
-               	Pista pista = existePista ? getPistaByNumero(rsVuelo.getString("NUMERO_PISTA")) : null;
+               	Pista pista = null;
+            	if (!(rsVuelo.getString("NUMERO_PISTA")==null)) {
+            		pista = getPistaByNumero(rsVuelo.getString("NUMERO_PISTA"));
+            	}
                	PuertaEmbarque puerta = getPuertaEmbarqueByCodigo(rsVuelo.getString("CODIGO_PUERTAEMBARQUE"));
                	Boolean estado = rsVuelo.getBoolean("ESTADO");
                	LocalDateTime fecha = LocalDateTime.parse(rsVuelo.getString("FECHAHORAPROGRAMADA"));
@@ -1005,15 +981,16 @@ public class GestorBD {
 			pstmt.setString(1, hora_aq.toString());
 			pstmt.setString(2, hora_aq.toString());
 			
-			boolean existePista = false;
-			
 			ResultSet rsVuelo = pstmt.executeQuery();
 			while(rsVuelo.next()) {
 				Integer numero = rsVuelo.getInt("NUMERO");
                	Aeropuerto origen = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_ORIGEN"));
                	Aeropuerto destino = getAeropuertoByCodigo(rsVuelo.getString("CODIGO_DESTINO"));
                	Aerolinea aerolinea = getAerolineaByCodigo(rsVuelo.getString("CODIGO_AEROLINEA"));
-               	Pista pista = existePista ? getPistaByNumero(rsVuelo.getString("NUMERO_PISTA")) : null;
+               	Pista pista = null;
+            	if (!(rsVuelo.getString("NUMERO_PISTA")==null)) {
+            		pista = getPistaByNumero(rsVuelo.getString("NUMERO_PISTA"));
+            	}
                	PuertaEmbarque puerta = getPuertaEmbarqueByCodigo(rsVuelo.getString("CODIGO_PUERTAEMBARQUE"));
                	Boolean estado = rsVuelo.getBoolean("ESTADO");
                	LocalDateTime fecha = LocalDateTime.parse(rsVuelo.getString("FECHAHORAPROGRAMADA"));
@@ -1064,7 +1041,6 @@ public class GestorBD {
 			} catch (SQLException e) {
 				System.err.println("* Error al actualizar estado de vuelo: " + v.getCodigo() + ": " + e.getMessage());
 			}
-			System.out.println("");
 		}
 		
 	}

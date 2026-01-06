@@ -4,9 +4,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.SwingUtilities;
+
 import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
+import gui.JFramePrincipal;
+import gui.JPanelVuelos;
 import jdbc.GestorBD;
 import threads.RelojGlobal;
 
@@ -16,15 +20,23 @@ public class ControladorP {
 	private Boolean[] pistas;
 	private GestorBD gestorBD;
 	
+	private JFramePrincipal jfPrinc;
+	
+	private Actualizador act;
 	
 	
-	public ControladorP(GestorBD gestorBD) {
+	public ControladorP(GestorBD gestorBD, JFramePrincipal jfPrinc) {
 		this.puertas = new PuertaEmbarque[9];
 		for (PuertaEmbarque p: gestorBD.loadPuertasEmbarque()) {
 			this.puertas[p.getNumero()-1] = p;
 		}
 		this.pistas = new Boolean[2];
 		this.gestorBD = gestorBD;
+		this.jfPrinc = jfPrinc;
+		
+		this.act = new Actualizador();
+		this.act.start();
+		
 		
 	}
 	
@@ -45,6 +57,7 @@ public class ControladorP {
 		
 		LocalDateTime hora = RelojGlobal.getInstancia().getTiempoActual();
 		
+		gestorBD.estadosVuelo();
 		// Listas de siguientes vuelos y vuelos activos por llegar
 		List<List<Vuelo>> tvuelos = gestorBD.getVueloControlP(hora, 9);
 		
@@ -83,19 +96,16 @@ public class ControladorP {
 					if (sv.isEmergencia()) {
 						av.setDelayed(av.getDelayed()+1);
 						gestorBD.updatePistaPuertaVuelo(av);
-						//System.out.println(av.toString()+" updated");
 						
 					} else if (av.isEmergencia()) {
 						sv.setDelayed(sv.getDelayed()+1);
 						gestorBD.updatePistaPuertaVuelo(sv);
-						//System.out.println(sv.toString()+" updated");
 						
 					} else {
 						
 						
 						av.setDelayed(av.getDelayed()+1);
 						gestorBD.updatePistaPuertaVuelo(av);
-						//System.out.println(av.toString()+" updated");
 						
 					}
 				}
@@ -109,7 +119,7 @@ public class ControladorP {
 						if (av.isEmergencia()) {
 							av1.setDelayed(av1.getDelayed()+2);
 							gestorBD.updatePistaPuertaVuelo(av1);
-						} if (av1.isEmergencia()) {
+						} else if (av1.isEmergencia()) {
 							av.setDelayed(av.getDelayed()+2);
 							gestorBD.updatePistaPuertaVuelo(av);
 						} else {
@@ -130,8 +140,8 @@ public class ControladorP {
 			if (i<tvuelos.get(0).size()-1) {
 				Vuelo sv1 = tvuelos.get(0).get(i+1);
 				
-				if (sv.getFechaHoraProgramada().isAfter(sv1.getFechaHoraProgramada().minusMinutes(1)) 
-						&& sv.getFechaHoraProgramada().isBefore(sv1.getFechaHoraProgramada().plusMinutes(1))) {
+				if (sv.getFechaHoraProgramada().plusMinutes(sv.getDelayed()).isAfter(sv1.getFechaHoraProgramada().plusMinutes(sv1.getDelayed()).minusMinutes(1)) 
+						&& sv.getFechaHoraProgramada().plusMinutes(sv.getDelayed()).isBefore(sv1.getFechaHoraProgramada().plusMinutes(sv1.getDelayed()).plusMinutes(1))) {
 					// Como las salidas estan en orden a no ser que el segundo vuelo sea una emergencia siempre se retrasa este
 					if (sv1.isEmergencia()) {
 						sv.setDelayed(sv.getDelayed()+3);
@@ -143,19 +153,48 @@ public class ControladorP {
 				}
 			}
 		}
-
+		
+		// Comprobar puertas
+		for(PuertaEmbarque p: this.puertas) {
+			if (p.getSalida()!= null) {
+				if (p.getSalida().getFechaHoraProgramada().plusMinutes(p.getSalida().getDelayed()).isBefore(hora)) {
+					p.setSalida(null);
+				}
+			}
+			if (p.getLlegada()!=null) {
+				LocalDateTime sH = p.getLlegada().getFechaHoraProgramada().plusMinutes((long) (p.getLlegada().getDelayed()+p.getLlegada().getDuracion()));
+				if (sH.isBefore(hora)) {
+					p.setLlegada(null);
+				}
+			}
+		}
 		// Asignar llegadas		
 		for (Vuelo v: tvuelos.get(1)) {
+			// Checkear si el vuelo ya tiene una puerta asignada correctamente
+			Boolean yaesta = false;
+			for (int i=0; i<puertas.length; i++) {
+				if (puertas[i].getLlegada()!=null && puertas[i].getLlegada().equals(v)) {
+					yaesta = true;
+					break;
+				}
+			}
+			if (yaesta) {
+				continue;
+			}
+			
 			if ( v.getPuerta() != null) {
 				
 				for (int i=0; i<puertas.length; i++) {
 					if(puertas[i].getLlegada()==null) {
 						// Si la puerta tiene un avion ya que su salida es mas tarde de que este vuelo llege no puede ir a esa puerta
-						if (puertas[i].getSalida() != null ) {
-							LocalDateTime sH = puertas[i].getSalida().getFechaHoraProgramada().plusMinutes((long) (puertas[i].getSalida().getDelayed()+puertas[i].getSalida().getDuracion()));
-							if (puertas[i].getSalida().getFechaHoraProgramada().isAfter(sH) ) {
-								continue;
-							}
+						if (puertas[i].getSalida() != null) {
+						    LocalDateTime horaLlegada = v.getFechaHoraProgramada().plusMinutes((long)(v.getDelayed() + v.getDuracion()));
+						    LocalDateTime horaSalida = puertas[i].getSalida().getFechaHoraProgramada().plusMinutes(puertas[i].getSalida().getDelayed());
+						    
+						    // Si el avión que llega no tiene tiempo suficiente antes de la salida programada
+						    if (horaLlegada.plusMinutes(2).isAfter(horaSalida)) { // margen de 30 min
+						        continue;
+						    }
 						}
 						v.setPuerta(puertas[i]);
 						puertas[i].setLlegada(v);
@@ -169,6 +208,18 @@ public class ControladorP {
 		
 		// Asignar salidas intentado enlazar con llegadas
 		for(Vuelo v: tvuelos.get(0)) {
+			
+			Boolean yaesta = false;
+			for (int i=0; i<puertas.length; i++) {
+				if (puertas[i].getSalida()!=null && puertas[i].getSalida().equals(v)) {
+					yaesta = true;
+					break;
+				}
+			}
+			if (yaesta) {
+				continue;
+			}
+			
 			if (v.getPuerta()!=null) {
 				for (int i=0; i<puertas.length; i++) {
 					
@@ -183,6 +234,25 @@ public class ControladorP {
 				}
 			}
 		}
+		System.out.println(1);
+		//jfPrinc.refrescarTablasVuelos();
 		
+	}
+	
+	private class Actualizador extends Thread {
+		@Override
+		public void run() {
+			
+			while(!this.isInterrupted()) {
+				
+				try {
+					asignarPuertas();
+					Thread.sleep(10_000);
+				} catch (InterruptedException e) {
+					this.interrupt();
+				}
+				
+			}
+		}
 	}
 }

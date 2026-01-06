@@ -78,6 +78,7 @@ public class JFramePrincipal extends JFrame {
         mainPanel.add(menuPanel, BorderLayout.NORTH);
 
         ArrayList<Vuelo> vuelos = (ArrayList<Vuelo>) gestorBD.loadVuelos();
+        ControladorP cp = new ControladorP(gestorBD, this);
 
         // PANEL CENTRAL VUELOS
         JPanelVuelos jpvuelos = new JPanelVuelos(gestorBD, vuelos);
@@ -136,9 +137,6 @@ public class JFramePrincipal extends JFrame {
             mainPanel.revalidate();
             mainPanel.repaint();
         });
-        
-        ControladorP cp = new ControladorP(gestorBD);
-		cp.asignarPuertas();
 
         // CONFIGURACION DE LA VENTANA
         this.add(mainPanel);
