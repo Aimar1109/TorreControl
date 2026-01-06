@@ -28,6 +28,7 @@ public class Avion {
     private boolean enHangar;
     private Point estacionamientoHangar;
     private EstadoAvion estadoAvion;
+    private ArrayList<Double> velocidadesRuta = new ArrayList<>();
 
     private boolean marchaAtras;
     private Point destinoMarchaAtras;
@@ -44,9 +45,9 @@ public class Avion {
     }
 
     public Avion(String modelo, String matricula, int capacidad) {
-    	if (matricula == null || matricula.trim().isEmpty() || !matricula.matches(regex)) {
-    		throw new IllegalArgumentException("La matricula no puede estar vacio y tiene que cumplir la condicion");
-    	}
+        if (matricula == null || matricula.trim().isEmpty() || !matricula.matches(regex)) {
+            throw new IllegalArgumentException("La matricula no puede estar vacio y tiene que cumplir la condicion");
+        }
         this.modelo = modelo;
         this.matricula = matricula;
         this.capacidad = capacidad;
@@ -55,7 +56,7 @@ public class Avion {
         this.rutaActual = new ArrayList<>();
         this.pointIndex = 0;
         this.enHangar = false;
-        
+
 //        matriculasRegistradas.add(matricula);
     }
 
@@ -94,11 +95,11 @@ public class Avion {
     }
 
     public void setMatricula(String matricula) {
-    	if (matricula == null || matricula.trim().isEmpty() || !matricula.matches(regex)) {
-    		throw new IllegalArgumentException("La matricula no puede estar vacio y tiene que cumplir la condicion");
-    	}
+        if (matricula == null || matricula.trim().isEmpty() || !matricula.matches(regex)) {
+            throw new IllegalArgumentException("La matricula no puede estar vacio y tiene que cumplir la condicion");
+        }
         this.matricula = matricula;
-        
+
     }
 
     public int getCapacidad() {
@@ -262,21 +263,21 @@ public class Avion {
 
     @Override
     public boolean equals(Object o) {
-    	 if (this == o) return true;
-         if (o == null || getClass() != o.getClass()) return false;
-         Avion that = (Avion) o;
-         return matricula.equals(that.matricula);
-    	
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Avion that = (Avion) o;
+        return matricula.equals(that.matricula);
+
     }
-    
+
     @Override
     public int hashCode() {
-    	return Objects.hash(matricula);
+        return Objects.hash(matricula);
     }
-    
+
     @Override
     public String toString() {
-    	return modelo + " - " + matricula;
+        return modelo + " - " + matricula;
     }
 
     public void setRuta(ArrayList<Point> ruta) {
@@ -284,6 +285,10 @@ public class Avion {
         this.pointIndex = 0;
         if (!ruta.isEmpty()) {
             setDestino(ruta.get(0).x, ruta.get(0).y);
+        }
+        this.velocidadesRuta = new ArrayList<>();
+        for (int i = 0; i < (ruta.size() - 1); i++) {
+            this.velocidadesRuta.add(1.3);
         }
     }
 
@@ -352,5 +357,28 @@ public class Avion {
         } else {
             return 0;
         }
+    }
+
+    public ArrayList<Double> getVelocidadesRuta() {
+        return velocidadesRuta;
+    }
+
+    public void setVelocidadSegmento(int index, double velocidad) {
+        int tramos = rutaActual.size() - 1;
+
+        //Si la longitud de la lista de velocidades es distinta a la cantidad de tramos se redimensiona
+        if (velocidadesRuta.size() != tramos) {
+            ArrayList<Double> nueva = new ArrayList<>();
+            for (int i = 0; i < tramos; i++) {
+                if (i < velocidadesRuta.size()) {
+                    nueva.add(velocidadesRuta.get(i));
+                } else {
+                    nueva.add(1.3);
+                }
+            }
+            velocidadesRuta = nueva;
+        }
+
+        velocidadesRuta.set(index, velocidad);
     }
 }

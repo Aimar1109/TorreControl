@@ -1311,6 +1311,7 @@ public class ControladorMovimiento implements ObservadorTiempo{
             return;
         }
 
+        iniciarVelocidades(avion);
         avion.actualizarPosicion();
 
         //Se verifica si ha llegado
@@ -1321,7 +1322,8 @@ public class ControladorMovimiento implements ObservadorTiempo{
                 avion.setEnHangar(true);
                 avion.setSpeed(0);
             } else {
-                Point posicionActual;
+                asignarVelocidadSegmento(avion);
+                /*Point posicionActual;
                 ArrayList<Point> ruta = avion.getRutaActual();
                 int i = avion.getPointIndex();
                 if (ruta != null && i >= 0 && i < ruta.size()) {
@@ -1340,9 +1342,57 @@ public class ControladorMovimiento implements ObservadorTiempo{
                     } else {
                         avion.setSpeed(1.3);
                     }
-                }
+                }*/
             }
         }
+    }
+
+
+    private void iniciarVelocidades(Avion avion) {
+        int tramos = avion.getRutaLength() - 1;
+        if (tramos <= 0) {
+            return;
+        }
+
+        ArrayList<Double> rutaVelociades = avion.getVelocidadesRuta();
+        if (rutaVelociades.size() != tramos) {
+            establecerVelocidadesRutaRecursivo(avion, 0);
+            asignarVelocidadSegmento(avion);
+        }
+    }
+
+    private void establecerVelocidadesRutaRecursivo(Avion avion, int i) {
+        ArrayList<Point> ruta = avion.getRutaActual();
+        int tramos = ruta.size() - 1;
+        if (tramos < 0) {
+            tramos = 0;
+        }
+
+        //Caso base
+        if (i >= tramos) {
+            return;
+        }
+
+        Point a = ruta.get(i);
+        Point b = ruta.get(i + 1);
+        TipoSegmento tipoSegmento = getTipoSegmento(a, b);
+        double velocidad = getVelocidadSegmento(tipoSegmento);
+        avion.setVelocidadSegmento(i, velocidad);
+
+        //Caso recursivo
+        establecerVelocidadesRutaRecursivo(avion, i + 1);
+    }
+
+    private void asignarVelocidadSegmento(Avion avion) {
+        int pointIndex = avion.getPointIndex() - 1;
+        if (pointIndex < 0) {
+            pointIndex = 0;
+        }
+
+        ArrayList<Double> rutaVelocidades = avion.getVelocidadesRuta();
+        int tramos = rutaVelocidades.size();
+        int indice = Math.min(pointIndex, tramos - 1);
+        avion.setSpeed(rutaVelocidades.get(indice));
     }
 
     //Verfica si está dentro del área del hangar
@@ -1405,10 +1455,65 @@ public class ControladorMovimiento implements ObservadorTiempo{
         return devolver;
     }
 
+    //Verfica si está dentro del mapa
+    public static boolean estaEnMapa(Point p) {
+        boolean devolver = false;
+
+        //Si se encuentra dentro de los limites del hangar se devuelver true
+        if (p.x >= 0 && p.x <= 1000 && p.y >= 0 && p.y <= 700) {
+            devolver = true;
+        }
+        return devolver;
+    }
+
+    private TipoSegmento getTipoSegmento(Point a, Point b) {
+        //Si uno de los dos puntos es fuera del mapa significa que sale o entra al aeropuerto
+        if (!estaEnMapa(a) || !estaEnMapa(b)) {
+            return TipoSegmento.VUELO;
+        }
+
+        //Si uno de los dos puntos esta en el hangar significa que sale o entra del hangar
+        if (estaEnAreaHangarPunto(a) || estaEnAreaHangarPunto(b)) {
+            return TipoSegmento.HANGAR;
+        }
+
+        //Si el siguiente segmento está cerca del centro de alguna de las pistas
+        if (cercaDePistaHorizontal(a, b) || cercaDePistaVertical(a, b))  {
+            return TipoSegmento.PISTA;
+        }
+
+        return TipoSegmento.TERMINAL;
+    };
+
+    //IAG: (ChatGPT)
+    private boolean cercaDePistaHorizontal(Point a, Point b) {
+        int yPista = (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY();
+        double distancia = Math.abs(a.y - yPista) + Math.abs(b.y - yPista);
+        return distancia <= 8;
+    }
+
+    //IAG: (ChatGPT)
+    private boolean cercaDePistaVertical(Point a, Point b) {
+        int xPista = (int) PISTAATERRIZAJEDERECHACENTRONORTH.getX();
+        double distancia = Math.abs(a.x - xPista) + Math.abs(b.x - xPista);
+        return distancia <= 8;
+    }
+
+    private double getVelocidadSegmento(TipoSegmento segmento) {
+        double devolver;
+        switch (segmento) {
+            case VUELO -> devolver = 4.0;
+            case PISTA -> devolver = 2.5;
+            case TERMINAL -> devolver = 0.8;
+            case HANGAR -> devolver = 0.8;
+            default -> devolver = 1.3;
+        }
+        return devolver;
+    }
+
     private Point getPuntoPuertaEmbarque(PuertaEmbarque puertaEmbarque) {
         Point devolver;
         switch (puertaEmbarque.getNumero()) {
-            case 1 -> devolver = P1;
             case 2 -> devolver = P2;
             case 3 -> devolver = P3;
             case 4 -> devolver = P4;
