@@ -1323,49 +1323,46 @@ public class ControladorMovimiento implements ObservadorTiempo{
                 avion.setSpeed(0);
             } else {
                 asignarVelocidadSegmento(avion);
-                /*Point posicionActual;
-                ArrayList<Point> ruta = avion.getRutaActual();
-                int i = avion.getPointIndex();
-                if (ruta != null && i >= 0 && i < ruta.size()) {
-                    posicionActual = new Point(avion.getX(), avion.getY());
-                    Point destino = ruta.get(i);
-
-                    if (estaVolando(posicionActual) || estaVolando(destino)) {
-                        avion.setEstadoAvion(EstadoAvion.DESPEGANDO);
-                        avion.setSpeed(4);
-                    } else if (estaEnPista(destino)) {
-                        avion.setEstadoAvion(EstadoAvion.RODANDO_A_PISTA);
-                        avion.setSpeed(3);
-                    } else if (estaEnAreaHangarPunto(destino)) {
-                        avion.setEstadoAvion(EstadoAvion.RODANDO_A_HANGAR);
-                        avion.setSpeed(0.8);
-                    } else {
-                        avion.setSpeed(1.3);
-                    }
-                }*/
             }
         }
     }
 
 
     private void iniciarVelocidades(Avion avion) {
-        int tramos = avion.getRutaLength() - 1;
+        ArrayList<Point> ruta = avion.getRutaActual();
+        int tramos = ruta.size() - 1;
         if (tramos <= 0) {
+            avion.setSpeed(1.3);
             return;
         }
 
         ArrayList<Double> rutaVelociades = avion.getVelocidadesRuta();
-        if (rutaVelociades.size() != tramos) {
-            establecerVelocidadesRutaRecursivo(avion, 0);
-            asignarVelocidadSegmento(avion);
+        if (rutaVelociades == null) {
+            rutaVelociades = new ArrayList<>();
         }
+        if (rutaVelociades.size() != tramos) {
+            ArrayList<Double> nueva = new ArrayList<>(tramos);
+            for (int i = 0; i < tramos; i++) {
+                if (i < rutaVelociades.size()) {
+                    nueva.add(rutaVelociades.get(i));
+                } else {
+                    nueva.add(1.3);
+                }
+            }
+            for (int i = 0; i < nueva.size(); i++) {
+                avion.setVelocidadSegmento(i, nueva.get(i));
+            }
+        }
+
+        establecerVelocidadesRutaRecursivo(avion, 0);
+        asignarVelocidadSegmento(avion);
     }
 
     private void establecerVelocidadesRutaRecursivo(Avion avion, int i) {
         ArrayList<Point> ruta = avion.getRutaActual();
         int tramos = ruta.size() - 1;
-        if (tramos < 0) {
-            tramos = 0;
+        if (tramos <= 0) {
+            return;
         }
 
         //Caso base
@@ -1390,8 +1387,19 @@ public class ControladorMovimiento implements ObservadorTiempo{
         }
 
         ArrayList<Double> rutaVelocidades = avion.getVelocidadesRuta();
+        if (rutaVelocidades == null || rutaVelocidades.isEmpty()) {
+            avion.setSpeed(1.3);
+            return;
+        }
+
         int tramos = rutaVelocidades.size();
         int indice = Math.min(pointIndex, tramos - 1);
+
+        if (rutaVelocidades.get(indice) == null) {
+            avion.setSpeed(1.3);
+            return;
+        }
+
         avion.setSpeed(rutaVelocidades.get(indice));
     }
 
@@ -1468,18 +1476,18 @@ public class ControladorMovimiento implements ObservadorTiempo{
 
     private TipoSegmento getTipoSegmento(Point a, Point b) {
         //Si uno de los dos puntos es fuera del mapa significa que sale o entra al aeropuerto
-        if (!estaEnMapa(a) || !estaEnMapa(b)) {
+        if (!estaEnMapa(a) || !estaEnMapa(b) || estaVolando(a) || estaVolando(b)) {
             return TipoSegmento.VUELO;
         }
 
-        //Si uno de los dos puntos esta en el hangar significa que sale o entra del hangar
-        if (estaEnAreaHangarPunto(a) || estaEnAreaHangarPunto(b)) {
-            return TipoSegmento.HANGAR;
+        //Si ambos puntos están en pista significa que recorre la pista
+        if (estaEnPista(a) && estaEnPista(b)) {
+            return TipoSegmento.PISTA;
         }
 
-        //Si el siguiente segmento está cerca del centro de alguna de las pistas
-        if (cercaDePistaHorizontal(a, b) || cercaDePistaVertical(a, b))  {
-            return TipoSegmento.PISTA;
+        //Si ambos puntos están en el hangar significa que está en el hangar
+        if (estaEnAreaHangarPunto(a) && estaEnAreaHangarPunto(b)) {
+            return TipoSegmento.HANGAR;
         }
 
         return TipoSegmento.TERMINAL;
@@ -1504,8 +1512,7 @@ public class ControladorMovimiento implements ObservadorTiempo{
         switch (segmento) {
             case VUELO -> devolver = 4.0;
             case PISTA -> devolver = 2.5;
-            case TERMINAL -> devolver = 0.8;
-            case HANGAR -> devolver = 0.8;
+            case TERMINAL, HANGAR -> devolver = 0.8;
             default -> devolver = 1.3;
         }
         return devolver;
