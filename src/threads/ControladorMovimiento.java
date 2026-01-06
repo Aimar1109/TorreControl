@@ -1311,6 +1311,10 @@ public class ControladorMovimiento implements ObservadorTiempo{
             return;
         }
 
+        if (avion.isMarchaAtras()) {
+            Point destino = avion.getDestinoMarchaAtras();
+        }
+
         iniciarVelocidades(avion);
         avion.actualizarPosicion();
 
@@ -1327,8 +1331,54 @@ public class ControladorMovimiento implements ObservadorTiempo{
         }
     }
 
+    private void inicioMarchaAtras(Avion avion) {
+        Point destino = avion.getDestinoMarchaAtras();
+        if (destino == null) {
+            avion.setMarchaAtras(false);
+            return;
+        }
+
+        double dx = destino.x - avion.getX();
+        double dy = destino.y - avion.getY();
+        //Módulo del vector (Teorema de pitagoras)
+        double d = Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2));
+        double v = 0.8;
+
+        //Normalizo
+        double normalDx = dx/d;
+        double normalDy = dy/d;
+
+        if (d > v) {
+            double moveX = normalDx * v;
+            double moveY = normalDy * v;
+
+            int moveXi = (int) Math.round(moveX);
+            int moveYi = (int) Math.round(moveY);
+
+            avion.setX(avion.getX() + moveXi);
+            avion.setY(avion.getY() + moveYi);
+        } else {
+            //Si está muy cerca (speed>d) se coloca directamente encima
+            avion.setX(destino.x);
+            avion.setY(destino.y);
+            avion.setMarchaAtras(false);
+            avion.setDestinoMarchaAtras(null);
+
+            ArrayList<Point> ruta = avion.getRutaActual();
+            if (ruta != null && !ruta.isEmpty()) {
+                ruta.remove(0);
+                avion.setRuta(ruta);
+            }
+
+            iniciarVelocidades(avion);
+            asignarVelocidadSegmento(avion);
+        }
+    }
 
     private void iniciarVelocidades(Avion avion) {
+        if (avion.isMarchaAtras()) {
+            return;
+        }
         ArrayList<Point> ruta = avion.getRutaActual();
         int tramos = ruta.size() - 1;
         if (tramos <= 0) {
@@ -1493,27 +1543,13 @@ public class ControladorMovimiento implements ObservadorTiempo{
         return TipoSegmento.TERMINAL;
     };
 
-    //IAG: (ChatGPT)
-    private boolean cercaDePistaHorizontal(Point a, Point b) {
-        int yPista = (int) PISTAATERRIZAJEABAJOCENTRODCHA.getY();
-        double distancia = Math.abs(a.y - yPista) + Math.abs(b.y - yPista);
-        return distancia <= 8;
-    }
-
-    //IAG: (ChatGPT)
-    private boolean cercaDePistaVertical(Point a, Point b) {
-        int xPista = (int) PISTAATERRIZAJEDERECHACENTRONORTH.getX();
-        double distancia = Math.abs(a.x - xPista) + Math.abs(b.x - xPista);
-        return distancia <= 8;
-    }
-
     private double getVelocidadSegmento(TipoSegmento segmento) {
         double devolver;
         switch (segmento) {
             case VUELO -> devolver = 4.0;
-            case PISTA -> devolver = 2.5;
+            case PISTA -> devolver = 2.0;
             case TERMINAL, HANGAR -> devolver = 0.8;
-            default -> devolver = 1.3;
+            default -> devolver = 2.0;
         }
         return devolver;
     }
