@@ -34,8 +34,8 @@ public class ControladorP {
 		this.gestorBD = gestorBD;
 		this.jfPrinc = jfPrinc;
 		
-		this.act = new Actualizador();
-		this.act.start();
+		//this.act = new Actualizador();
+		//this.act.start();
 		
 		
 	}

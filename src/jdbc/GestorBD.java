@@ -350,11 +350,21 @@ public class GestorBD {
     public List<Vuelo> loadVuelos() {
     	List<Vuelo> vuelos = new ArrayList<Vuelo>();
 		
-		String sqlVuelo = "SELECT * FROM VUELO";
+		String sqlVuelo = "SELECT * FROM VUELO "
+				+ "WHERE NOT (FECHAHORAPROGRAMADA < ? AND ESTADO = ?) "
+				+ "ORDER BY FECHAHORAPROGRAMADA";
+		
+		LocalDateTime hora = RelojGlobal.getInstancia().getTiempoActual();
 
         try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
              PreparedStatement pstVuelo = con.prepareStatement(sqlVuelo);) {
-            ResultSet rsVuelo = pstVuelo.executeQuery();
+            
+        	
+        	
+        	pstVuelo.setString(1, hora.toString());
+        	pstVuelo.setBoolean(2, false);
+        	
+        	ResultSet rsVuelo = pstVuelo.executeQuery();
                       
             while (rsVuelo.next()) {
             	Integer numero = rsVuelo.getInt("NUMERO");

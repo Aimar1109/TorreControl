@@ -77,8 +77,13 @@ public class JFramePrincipal extends JFrame {
 
         mainPanel.add(menuPanel, BorderLayout.NORTH);
 
-        ArrayList<Vuelo> vuelos = (ArrayList<Vuelo>) gestorBD.loadVuelos();
+        
         ControladorP cp = new ControladorP(gestorBD, this);
+        cp.asignarPuertas();
+        
+        ArrayList<Vuelo> vuelos = (ArrayList<Vuelo>) gestorBD.loadVuelos();
+        
+        
 
         // PANEL CENTRAL VUELOS
         JPanelVuelos jpvuelos = new JPanelVuelos(gestorBD, vuelos);
