@@ -75,8 +75,14 @@ public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo>
             info.setText(ciudadOrigen + " → " + ciudadDestino);
 
             //Llegada
-            LocalDateTime intermedio = value.getFechaHoraProgramada();
-            LocalDateTime real = intermedio.plusMinutes(value.getDelayed());
+             
+            LocalDateTime real = value.getFechaHoraProgramada().plusMinutes((long) value.getDelayed());
+            
+            if (ciudadDestino.equals("Bilbao")) {
+            	
+            	real = value.getFechaHoraProgramada().plusMinutes((long) (value.getDelayed()+value.getDuracion()));
+            	
+            }
             String textoLabel = real.format(DateTimeFormatter.ofPattern("HH:mm"));
             llegada.setText(textoLabel);
         }
