@@ -916,6 +916,32 @@ public class GestorBD {
 	    }
 	}
 	
+	public void updateAvionVuelo(Vuelo vuelo) {
+
+	    String sql = "UPDATE VUELO SET "
+	            + "MATRICULA_AVION = ? "
+	            + "WHERE CODIGO = ?";
+
+	    try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
+	         PreparedStatement pstmt = con.prepareStatement(sql)) {
+	    	
+	    	System.out.println(vuelo + " - " + vuelo.getAvion());
+	    	pstmt.setString(1, vuelo.getAvion().getMatricula());
+	        pstmt.setString(2, vuelo.getCodigo().trim());
+
+	        int filas = pstmt.executeUpdate();
+
+	        if (filas == 0) {
+	            System.out.println("* No se encontró el vuelo con código " + vuelo.getCodigo());
+	        } /* else {
+	            System.out.println("✔ Vuelo '" + vuelo.getCodigo() + "' actualizado correctamente.");
+	        }*/
+	        
+	    } catch (SQLException e) {
+	        System.err.println("* Error al actualizar vuelo '" + vuelo.getCodigo() + "': " + e.getMessage());
+	    }
+	}
+	
 	public void updatePuerta(PuertaEmbarque p) {
 		
 		String sql = "UPDATE PUERTAEMBARQUE SET "

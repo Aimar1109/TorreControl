@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.swing.SwingUtilities;
 
+import domain.Avion;
 import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
@@ -224,6 +225,18 @@ public class ControladorP {
 				for (int i=0; i<puertas.length; i++) {
 					
 					if (puertas[i].getSalida()==null && puertas[i].getLlegada()!=null) {
+						
+						/*
+						// Actualizar avion para hacer que sea el mismo avion que a aterrizado y la trasicion sea limpia
+						if (puertas[i].getLlegada().getAvion()!= null) {
+							Avion av = puertas[i].getLlegada().getAvion();
+							System.out.println(puertas[i].getLlegada()+" - "+av);
+							System.out.println(v+ " - " +v.getAvion());
+							v.setAvion(av);
+							gestorBD.updateAvionVuelo(v);
+							System.out.println("");
+						}
+						*/
 						v.setPuerta(puertas[i]);
 						puertas[i].setSalida(v);
 						gestorBD.updatePuerta(puertas[i]);
