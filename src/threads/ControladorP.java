@@ -234,7 +234,6 @@ public class ControladorP {
 				}
 			}
 		}
-		System.out.println(1);
 		//jfPrinc.refrescarTablasVuelos();
 		
 	}

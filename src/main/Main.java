@@ -109,12 +109,12 @@ public class Main {
         gestorBD.insertVuelo(vueloInmediato3);
         
         Vuelo vueloInmediato4 = new Vuelo(9996, aeropuertos.get(0), bilbao, gestorBD.loadAerolineas().get(0),
-                puertas.get(2), true, LocalDateTime.now().plusMinutes(-120), 125, avionInmediato,
+                puertas.get(5), true, LocalDateTime.now().plusMinutes(-120), 123, avionInmediato,
                 false, pasajerosInmediatos, tripulacionInmediata, 0);
         gestorBD.insertVuelo(vueloInmediato4);
         
         Vuelo vueloInmediato5 = new Vuelo(9995, bilbao, aeropuertos.get(0), gestorBD.loadAerolineas().get(0),
-                puertas.get(2), true, LocalDateTime.now().plusMinutes(5), 125, avionInmediato,
+                puertas.get(2), true, LocalDateTime.now().plusMinutes(5), 122, avionInmediato,
                 false, pasajerosInmediatos, tripulacionInmediata, 0);
         gestorBD.insertVuelo(vueloInmediato5);
 

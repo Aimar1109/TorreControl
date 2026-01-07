@@ -336,7 +336,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         
         // Tabla
         String ae = esLlegada ? "ORIGEN": "DESTINO";
-        String[] columnas = {"VUELO", ae, "FECHA", "HORA", "PUERTA", "PISTA", "RETRASO"};
+        String[] columnas = {"VUELO", ae, "FECHA", "HORA", "LLEGA", "PUERTA", "RETRASO"};
          
         DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
         	@Override
@@ -344,6 +344,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
                 // Importante para que el sorter sepa qué tipo de dato es
                 if (columnIndex == 2) return LocalDate.class;
                 if (columnIndex == 3) return LocalTime.class;
+                if (columnIndex == 4) return LocalTime.class;
                 return String.class;
             }
         };
@@ -385,14 +386,14 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         		continue;
         	}
         	String ciudad = esLlegada ? v.getOrigen().getCiudad() : v.getDestino().getCiudad();
-        	String pista = v.getPista()==null ? "": v.getPista().toString();
+        	LocalDateTime llega = v.getFechaHoraProgramada().plusMinutes((long) v.getDuracion());
         	modelo.addRow(new Object[] {
         			v.getCodigo(),
         			ciudad,
         			v.getFechaHoraProgramada().format(formatterFecha),
         			v.getFechaHoraProgramada().format(formatterHora),
+        			llega.format(formatterHora),
         			v.getPuerta(),
-        			pista,
         			v.getDelayed()
         	});
         }
@@ -426,6 +427,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         }
         tabla.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(comboPuerta));
         
+        /*
         // ComboBox para PISTA
         ArrayList<Pista> pistas = (ArrayList<Pista>) gestorBD.loadPistas();
         JComboBox<String> comboPista = new JComboBox<>();
@@ -434,7 +436,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         	comboPista.addItem(p.getNumero());
         }
         tabla.getColumnModel().getColumn(5).setCellEditor(new DefaultCellEditor(comboPista));
-        
+        */
         // Actualizaciones
         modelo.addTableModelListener(e -> {
             if (e.getType() == TableModelEvent.UPDATE) {
@@ -459,13 +461,13 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
                             // Actualizar puerta
                             PuertaEmbarque nuevaPuerta = gestorBD.getPuertaEmbarqueByCodigo((String) nuevoValor);
                             vuelo.setPuerta(nuevaPuerta);
-                        } else if (columna == 5) { // PISTA
+                        } /*else if (columna == 5) { // PISTA
                             // Actualizar pista
                             Integer nuevaPista = nuevoValor.toString().isEmpty() ? 
                                 null : Integer.parseInt(nuevoValor.toString());
                             Pista np = gestorBD.getPistaByNumero(nuevaPista.toString());
                             vuelo.setPista(np);
-                        }
+                        }*/
                         
                         // Actualizar en BD
                         gestorBD.updatePistaPuertaVuelo(vuelo);
@@ -556,14 +558,14 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         		}
         		
         		if (coincide) {
-        			String pista = v.getPista() == null ? "" : v.getPista().toString();
+        			LocalDateTime llega = v.getFechaHoraProgramada().plusMinutes((long) v.getDuracion());
         			modelo.addRow(new Object[] {
                 			v.getCodigo(),
                 			ciudad,
                 			v.getFechaHoraProgramada().format(formatterFecha),
                 			v.getFechaHoraProgramada().format(formatterHora),
+                			llega.format(formatterHora),
                 			v.getPuerta().toString(),
-                			pista,
                 			v.getDelayed()
                 	});
         		}
