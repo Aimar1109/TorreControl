@@ -381,4 +381,8 @@ public class Avion {
 
         velocidadesRuta.set(index, velocidad);
     }
+
+    public void resetPointIndex() {
+        this.pointIndex = 0;
+    }
 }

@@ -763,34 +763,37 @@ public class ControladorMovimiento implements ObservadorTiempo{
         if (pistaHorizontal) {
             if (puertaEmbarque == null) {
                 setAterrizajeHorizontalHangar(avion, vuelo);
-            }
-            switch (puertaEmbarque.getNumero()) {
-                case 1 -> setAterrizajeHorizontalP1(avion, vuelo);
-                case 2 -> setAterrizajeHorizontalP2(avion, vuelo);
-                case 3 -> setAterrizajeHorizontalP3(avion, vuelo);
-                case 4 -> setAterrizajeHorizontalP4(avion, vuelo);
-                case 5 -> setAterrizajeHorizontalP5(avion, vuelo);
-                case 6 -> setAterrizajeHorizontalP6(avion, vuelo);
-                case 7 -> setAterrizajeHorizontalP7(avion, vuelo);
-                case 8 -> setAterrizajeHorizontalP8(avion, vuelo);
-                case 9 -> setAterrizajeHorizontalP9(avion, vuelo);
-                default -> setAterrizajeHorizontalHangar(avion, vuelo);
+            } else {
+                switch (puertaEmbarque.getNumero()) {
+                    case 1 -> setAterrizajeHorizontalP1(avion, vuelo);
+                    case 2 -> setAterrizajeHorizontalP2(avion, vuelo);
+                    case 3 -> setAterrizajeHorizontalP3(avion, vuelo);
+                    case 4 -> setAterrizajeHorizontalP4(avion, vuelo);
+                    case 5 -> setAterrizajeHorizontalP5(avion, vuelo);
+                    case 6 -> setAterrizajeHorizontalP6(avion, vuelo);
+                    case 7 -> setAterrizajeHorizontalP7(avion, vuelo);
+                    case 8 -> setAterrizajeHorizontalP8(avion, vuelo);
+                    case 9 -> setAterrizajeHorizontalP9(avion, vuelo);
+                    default -> setAterrizajeHorizontalHangar(avion, vuelo);
+                }
             }
         } else {
             if (puertaEmbarque == null) {
                 setAterrizajeVerticalHangar(avion, vuelo);
             }
-            switch (puertaEmbarque.getNumero()) {
-                case 1 -> setAterrizajeVerticalP1(avion, vuelo);
-                case 2 -> setAterrizajeVerticalP2(avion, vuelo);
-                case 3 -> setAterrizajeVerticalP3(avion, vuelo);
-                case 4 -> setAterrizajeVerticalP4(avion, vuelo);
-                case 5 -> setAterrizajeVerticalP5(avion, vuelo);
-                case 6 -> setAterrizajeVerticalP6(avion, vuelo);
-                case 7 -> setAterrizajeVerticalP7(avion, vuelo);
-                case 8 -> setAterrizajeVerticalP8(avion, vuelo);
-                case 9 -> setAterrizajeVerticalP9(avion, vuelo);
-                default -> setAterrizajeVerticalHangar(avion, vuelo);
+            else {
+                switch (puertaEmbarque.getNumero()) {
+                    case 1 -> setAterrizajeVerticalP1(avion, vuelo);
+                    case 2 -> setAterrizajeVerticalP2(avion, vuelo);
+                    case 3 -> setAterrizajeVerticalP3(avion, vuelo);
+                    case 4 -> setAterrizajeVerticalP4(avion, vuelo);
+                    case 5 -> setAterrizajeVerticalP5(avion, vuelo);
+                    case 6 -> setAterrizajeVerticalP6(avion, vuelo);
+                    case 7 -> setAterrizajeVerticalP7(avion, vuelo);
+                    case 8 -> setAterrizajeVerticalP8(avion, vuelo);
+                    case 9 -> setAterrizajeVerticalP9(avion, vuelo);
+                    default -> setAterrizajeVerticalHangar(avion, vuelo);
+                }
             }
         }
 
@@ -1312,7 +1315,8 @@ public class ControladorMovimiento implements ObservadorTiempo{
         }
 
         if (avion.isMarchaAtras()) {
-            Point destino = avion.getDestinoMarchaAtras();
+            inicioMarchaAtras(avion);
+            return;
         }
 
         iniciarVelocidades(avion);

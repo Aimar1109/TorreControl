@@ -226,7 +226,7 @@ public class ControladorP {
 					
 					if (puertas[i].getSalida()==null && puertas[i].getLlegada()!=null) {
 						
-						/*
+
 						// Actualizar avion para hacer que sea el mismo avion que a aterrizado y la trasicion sea limpia
 						if (puertas[i].getLlegada().getAvion()!= null) {
 							Avion av = puertas[i].getLlegada().getAvion();
@@ -235,8 +235,16 @@ public class ControladorP {
 							v.setAvion(av);
 							gestorBD.updateAvionVuelo(v);
 							System.out.println("");
+
+							av.setMarchaAtras(false);
+							av.setDestinoMarchaAtras(null);
+							av.setEnHangar(false);
+							av.setEstadoAvion(domain.EstadoAvion.RODANDO_A_PISTA);
+							av.setRuta(new ArrayList<>());
+							av.setSpeed(0);
+							av.resetPointIndex();
 						}
-						*/
+
 						v.setPuerta(puertas[i]);
 						puertas[i].setSalida(v);
 						gestorBD.updatePuerta(puertas[i]);
