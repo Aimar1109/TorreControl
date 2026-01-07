@@ -716,7 +716,7 @@ public class ControladorMovimiento implements ObservadorTiempo{
             }
 
             long delay = v.getDelayed();
-            LocalDateTime horaLLegada = v.getFechaHoraProgramada().plusMinutes(delay);
+            LocalDateTime horaLLegada = v.getFechaHoraProgramada().plusMinutes(delay).plusMinutes((long) v.getDuracion());
             //El avion aparece 2 minutos antes de la llegada
             LocalDateTime horaAparece = horaLLegada.minusMinutes(2);
 
