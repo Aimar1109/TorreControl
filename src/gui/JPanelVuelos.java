@@ -86,12 +86,6 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	
 	private GestorBD gestorBD;
 	
-	private DefaultTableModel modeloLlegadas;
-    private DefaultTableModel modeloSalidas;
-    
-    private ActualizadorTablaVuelos actTV;
-    
-	
 	public JPanelVuelos(GestorBD gestorBD, ArrayList<Vuelo> vuelos) {
 		
 		this.gestorBD = gestorBD;
@@ -141,13 +135,8 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		panelCentral.setBackground(PaletaColor.get(PaletaColor.FONDO));
 		
 		// crear tablas
-		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", vuelos, true, true);
-		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", vuelos, false, true);
-		
-		// Actualizador de tablas
-		
-		actTV = new ActualizadorTablaVuelos();
-		actTV.start();
+		JPanel mainLlegadas = creadorTablaVuelos("LLEGADAS", vuelos, true);
+		JPanel mainSalidas = creadorTablaVuelos("SALIDAS", vuelos, false);
         
 		// MAIN
         panelCentral.add(mainLlegadas);
@@ -162,7 +151,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		actualizarTiempo(RelojGlobal.getInstancia().getTiempoActual());
 	}
 	
-	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada, boolean guardarModelo) {
+	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada) {
 		// Funcion para crear tabla de Vuelos tanto llegadas como salidas
 		
 		
@@ -359,14 +348,6 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
                 return String.class;
             }
         };
-        
-        if (guardarModelo) {
-            if (esLlegada) {
-                this.modeloLlegadas = modelo;
-            } else {
-                this.modeloSalidas = modelo;
-            }
-        }
         
         JTable tabla = new JTable(modelo);
         tabla.setFillsViewportHeight(true);
@@ -749,49 +730,6 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		return vuelos;
 	}
 	
-	public void actualizarVuelos() {
-		ArrayList<Vuelo> nvuelo = (ArrayList<Vuelo>) gestorBD.loadVuelos();
-	    this.vuelos = nvuelo;
-	    
-	    // Limpiar ambas tablas
-	    modeloLlegadas.setRowCount(0);
-	    modeloSalidas.setRowCount(0);
-	    
-	    // Rellenar tabla de llegadas
-	    for (Vuelo v : nvuelo) {
-	        if (!v.getOrigen().getCiudad().equals("Bilbao")) {
-	            String ciudad = v.getOrigen().getCiudad();
-	            LocalDateTime llega = v.getFechaHoraProgramada().plusMinutes((long) v.getDuracion());
-	            modeloLlegadas.addRow(new Object[] {
-	                v.getCodigo(),
-	                ciudad,
-	                v.getFechaHoraProgramada().format(formatterFecha),
-	                v.getFechaHoraProgramada().format(formatterHora),
-	                llega.format(formatterHora),
-	                v.getPuerta().toString(),
-	                v.getDelayed()
-	            });
-	        }
-	    }
-	    
-	    // Rellenar tabla de salidas
-	    for (Vuelo v : nvuelo) {
-	        if (!v.getDestino().getCiudad().equals("Bilbao")) {
-	            String ciudad = v.getDestino().getCiudad();
-	            LocalDateTime llega = v.getFechaHoraProgramada().plusMinutes((long) v.getDuracion());
-	            modeloSalidas.addRow(new Object[] {
-	                v.getCodigo(),
-	                ciudad,
-	                v.getFechaHoraProgramada().format(formatterFecha),
-	                v.getFechaHoraProgramada().format(formatterHora),
-	                llega.format(formatterHora),
-	                v.getPuerta().toString(),
-	                v.getDelayed()
-	            });
-	        }
-	    }
-	}
-	
 	@Override
 	public void actualizarTiempo(LocalDateTime nuevoTiempo) {
 		SwingUtilities.invokeLater(() -> {
@@ -809,22 +747,5 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 				lblreloj.setForeground(PaletaColor.get(PaletaColor.BLANCO));
 			}
 		});
-	}
-	
-	private class ActualizadorTablaVuelos extends Thread {
-		@Override
-		public void run() {
-			
-			while(!this.isInterrupted()) {
-				
-				try {
-					Thread.sleep(10_000);
-					actualizarVuelos();
-				} catch (InterruptedException e) {
-					this.interrupt();
-				}
-				
-			}
-		}
 	}
 }
