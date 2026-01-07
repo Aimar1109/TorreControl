@@ -78,6 +78,14 @@ public class Main {
         // IAG: (Claude) Vuelo temporal generado con IA para probar el funcionamiento del aterrizaje a puerta de embarque
         Avion avionInmediato = new Avion("Boeing 737", "EC-IMM", 180);
         gestorBD.insertAvion(avionInmediato);
+        Avion avionInmediato2 = new Avion("Boeing 737", "ED-IMM", 180);
+        gestorBD.insertAvion(avionInmediato2);
+        Avion avionInmediato3 = new Avion("Boeing 737", "EF-IMM", 180);
+        gestorBD.insertAvion(avionInmediato3);
+        Avion avionInmediato4 = new Avion("Boeing 737", "ET-IMM", 180);
+        gestorBD.insertAvion(avionInmediato4);
+        Avion avionInmediato5 = new Avion("Boeing 737", "EY-IMM", 180);
+        gestorBD.insertAvion(avionInmediato4);
         Pista pistaInmediata = new Pista("2", false);
         gestorBD.insertPista(pistaInmediata);
 
@@ -99,22 +107,22 @@ public class Main {
         gestorBD.insertVuelo(vueloInmediato);
         
         Vuelo vueloInmediato2 = new Vuelo(9998, bilbao, aeropuertos.get(0), gestorBD.loadAerolineas().get(0),
-                puertas.get(2), true, LocalDateTime.now().minusMinutes(20), 10, avionInmediato,
+                puertas.get(2), true, LocalDateTime.now().minusMinutes(20), 10, avionInmediato2,
                 false, pasajerosInmediatos, tripulacionInmediata, 0);
         gestorBD.insertVuelo(vueloInmediato2);
         
         Vuelo vueloInmediato3 = new Vuelo(9997, bilbao, aeropuertos.get(0), gestorBD.loadAerolineas().get(0),
-                puertas.get(2), true, LocalDateTime.now().minusMinutes(20), 30, avionInmediato,
+                puertas.get(2), true, LocalDateTime.now().minusMinutes(20), 30, avionInmediato3,
                 false, pasajerosInmediatos, tripulacionInmediata, 0);
         gestorBD.insertVuelo(vueloInmediato3);
         
         Vuelo vueloInmediato4 = new Vuelo(9996, aeropuertos.get(0), bilbao, gestorBD.loadAerolineas().get(0),
-                puertas.get(5), true, LocalDateTime.now().plusMinutes(-120), 123, avionInmediato,
+                puertas.get(5), true, LocalDateTime.now().plusMinutes(-120), 123, avionInmediato4,
                 false, pasajerosInmediatos, tripulacionInmediata, 0);
         gestorBD.insertVuelo(vueloInmediato4);
         
         Vuelo vueloInmediato5 = new Vuelo(9995, bilbao, aeropuertos.get(0), gestorBD.loadAerolineas().get(0),
-                puertas.get(2), true, LocalDateTime.now().plusMinutes(5), 122, avionInmediato,
+                puertas.get(2), true, LocalDateTime.now().plusMinutes(5), 122, avionInmediato5,
                 false, pasajerosInmediatos, tripulacionInmediata, 0);
         gestorBD.insertVuelo(vueloInmediato5);
 
