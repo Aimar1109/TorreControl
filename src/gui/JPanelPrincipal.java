@@ -352,6 +352,11 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
             limpiarVuelos(modeloVuelosCercanos, nuevoTiempo);
             limpiarVuelos(modeloVuelosPista1, nuevoTiempo);
             limpiarVuelos(modeloVuelosPista2, nuevoTiempo);
+
+            //Reordenación por los posibles delays que se pueden dar durante la ejecución del programa
+            ordenarLista(modeloVuelosCercanos);
+            ordenarLista(modeloVuelosPista2);
+            ordenarLista(modeloVuelosPista1);
         });
 
         SwingUtilities.invokeLater(() -> {
