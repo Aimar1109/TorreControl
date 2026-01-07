@@ -9,10 +9,9 @@ import threads.RelojGlobal;
 import java.awt.event.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.swing.*;
@@ -386,11 +385,11 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         }
 
         //Ordeno la lista
-        Collections.sort(vuelos, comparadorVuelos);
+        List<Vuelo> ordenados = mergeSort(vuelos, comparadorVuelos);
 
         //Vuelvo insertar los vuelos al modelo vaciado
         modelo.clear();
-        for (Vuelo v : vuelos) {
+        for (Vuelo v : ordenados) {
             modelo.addElement(v);
         }
     }
@@ -411,6 +410,54 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         for (Vuelo v: vuelosPasados) {
             modelo.removeElement(v);
         }
+    }
+
+    private List<Vuelo> mergeSort(List<Vuelo> lista, ComparadorFechaVuelos comparator) {
+        int n = lista.size();
+        if (n <= 1) {
+            return lista;
+        }
+
+        int mid = n / 2;
+        List<Vuelo> listIzda = new ArrayList<>(lista.subList(0, mid));
+        List<Vuelo> listDcha = new ArrayList<>(lista.subList(mid, n));
+
+        List<Vuelo> izda = mergeSort(listIzda, comparator);
+        List<Vuelo> dcha = mergeSort(listDcha, comparator);
+
+        return merge(izda, dcha, comparator);
+    }
+
+    private List<Vuelo> merge(List<Vuelo> izda, List<Vuelo> dcha, ComparadorFechaVuelos comparator) {
+        List<Vuelo> devolver = new ArrayList<>();
+        int i = 0;
+        int j = 0;
+
+        while (i < izda.size() && j < dcha.size()) {
+            Vuelo vueloIzda = izda.get(i);
+            Vuelo vueloDcha = dcha.get(j);
+            if (comparator.compare(vueloIzda, vueloDcha) <= 0) {
+                devolver.add(vueloIzda);
+                i++;
+            } else {
+                devolver.add(vueloDcha);
+                j++;
+            }
+        }
+
+        while (i < izda.size()) {
+            Vuelo vueloIzda = izda.get(i);
+            devolver.add(vueloIzda);
+            i++;
+        }
+
+        while (j < dcha.size()) {
+            Vuelo vueloDcha = dcha.get(j);
+            devolver.add(vueloDcha);
+            j++;
+        }
+
+        return devolver;
     }
 
     // IAG: Configuración visual del ScrollPane con estilización para modernidad aplicada
