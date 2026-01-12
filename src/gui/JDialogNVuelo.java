@@ -316,13 +316,16 @@ public class JDialogNVuelo extends 	JDialog {
 			} else {
 				ciudad = origen;
 			}
+        	LocalDateTime llega = v.getFechaHoraProgramada().plusMinutes((long) v.getDuracion());
         	modelo.addRow(new Object[] {
         			v.getCodigo(),
         			ciudad,
         			v.getFechaHoraProgramada().format(formatterFecha),
         			v.getFechaHoraProgramada().format(formatterHora),
+        			llega.format(formatterHora),
+        			v.getPuerta(),
         			v.getDelayed()
-        			});
+        	});
 		}
 	
 	private LocalDateTime creadorLDTdeSpinner(JDateChooser dateChooser, JSpinner sHora) {
