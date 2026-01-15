@@ -257,43 +257,71 @@ class RadarTile extends JPanel {
 
         LocalDateTime salida = vuelo.getFechaHoraProgramada().plusMinutes(vuelo.getDelayed());
         LocalDateTime llegada = salida.plusMinutes((long)vuelo.getDuracion());
+        
+        // Ventanas de tiempo extra
+        long MINUTOS_DESEMBARQUE = 15; 
+        long MINUTOS_ATERRIZAJE = 15;
+        
+        LocalDateTime finDesembarque = llegada.plusMinutes(MINUTOS_DESEMBARQUE);
+        LocalDateTime inicioAterrizaje = llegada.minusMinutes(MINUTOS_ATERRIZAJE);
 
+        // IAG
         long totalMin = ChronoUnit.MINUTES.between(salida, llegada);
         long elapsed = ChronoUnit.MINUTES.between(salida, now);
         long toGo = ChronoUnit.MINUTES.between(now, salida);
 
         isFlying = false;
-        
-        // Máquina de estados para determinar color y texto
-        if (now.isAfter(llegada)) {
+
+        // LÓGICA DE ESTADOS
+        if (now.isAfter(finDesembarque)) {
             progreso = 1f;
             estadoColor = PaletaColor.get(PaletaColor.TEXTO_SUAVE); 
             estadoTexto = "FINALIZADO";
+        
+        } else if (now.isAfter(llegada)) {
+            progreso = 1f;
+            
+            if (esSalida) {
+                estadoColor = PaletaColor.get(PaletaColor.TEXTO_SUAVE);
+                estadoTexto = "EN DESTINO";
+            } else {
+                // Si es llegada a Bilbao mostramos desembarque
+                estadoColor = new Color(255, 140, 0); 
+                estadoTexto = "DESEMBARCANDO";
+                isFlying = true; 
+            }
+
         } else if (now.isAfter(salida)) {
             isFlying = true;
             progreso = (float)elapsed / (float)Math.max(totalMin, 1);
             
+            // LÓGICA DE EMERGENCIA EN VUELO
             if (isEmergency) {
-                estadoColor = new Color(255, 50, 50); // Rojo 
+                estadoColor = new Color(255, 50, 50); 
                 estadoTexto = "¡EMERGENCIA!";
             } else {
-                estadoColor = vuelo.getDelayed() > 0 ? PaletaColor.get(PaletaColor.DELAYED) : PaletaColor.get(PaletaColor.EXITO);
-                estadoTexto = "EN VUELO";
+                // Comprobar si está aterrizando (solo llegadas)
+                if (!esSalida && now.isAfter(inicioAterrizaje)) {
+                    estadoColor = new Color(34, 139, 34); 
+                    estadoTexto = "ATERRIZANDO";
+                } else {
+                    estadoColor = vuelo.getDelayed() > 0 ? PaletaColor.get(PaletaColor.DELAYED) : PaletaColor.get(PaletaColor.EXITO);
+                    estadoTexto = "EN VUELO";
+                }
             }
+
         } else {
             progreso = 0f;
             
             if (vuelo.getDelayed() > 0) {
                 estadoColor = PaletaColor.get(PaletaColor.DELAYED); 
                 estadoTexto = "RETRASADO";             
-            } else if (toGo < 60) {
+            } else if (toGo < 45) {
+                estadoColor = PaletaColor.get(PaletaColor.ACENTO); 
                 if (esSalida) {
                     estadoTexto = "EMBARCANDO"; 
-                    estadoColor = PaletaColor.get(PaletaColor.ACENTO); 
                 } else {
-                    estadoTexto = "ATERRIZANDO"; 
-                    estadoColor = PaletaColor.get(PaletaColor.EXITO); 
-
+                    estadoTexto = "EN ORIGEN"; 
                 }
             } else {
                 estadoColor = PaletaColor.get(PaletaColor.SECUNDARIO); 
@@ -306,10 +334,13 @@ class RadarTile extends JPanel {
             }
         }
         
-        // Animación de pulso (Función Seno para animación suave)
+        // Animación de pulso (Más rápida si es emergencia o aterrizando)
+        // IAG
         if (isFlying || isEmergency) { 
             long millis = System.currentTimeMillis();
-            double speed = isEmergency ? 100.0 : 250.0; // Emergencia parpadea más rápido
+            boolean aterrizando = "ATERRIZANDO".equals(estadoTexto);
+            double speed = isEmergency ? 100.0 : (aterrizando ? 180.0 : 250.0); 
+            
             pulseAlpha = (float) (0.3f + 0.2f * Math.sin(millis / speed)); 
         } else {
             pulseAlpha = 0f;
