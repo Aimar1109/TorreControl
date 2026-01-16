@@ -51,7 +51,9 @@ public class DialogoAsignarPista extends JDialog {
         vuelosDisponibles = new ArrayList<>();
         for (int i = 0; i < modeloVuelosRecientes.size(); i++) {
             Vuelo vuelo = modeloVuelosRecientes.get(i);
-            vuelosDisponibles.add(vuelo);
+            if (esArrastrable(vuelo)) {
+                vuelosDisponibles.add(vuelo);
+            }
         }
 
         initComponents();
@@ -61,6 +63,10 @@ public class DialogoAsignarPista extends JDialog {
         setSize(450, 250);
         setLocationRelativeTo(parent);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    }
+
+    private boolean esArrastrable(Vuelo vuelo) {
+        return vuelo != null && "Bilbao".equals(vuelo.getDestino().getCiudad());
     }
 
     private void initComponents() {
