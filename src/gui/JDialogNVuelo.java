@@ -6,10 +6,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridLayout;
-import java.awt.RenderingHints;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -37,20 +34,19 @@ import domain.Aerolinea;
 import domain.Aeropuerto;
 import domain.Avion;
 import domain.PaletaColor;
-import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import jdbc.GestorBD;
 
 public class JDialogNVuelo extends 	JDialog {
+
+	private static final long serialVersionUID = 1L;
 	
 	private JTextField txtNumero, txtDuracion;
 	private JComboBox<Aeropuerto> boxAeropuerto;
 	private JComboBox<Aerolinea> boxAerolinea;
 	private JDateChooser dateChooser;
 	private JSpinner spinnerHora;
-	private boolean guardado = false;
-	private LocalDateTime fechaHoraSeleccionada;
 	private JComboBox<Avion> boxAvion;
 	private JComboBox<PuertaEmbarque> boxPuerta;
 	

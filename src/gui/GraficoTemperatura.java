@@ -7,7 +7,6 @@ import java.awt.*;
 import java.util.LinkedList;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.List;
 

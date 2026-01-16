@@ -4,13 +4,16 @@ import domain.PaletaColor;
 import domain.Vuelo;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo> {
-    private JLabel cod;
+    
+	
+	private static final long serialVersionUID = 1L;
+	
+	private JLabel cod;
     private JLabel or_des;
     private JLabel info;
     private JLabel llegada;

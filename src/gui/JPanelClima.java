@@ -374,11 +374,9 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         GestorBD gestor = new GestorBD();
         ServicioMeteorologico servicio = new ServicioMeteorologico();
         
-        System.out.println("Intentando obtener datos meteorológicos reales...");
         List<Clima> datosReales = servicio.obtenerPronosticoReal();
         
         if (datosReales != null && !datosReales.isEmpty()) {
-            System.out.println("¡Datos reales obtenidos! Actualizando BD...");
             fuenteDatos = " (EN VIVO - OPEN METEO)";
             
             for (int h = 0; h < datosReales.size() && h < 24; h++) {

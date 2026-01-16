@@ -13,30 +13,23 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
@@ -58,15 +51,10 @@ import javax.swing.table.TableModel;
 
 import com.toedter.calendar.JDateChooser;
 
-import domain.Aerolinea;
-import domain.Aeropuerto;
-import domain.Avion;
 import domain.PaletaColor;
-import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import jdbc.GestorBD;
-import threads.ControladorP;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
 

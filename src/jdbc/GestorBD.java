@@ -5,13 +5,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.LinkedList;
 
 import domain.Aerolinea;
@@ -932,7 +929,6 @@ public class GestorBD {
 	    try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
 	         PreparedStatement pstmt = con.prepareStatement(sql)) {
 	    	
-	    	System.out.println(vuelo + " - " + vuelo.getAvion());
 	    	pstmt.setString(1, vuelo.getAvion().getMatricula());
 	        pstmt.setString(2, vuelo.getCodigo().trim());
 

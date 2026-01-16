@@ -6,7 +6,6 @@ import gui.MapPanel;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.List;
 
 public class ControladorMovimiento implements ObservadorTiempo{
 

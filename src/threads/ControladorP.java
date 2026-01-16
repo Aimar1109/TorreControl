@@ -4,16 +4,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.SwingUtilities;
 
 import domain.Avion;
 import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
 import gui.JFramePrincipal;
-import gui.JPanelVuelos;
 import jdbc.GestorBD;
-import threads.RelojGlobal;
 
 public class ControladorP {
 	
@@ -21,19 +18,16 @@ public class ControladorP {
 	private Boolean[] pistas;
 	private GestorBD gestorBD;
 	
-	private JFramePrincipal jfPrinc;
-	
 	private Actualizador act;
 	
 	
-	public ControladorP(GestorBD gestorBD, JFramePrincipal jfPrinc) {
+	public ControladorP(GestorBD gestorBD) {
 		this.puertas = new PuertaEmbarque[9];
 		for (PuertaEmbarque p: gestorBD.loadPuertasEmbarque()) {
 			this.puertas[p.getNumero()-1] = p;
 		}
 		this.pistas = new Boolean[2];
 		this.gestorBD = gestorBD;
-		this.jfPrinc = jfPrinc;
 		
 		//this.act = new Actualizador();
 		//this.act.start();
@@ -255,7 +249,6 @@ public class ControladorP {
 				}
 			}
 		}
-		//jfPrinc.refrescarTablasVuelos();
 		
 	}
 	

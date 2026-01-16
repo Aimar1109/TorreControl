@@ -11,23 +11,15 @@ import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.WindowConstants;
 
-import domain.Aerolinea;
-import domain.Aeropuerto;
-import domain.Avion;
 import domain.PaletaColor;
-import domain.PuertaEmbarque;
 import domain.Vuelo;
 import jdbc.GestorBD;
 import threads.ControladorP;
@@ -35,7 +27,6 @@ import threads.ControladorP;
 public class JFramePrincipal extends JFrame {
     private static final long serialVersionUID = 1L;
 
-    private ArrayList<Vuelo> vuelos;
     private ButtonGroup buttonGroup;
 
     private GestorBD gestorBD;
@@ -78,7 +69,7 @@ public class JFramePrincipal extends JFrame {
         mainPanel.add(menuPanel, BorderLayout.NORTH);
 
         
-        ControladorP cp = new ControladorP(gestorBD, this);
+        ControladorP cp = new ControladorP(gestorBD);
         cp.asignarPuertas();
         
         ArrayList<Vuelo> vuelos = (ArrayList<Vuelo>) gestorBD.loadVuelos();
