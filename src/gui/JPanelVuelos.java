@@ -23,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
@@ -73,6 +74,11 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 	private JLabel lblreloj = new JLabel();
 	
 	private GestorBD gestorBD;
+	
+	private Thread threadActualizacion;
+	private AtomicBoolean seguirActualizando;
+	private DefaultTableModel modeloLlegadas;
+	private DefaultTableModel modeloSalidas;
 	
 	public JPanelVuelos(GestorBD gestorBD, ArrayList<Vuelo> vuelos) {
 		
@@ -137,6 +143,102 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		RelojGlobal.getInstancia().addObservador(this);
 		// Mostrar tiempo inicial inmediatamente
 		actualizarTiempo(RelojGlobal.getInstancia().getTiempoActual());
+		
+		iniciarActualizacionAutomatica();
+	}
+	
+	private void iniciarActualizacionAutomatica() {
+	    seguirActualizando = new AtomicBoolean(true);
+	    
+	    threadActualizacion = new Thread(() -> {
+	        while (seguirActualizando.get()) {
+	            try {
+	                // Esperar 30 segundos
+	                Thread.sleep(30000);
+	                
+	                // Actualizar tablas si aún debe continuar
+	                if (seguirActualizando.get()) {
+	                    actualizarTablasDesdeDB();
+	                }
+	            } catch (InterruptedException e) {
+	                // Thread interrumpido, salir del bucle
+	                Thread.currentThread().interrupt();
+	                break;
+	            }
+	        }
+	    });
+	    
+	    // Marcar como daemon para que no impida el cierre de la aplicación
+	    threadActualizacion.setDaemon(true);
+	    threadActualizacion.setName("Thread-ActualizacionTablas");
+	    threadActualizacion.start();
+	}
+	
+	private void actualizarTablasDesdeDB() {
+	    SwingUtilities.invokeLater(() -> {
+	        // Recargar vuelos desde la base de datos
+	        ArrayList<Vuelo> vuelosActualizados = (ArrayList<Vuelo>) gestorBD.loadVuelos();
+	        
+	        if (vuelosActualizados != null) {
+	            // Actualizar la lista de vuelos
+	            this.vuelos = vuelosActualizados;
+	            
+	            // Actualizar modelo de llegadas
+	            if (modeloLlegadas != null) {
+	                actualizarModeloTabla(modeloLlegadas, vuelosActualizados, true);
+	            }
+	            
+	            // Actualizar modelo de salidas
+	            if (modeloSalidas != null) {
+	                actualizarModeloTabla(modeloSalidas, vuelosActualizados, false);
+	            }
+	        }
+	    });
+	}
+	
+	private void actualizarModeloTabla(DefaultTableModel modelo, ArrayList<Vuelo> vuelos, boolean esLlegada) {
+	    // Limpiar tabla
+	    modelo.setRowCount(0);
+	    
+	    // Rellenar con datos actualizados
+	    for (Vuelo v : vuelos) {
+	        if (esLlegada && v.getOrigen().getCiudad().equals("Bilbao")) {
+	            continue;
+	        } else if (!esLlegada && v.getDestino().getCiudad().equals("Bilbao")) {
+	            continue;
+	        }
+	        
+	        String ciudad = esLlegada ? v.getOrigen().getCiudad() : v.getDestino().getCiudad();
+	        LocalDateTime llega = v.getFechaHoraProgramada().plusMinutes((long) v.getDuracion());
+	        
+	        modelo.addRow(new Object[] {
+	            v.getCodigo(),
+	            ciudad,
+	            v.getFechaHoraProgramada().format(formatterFecha),
+	            v.getFechaHoraProgramada().format(formatterHora),
+	            llega.format(formatterHora),
+	            v.getPuerta(),
+	            v.getDelayed()
+	        });
+	    }
+	}
+	
+	public void detenerActualizacion() {
+	    // Señalar que debe detenerse
+	    if (seguirActualizando != null) {
+	        seguirActualizando.set(false);
+	    }
+	    
+	    // Interrumpir el thread si está dormido
+	    if (threadActualizacion != null && threadActualizacion.isAlive()) {
+	        threadActualizacion.interrupt();
+	        try {
+	            // Esperar hasta 2 segundos a que termine
+	            threadActualizacion.join(2000);
+	        } catch (InterruptedException e) {
+	            Thread.currentThread().interrupt();
+	        }
+	    }
 	}
 	
 	private JPanel creadorTablaVuelos(String titulo, ArrayList<Vuelo> vuelos, boolean esLlegada) {
@@ -337,6 +439,12 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
             }
         };
         
+        if (esLlegada) {
+            this.modeloLlegadas = modelo;
+        } else {
+            this.modeloSalidas = modelo;
+        }
+        
         JTable tabla = new JTable(modelo);
         tabla.setFillsViewportHeight(true);
         tabla.setShowGrid(false);
@@ -390,11 +498,6 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         TableRowSorter<TableModel> sorter = new TableRowSorter<>(modelo);
         tabla.setRowSorter(sorter);
 
-        // Comparadores para columnas 2(fecha) y 3(hora), naturalOrder=cronologicamente para LocalDate and LocalTime
-        // no es necesario
-        //sorter.setComparator(2, Comparator.naturalOrder()); // Fecha
-        //sorter.setComparator(3, Comparator.naturalOrder()); // Hora
-
         // clavesOrden es una lista que tendra el orden de las reglas de ordenamiento
         List<RowSorter.SortKey> clavesOrden = new ArrayList<>();
         // primera regla ordernar por la segunda columna y de manera ascendente
@@ -415,16 +518,6 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
         }
         tabla.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(comboPuerta));
         
-        /*
-        // ComboBox para PISTA
-        ArrayList<Pista> pistas = (ArrayList<Pista>) gestorBD.loadPistas();
-        JComboBox<String> comboPista = new JComboBox<>();
-        comboPista.addItem("");
-        for (Pista p: pistas) {
-        	comboPista.addItem(p.getNumero());
-        }
-        tabla.getColumnModel().getColumn(5).setCellEditor(new DefaultCellEditor(comboPista));
-        */
         // Actualizaciones
         modelo.addTableModelListener(e -> {
             if (e.getType() == TableModelEvent.UPDATE) {
@@ -449,14 +542,7 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
                             // Actualizar puerta
                             PuertaEmbarque nuevaPuerta = gestorBD.getPuertaEmbarqueByCodigo((String) nuevoValor);
                             vuelo.setPuerta(nuevaPuerta);
-                        } /*else if (columna == 5) { // PISTA
-                            // Actualizar pista
-                            Integer nuevaPista = nuevoValor.toString().isEmpty() ? 
-                                null : Integer.parseInt(nuevoValor.toString());
-                            Pista np = gestorBD.getPistaByNumero(nuevaPista.toString());
-                            vuelo.setPista(np);
-                        }*/
-                        
+                        }                        
                         // Actualizar en BD
                         gestorBD.updatePistaPuertaVuelo(vuelo);
                     }
@@ -708,14 +794,6 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 		textField.setForeground(PaletaColor.get(PaletaColor.TEXTO));
 		textField.setBackground(PaletaColor.get(PaletaColor.BLANCO));
 		textField.setCaretColor(PaletaColor.get(PaletaColor.SECUNDARIO));
-	}
-	
-	public ArrayList<Vuelo> loadBDVuelos(GestorBD gestorBD) {
-		ArrayList<Vuelo> vuelos = new ArrayList<Vuelo>();
-		
-		
-		
-		return vuelos;
 	}
 	
 	@Override
