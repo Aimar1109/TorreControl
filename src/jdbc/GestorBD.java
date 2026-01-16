@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.LinkedList;
 
 import domain.Aerolinea;
 import domain.Aeropuerto;
@@ -22,6 +23,12 @@ import domain.PuertaEmbarque;
 import domain.Tripulante;
 import domain.Vuelo;
 import threads.RelojGlobal;
+import domain.Clima;
+import domain.Clima.ClimaDespejado;
+import domain.Clima.ClimaLluvioso;
+import domain.Clima.ClimaNevado;
+import domain.Clima.ClimaNublado;
+import domain.IntensidadSol;
 
 public class GestorBD {
 	
@@ -1080,4 +1087,118 @@ public class GestorBD {
 		}
 		
 	}
+	
+	public boolean existeDatosClima() {
+        String sql = "SELECT COUNT(*) FROM HISTORICO_CLIMA";
+        try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
+             PreparedStatement pstmt = con.prepareStatement(sql)) {
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            // Si la tabla no existe aún, devuelve false
+            return false;
+        }
+        return false;
+    }
+	
+	public void insertClima(int hora, Clima c) {
+        String sql = "INSERT OR REPLACE INTO HISTORICO_CLIMA "
+                   + "(HORA, TIPO, TEMPERATURA, VIENTO_VEL, VIENTO_DIR, VISIBILIDAD, "
+                   + "PRECIPITACION, TECHO_NUBES, HUMEDAD, PRESION, PROB_PRECIP, "
+                   + "INTENSIDAD_SOL, TORMENTA_ELEC, NIEVE_ACUM) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
+             PreparedStatement pstmt = con.prepareStatement(sql)) {
+
+            pstmt.setInt(1, hora);
+            if (c instanceof ClimaDespejado) pstmt.setString(2, "DESPEJADO");
+            else if (c instanceof ClimaLluvioso) pstmt.setString(2, "LLUVIOSO");
+            else if (c instanceof ClimaNublado) pstmt.setString(2, "NUBLADO");
+            else if (c instanceof ClimaNevado) pstmt.setString(2, "NEVADO");
+            else pstmt.setString(2, "NUBLADO");
+
+            pstmt.setDouble(3, c.getTemperatura());
+            pstmt.setDouble(4, c.getVelocidadViento());
+            pstmt.setDouble(5, c.getDireccionViento());
+            pstmt.setDouble(6, c.getVisibilidadKm());
+            pstmt.setDouble(7, c.getPrecipitacion());
+            pstmt.setInt(8, c.getTechoNubesMetros());
+            pstmt.setDouble(9, c.getHumedad());
+            pstmt.setDouble(10, c.getPresionHPa());
+            pstmt.setInt(11, c.getProbabilidadPrecipitacion());
+
+            if (c instanceof ClimaDespejado) {
+                pstmt.setString(12, ((ClimaDespejado) c).getIntensidad().toString());
+            } else {
+                pstmt.setString(12, null);
+            }
+
+            if (c instanceof ClimaLluvioso) {
+                pstmt.setBoolean(13, ((ClimaLluvioso) c).isTormentaElectrica());
+            } else {
+                pstmt.setBoolean(13, false);
+            }
+
+            if (c instanceof ClimaNevado) {
+                pstmt.setDouble(14, ((ClimaNevado) c).getAcumulacionNieveCm());
+            } else {
+                pstmt.setDouble(14, 0.0);
+            }
+
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.format("Error insertando clima hora %d: %s\n", hora, e.getMessage());
+        }
+    }
+	
+	public LinkedList<Clima> loadClimaDiario() {
+        LinkedList<Clima> historia = new LinkedList<>();
+        String sql = "SELECT * FROM HISTORICO_CLIMA ORDER BY HORA ASC";
+
+        try (Connection con = DriverManager.getConnection(CONNECTION_STRING);
+             PreparedStatement pstmt = con.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                String tipo = rs.getString("TIPO");
+                double temp = rs.getDouble("TEMPERATURA");
+                double viento = rs.getDouble("VIENTO_VEL");
+                double dir = rs.getDouble("VIENTO_DIR");
+                double vis = rs.getDouble("VISIBILIDAD");
+                double precip = rs.getDouble("PRECIPITACION");
+                int nubes = rs.getInt("TECHO_NUBES");
+                double hum = rs.getDouble("HUMEDAD");
+                double pres = rs.getDouble("PRESION");
+                int prob = rs.getInt("PROB_PRECIP");
+
+                Clima c = null;
+                if ("DESPEJADO".equals(tipo)) {
+                    String intSolStr = rs.getString("INTENSIDAD_SOL");
+                    IntensidadSol intSol = (intSolStr != null) ? IntensidadSol.valueOf(intSolStr) : IntensidadSol.MEDIA;
+                    c = new ClimaDespejado(temp, viento, vis, hum, pres, intSol);
+                } else if ("LLUVIOSO".equals(tipo)) {
+                    boolean tormenta = rs.getBoolean("TORMENTA_ELEC");
+                    c = new ClimaLluvioso(temp, viento, vis, precip, nubes, prob, hum, pres, tormenta);
+                } else if ("NEVADO".equals(tipo)) {
+                    double nieve = rs.getDouble("NIEVE_ACUM");
+                    c = new ClimaNevado(temp, viento, vis, precip, nubes, prob, hum, pres, nieve);
+                } else {
+                    // Nublado o por defecto
+                    c = new ClimaNublado(temp, viento, vis, nubes, prob, hum, pres);
+                }
+
+                if (c != null) {
+                    c.setDireccionViento(dir);
+                    historia.add(c);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error recuperando clima: " + e.getMessage());
+        }
+        return historia;
+    }
 }

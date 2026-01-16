@@ -118,6 +118,22 @@ public class GestorBDInitializer {
 					+ " FOREIGN KEY(CODIGO_VUELO) REFERENCES VUELO(CODIGO)\n"
 					+ " FOREIGN KEY(NOMBRE_TRIPULANTE) REFERENCES TRIPULANTE(NOMBRE)\n"
                     + ");";
+            String sqlClima = "CREATE TABLE IF NOT EXISTS HISTORICO_CLIMA (\n"
+                    + " HORA INTEGER PRIMARY KEY NOT NULL,\n"
+                    + " TIPO TEXT NOT NULL,\n"
+                    + " TEMPERATURA DOUBLE,\n"
+                    + " VIENTO_VEL DOUBLE,\n"
+                    + " VIENTO_DIR DOUBLE,\n"
+                    + " VISIBILIDAD DOUBLE,\n"
+                    + " PRECIPITACION DOUBLE,\n"
+                    + " TECHO_NUBES INTEGER,\n"
+                    + " HUMEDAD DOUBLE,\n"
+                    + " PRESION DOUBLE,\n"
+                    + " PROB_PRECIP INTEGER,\n"
+                    + " INTENSIDAD_SOL TEXT,\n"
+                    + " TORMENTA_ELEC BOOLEAN,\n"
+                    + " NIEVE_ACUM DOUBLE\n"
+                    + ");";
             
             
             
@@ -134,6 +150,7 @@ public class GestorBDInitializer {
                 stmt.execute(sqlTripulante);
                 stmt.execute(sqlVueloPasajero); 
                 stmt.execute(sqlVueloTripulante);
+                stmt.execute(sqlClima);
             }
             
             // System.out.println("- Tablas creadas.");

@@ -9,6 +9,8 @@ import domain.Clima.ClimaNublado;
 import threads.ObservadorTiempo;
 import threads.RelojGlobal;
 import domain.PaletaColor;
+import domain.ServicioMeteorologico;
+import jdbc.GestorBD;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,6 +23,7 @@ import java.util.Random;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import java.util.LinkedList;
+import java.util.List;
 	
 public class JPanelClima extends JPanel implements ObservadorTiempo {
 
@@ -50,13 +53,15 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
     private LinkedList<Clima> historiaDia;
     private JLabel lblEstadoAeropuerto;
     
- // FUENTES (Estandarizadas)
+    // FUENTES (Estandarizadas)
     private final Font FONT_RELOJ = new Font("Consolas", Font.BOLD, 22);
     private final Font FONT_TITULO = new Font("Segoe UI", Font.BOLD, 24);
     private final Font FONT_SUBTITULO = new Font("Segoe UI", Font.BOLD, 16);
     private final Font FONT_LABEL_TABLA = new Font("Segoe UI", Font.BOLD, 13);
     private final Font FONT_VALOR_TABLA = new Font("Segoe UI", Font.PLAIN, 14);
     private final Font FONT_BOTON = new Font("Segoe UI", Font.BOLD, 12);
+    
+    private String fuenteDatos = "";
 
 	
 	public JPanelClima() {
@@ -79,7 +84,7 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         lblReloj.setForeground(PaletaColor.get(PaletaColor.BLANCO));        
         panelHeader.add(lblReloj, BorderLayout.WEST);
         
-        lblHeaderTitulo = new JLabel("MONITORIZACIÓN METEOROLÓGICA", JLabel.CENTER);
+        lblHeaderTitulo = new JLabel("METEOROLOGÍA" + fuenteDatos, JLabel.CENTER);
         lblHeaderTitulo.setFont(FONT_TITULO);
         lblHeaderTitulo.setForeground(Color.WHITE);
         panelHeader.add(lblHeaderTitulo, BorderLayout.CENTER);
@@ -269,6 +274,13 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         actualizarDatosUI(historiaDia.get(horaActualInt), horaActualInt);
         actualizarGraficos();
         RelojGlobal.getInstancia().addObservador(this);
+
+        // --- AÑADE ESTO AL FINAL ---
+        this.revalidate();
+        this.repaint();
+        
+        // DEBUG: Ver si realmente hay datos en memoria
+        System.out.println("DEBUG CLIMA: Dato hora 0 -> Temp: " + historiaDia.get(0).getTemperatura());
 	}
 	
 	private void estilizarBotonToggle(JToggleButton boton) {
@@ -329,8 +341,46 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
 	
 	private void generarDatosDiaCompleto() {
         historiaDia.clear();
-        for (int h = 0; h < 24; h++) {
-            historiaDia.add(generarClimaAleatorio(h));
+        GestorBD gestor = new GestorBD();
+        ServicioMeteorologico servicio = new ServicioMeteorologico();
+        
+        System.out.println("Intentando obtener datos meteorológicos reales...");
+        
+        // Esta línea daba error si faltaba el import de java.util.List
+        List<Clima> datosReales = servicio.obtenerPronosticoReal();
+        
+        if (datosReales != null && !datosReales.isEmpty()) {
+            System.out.println("¡Datos reales obtenidos! Actualizando Base de Datos...");
+            fuenteDatos = " (EN VIVO - OPEN METEO)";
+            
+            // Borramos (simulado) datos viejos sobrescribiendo
+            for (int h = 0; h < datosReales.size() && h < 24; h++) {
+                gestor.insertClima(h, datosReales.get(h));
+            }
+            // LinkedList soporta addAll de una List normal
+            historiaDia.addAll(datosReales);
+            
+        } else {
+            System.out.println("No se pudo conectar a la API (o error). Buscando en Base de Datos local...");
+            
+            if (gestor.existeDatosClima()) {
+                // Esto devuelve LinkedList, así que asignamos directo
+                historiaDia = gestor.loadClimaDiario();
+                fuenteDatos = " (HISTÓRICO - BASE DE DATOS)";
+            } else {
+                System.out.println("BD vacía. Generando simulación aleatoria de respaldo.");
+                fuenteDatos = " (SIMULACIÓN)";
+                for (int h = 0; h < 24; h++) {
+                    Clima c = generarClimaAleatorio(h);
+                    historiaDia.add(c);
+                    gestor.insertClima(h, c);
+                }
+            }
+        }
+        
+        // Relleno de seguridad por si la API devolvió menos de 24 horas
+        while (historiaDia.size() < 24) {
+            historiaDia.add(generarClimaAleatorio(historiaDia.size()));
         }
     }
 
