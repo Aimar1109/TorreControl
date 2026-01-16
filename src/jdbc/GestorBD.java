@@ -1193,6 +1193,7 @@ public class GestorBD {
 
                 if (c != null) {
                     c.setDireccionViento(dir);
+                    c.setHora(rs.getInt("HORA"));
                     historia.add(c);
                 }
             }

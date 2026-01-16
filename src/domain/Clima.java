@@ -14,6 +14,7 @@ public abstract class Clima {
 	protected double presionHPa; 				// Presión atmosférica
 	protected int probabilidadPrecipitacion;
 	protected double direccionViento;			// En grados (0-360)
+	protected int hora;
 	
 	protected boolean senalPeligro;
 	
@@ -34,6 +35,7 @@ public abstract class Clima {
 		this.senalPeligro = false;
 		this.probabilidadPrecipitacion = probabilidadPrecipitacion;
 		this.direccionViento = 0.0;
+		this.hora = 0;
 		
 		this.actualizarSenalPeligro();
 	}
@@ -62,6 +64,8 @@ public abstract class Clima {
 	public int getProbabilidadPrecipitacion() { return probabilidadPrecipitacion; }
 	public double getDireccionViento() { return direccionViento; }
 	public void setDireccionViento(double direccionViento) { this.direccionViento = direccionViento; }
+	public int getHora() { return hora; }
+	public void setHora(int hora) { this.hora = hora; }
 	
 	public static class ClimaDespejado extends Clima {
 		
