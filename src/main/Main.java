@@ -28,6 +28,7 @@ public class Main {
         gestorBDInitializer.crearTablas();
 
         // Generar vuelos de ejemplo
+        @SuppressWarnings("unused")
         ArrayList<Aerolinea> aers = generadorAerolinea(gestorBD);
         generarVuelosAleatorios(50, gestorBD);
 
@@ -163,7 +164,6 @@ public class Main {
             }
 
             // Datos comunes
-            boolean estado = random.nextBoolean();
             float duracion = 60 + random.nextInt(240);
             String modelo = modelos[random.nextInt(modelos.length)];
             String matricula = "EC-" + (char)('A' + random.nextInt(26)) +

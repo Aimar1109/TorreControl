@@ -133,4 +133,8 @@ public class PanelBrujula extends JPanel {
         g2d.setColor(COLOR_PIVOTE); g2d.fillOval(cx - 6, cy - 6, 12, 12); 
         g2d.setColor(COLOR_PIVOTE_BRILLO); g2d.fillOval(cx - 2, cy - 2, 4, 4);
 	}
+
+    public String getMensajeError() {
+        return mensajeError;
+    }
 }

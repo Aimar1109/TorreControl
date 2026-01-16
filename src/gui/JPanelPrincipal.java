@@ -458,6 +458,10 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         scroll.setBorder(null);
     }
 
+    public ControladorMovimiento getControladorHangar() {
+        return controladorHangar;
+    }
+
     // IAG: Clase estética (Codigo reutilizado de JPanelSalesman)
     private static class ModernScrollBarUI extends BasicScrollBarUI {
         @Override

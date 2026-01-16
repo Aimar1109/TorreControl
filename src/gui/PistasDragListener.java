@@ -120,6 +120,7 @@ public class PistasDragListener implements MouseListener, MouseMotionListener, A
 
     @Override
     public void mousePressed(MouseEvent e) {
+        @SuppressWarnings("unchecked")
         JList<Vuelo> lista = (JList<Vuelo>) e.getSource();
         int indiceElemento = lista.locationToIndex(e.getPoint());
 
@@ -163,11 +164,13 @@ public class PistasDragListener implements MouseListener, MouseMotionListener, A
     @Override
     public void mouseReleased(MouseEvent e) {
         Point punto = e.getLocationOnScreen();
+        @SuppressWarnings("unchecked")
         JList<Vuelo> listaOrigen = (JList<Vuelo>) e.getSource();
         drop(punto, listaOrigen);
     }
 
     //IAG: (ChatGPT) Metodo generado con IA
+    @SuppressWarnings("unchecked")
     @Override
     public void eventDispatched(AWTEvent event) {
         if (!(event instanceof MouseEvent)) return;
@@ -276,7 +279,7 @@ public class PistasDragListener implements MouseListener, MouseMotionListener, A
     }
 
     private void borrarResaltados() {
-        for (JList lista : listasDestino) {
+        for (JList<?> lista : listasDestino) {
             JScrollPane scrollPane = getScrollPane(lista);
             if (scrollPane != null) {
                 scrollPane.setBorder(null);
@@ -326,5 +329,17 @@ public class PistasDragListener implements MouseListener, MouseMotionListener, A
         for (Vuelo vuelo : vuelos) {
             modeloVuelos.addElement(vuelo);
         }
+    }
+
+    public int getIndiceArrastrado() {
+        return indiceArrastrado;
+    }
+
+    public Point getPunto() {
+        return punto;
+    }
+
+    public Map<JScrollPane, Border> getBordersOriginales() {
+        return bordersOriginales;
     }
 }

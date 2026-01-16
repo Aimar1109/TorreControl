@@ -814,4 +814,12 @@ public class JPanelVuelos extends JPanel implements ObservadorTiempo {
 			}
 		});
 	}
+
+    public ArrayList<Vuelo> getVuelos() {
+        return vuelos;
+    }
+
+    public JDialogNVuelo getDialogNVuelo() {
+        return dialogNVuelo;
+    }
 }

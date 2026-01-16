@@ -192,4 +192,8 @@ public class JFramePrincipal extends JFrame {
             }
         });
     }
+
+    public GestorBD getGestorBD() {
+        return gestorBD;
+    }
 }

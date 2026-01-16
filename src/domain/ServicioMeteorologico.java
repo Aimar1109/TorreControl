@@ -23,7 +23,8 @@ public class ServicioMeteorologico {
         List<Clima> listaClima = new ArrayList<>();
         
         try {
-            URL url = new URL(API_URL);
+            @SuppressWarnings("deprecation")
+			URL url = new URL(API_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(5000);

@@ -46,12 +46,6 @@ public class MapPanel extends JPanel {
     public void setAviones (List<Avion> aviones) {
         this.avionesAeropuerto = aviones;
 
-        if (aviones != null) {
-            for (int i = 0; i < aviones.size(); i++) {
-                Avion a = aviones.get(i);
-            }
-        }
-
         asignarImagenesAleatorias();
         repaint();
     }

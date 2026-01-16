@@ -691,6 +691,10 @@ public class JPanelSalesman extends JPanel implements ObservadorTiempo {
         scroll.setBorder(null); 
     }
 
+    public GestorBD getGestorBD() {
+        return gestorBD;
+    }
+
     // IAG: Clase estética 
     private static class ModernScrollBarUI extends BasicScrollBarUI {
         @Override

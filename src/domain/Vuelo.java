@@ -89,7 +89,7 @@ public class Vuelo {
 		this.origen = origen;
 		this.destino = destino;
 		this.aereolinea = aereolinea;
-		this.pista = pista;
+		this.pista = null;
 		this.puerta = puerta;
 		this.estado = estado;
 		this.fechaHoraProgramada = fechaHoraProgramada;

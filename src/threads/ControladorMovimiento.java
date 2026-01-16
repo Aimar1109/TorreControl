@@ -1299,14 +1299,6 @@ public class ControladorMovimiento implements ObservadorTiempo{
         }
     }
 
-    private void detener() {
-        ejecutando = false;
-        if (this.threadAnimacion != null) {
-            this.threadAnimacion.interrupt();
-        }
-        RelojGlobal.getInstancia().eliminarObservador(this);
-    }
-
     private void actualizarAvion(Avion avion) {
         //Si esta estacionado no hace nada
         if (avion.isEnHangar()) {
