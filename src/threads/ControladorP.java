@@ -9,7 +9,6 @@ import domain.Avion;
 import domain.Pista;
 import domain.PuertaEmbarque;
 import domain.Vuelo;
-import gui.JFramePrincipal;
 import jdbc.GestorBD;
 
 public class ControladorP {
@@ -18,7 +17,7 @@ public class ControladorP {
 	private Boolean[] pistas;
 	private GestorBD gestorBD;
 	
-	private Actualizador act;
+	//private Actualizador act;
 	
 	
 	public ControladorP(GestorBD gestorBD) {
@@ -252,6 +251,7 @@ public class ControladorP {
 		
 	}
 	
+	/*
 	private class Actualizador extends Thread {
 		@Override
 		public void run() {
@@ -268,4 +268,5 @@ public class ControladorP {
 			}
 		}
 	}
+	*/
 }
