@@ -58,7 +58,7 @@ public class DialogoAsignarPista extends JDialog {
 
         initComponents();
         setLayout();
-        añadirListeners();
+        anadirListeners();
 
         setSize(450, 250);
         setLocationRelativeTo(parent);
@@ -89,7 +89,7 @@ public class DialogoAsignarPista extends JDialog {
             public Component getListCellRendererComponent(JList<? extends Vuelo> list, Vuelo value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel devolver = new JLabel();
 
-                if (value instanceof Vuelo) {
+                if (value != null) {
                     String texto = value.getCodigo() + " | " + value.getOrigen() + " -> " + value.getDestino();
                     devolver.setText(texto);
 
@@ -195,7 +195,7 @@ public class DialogoAsignarPista extends JDialog {
         add(mainPanel);
     }
 
-    private void añadirListeners() {
+    private void anadirListeners() {
         //Botón pista 1
         btnPista1.addActionListener(e -> asignacion(1));
         //Botón pista 2
@@ -219,8 +219,6 @@ public class DialogoAsignarPista extends JDialog {
             modeloPista2.addElement(vuelo);
             vuelo.setPista(pista2);
             modeloVuelosRecientes.removeElement(vuelo);
-        } else {
-
         }
 
         dispose();

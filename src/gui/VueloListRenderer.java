@@ -96,30 +96,17 @@ public class VueloListRenderer extends JPanel implements ListCellRenderer<Vuelo>
         info.setForeground(PaletaColor.get(PaletaColor.TEXTO));
         llegada.setForeground(PaletaColor.get(PaletaColor.TEXTO));
 
-        if (isSelected) {
-            setBackground(PaletaColor.get(PaletaColor.HOVER));
-            cod.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
-            or_des.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
-            info.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
-            llegada.setForeground(PaletaColor.get(PaletaColor.PRIMARIO));
-            cod.setFont(cod.getFont().deriveFont(Font.BOLD));
-            or_des.setFont(cod.getFont().deriveFont(Font.BOLD));
-            info.setFont(cod.getFont().deriveFont(Font.BOLD));
-            llegada.setFont(cod.getFont().deriveFont(Font.BOLD));
+        Color zebra;
+        if (index % 2 == 0) {
+            zebra = PaletaColor.get(PaletaColor.BLANCO);
+        } else {
+            zebra = PaletaColor.get(PaletaColor.FILA_ALT);
         }
-        else {
-            Color zebra;
-            if (index % 2 == 0) {
-                zebra = PaletaColor.get(PaletaColor.BLANCO);
-            } else {
-                zebra = PaletaColor.get(PaletaColor.FILA_ALT);
-            }
-            setBackground(zebra);
-            cod.setFont(cod.getFont().deriveFont(Font.PLAIN));
-            or_des.setFont(cod.getFont().deriveFont(Font.PLAIN));
-            info.setFont(cod.getFont().deriveFont(Font.PLAIN));
-            llegada.setFont(cod.getFont().deriveFont(Font.PLAIN));
-        }
+        setBackground(zebra);
+        cod.setFont(cod.getFont().deriveFont(Font.PLAIN));
+        or_des.setFont(cod.getFont().deriveFont(Font.PLAIN));
+        info.setFont(cod.getFont().deriveFont(Font.PLAIN));
+        llegada.setFont(cod.getFont().deriveFont(Font.PLAIN));
 
         if (!isSelected) {
             if (value != null && value.getDelayed() > 0) {

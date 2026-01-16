@@ -123,9 +123,6 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
         configuracionDraglistaVuelos1();
         configuracionDraglistaVuelos2();
         asignarPorTeclado();
-        efectoHover(listaVuelosCercanos);
-        efectoHover(listaVuelosPista1);
-        efectoHover(listaVuelosPista2);
 
         this.controladorHangar = new ControladorMovimiento(mapa, vuelos);
 
@@ -318,31 +315,6 @@ public class JPanelPrincipal extends JPanel implements ObservadorTiempo {
 
         this.revalidate();
         this.repaint();
-    }
-
-    private void efectoHover(JList<Vuelo> lista) {
-        lista.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                Point punto = e.getPoint();
-                int index = lista.locationToIndex(punto);
-                if (index != -1) {
-                    lista.setSelectedIndex(index);
-                }
-            }
-
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                //No necesario
-            }
-        });
-
-        lista.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseExited(MouseEvent e) {
-                lista.clearSelection();
-            }
-        });
     }
 
     @Override

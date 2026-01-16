@@ -314,8 +314,8 @@ public class PistasDragListener implements MouseListener, MouseMotionListener, A
 
         //Añado todos los vuelos del modeloVuelos a un nuevo arraylist
         for (int i = 0; i < modeloVuelos.size(); i++) {
-            Vuelo vueloAñadir = modeloVuelos.get(i);
-            vuelos.add(vueloAñadir);
+            Vuelo vueloAnadir = modeloVuelos.get(i);
+            vuelos.add(vueloAnadir);
         }
 
         //Vacio el modelo y ordeno la lista auxiliar

@@ -223,11 +223,8 @@ public class ControladorP {
 						// Actualizar avion para hacer que sea el mismo avion que a aterrizado y la trasicion sea limpia
 						if (puertas[i].getLlegada().getAvion()!= null) {
 							Avion av = puertas[i].getLlegada().getAvion();
-							System.out.println(puertas[i].getLlegada()+" - "+av);
-							System.out.println(v+ " - " +v.getAvion());
 							v.setAvion(av);
 							gestorBD.updateAvionVuelo(v);
-							System.out.println("");
 
 							av.setMarchaAtras(false);
 							av.setDestinoMarchaAtras(null);
