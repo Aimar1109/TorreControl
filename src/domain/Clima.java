@@ -154,7 +154,6 @@ public abstract class Clima {
 	        sj.add("Humedad: " + humedad + " %");
 	        sj.add("Presión: " + presionHPa + " hPa");
 	        sj.add("Prob. Precip: " + this.probabilidadPrecipitacion + " %");
-	        // No tiene datos específicos extra
 	        return sj.toString();
 	    }
 	}
@@ -174,7 +173,7 @@ public abstract class Clima {
 		@Override
 	    public void actualizarSenalPeligro() {
 	        super.actualizarSenalPeligro();
-	        if (this.acumulacionNieveCm > 0.5) { // Nieve en pista
+	        if (this.acumulacionNieveCm > 0.5) {
 	            this.senalPeligro = true;
 	        }
 	    }
@@ -190,7 +189,7 @@ public abstract class Clima {
 	        sj.add("Humedad: " + humedad + " %");
 	        sj.add("Presión: " + presionHPa + " hPa");
 	        sj.add("---");
-	        sj.add("Acumulación en Pista: " + this.acumulacionNieveCm + " cm"); // Dato específico
+	        sj.add("Acumulación en Pista: " + this.acumulacionNieveCm + " cm");
 	        sj.add("Prob. Precip: " + this.probabilidadPrecipitacion + " %");
 	        return sj.toString();
 	    }

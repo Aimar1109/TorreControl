@@ -17,7 +17,6 @@ public class ServicioMeteorologico {
     private static final String LAT = "43.2627"; // Bilbao
     private static final String LON = "-2.9253";
     
-    // AÑADIDO: pedimos "precipitation" (mm) explícitamente
     private static final String API_URL = "https://api.open-meteo.com/v1/forecast?latitude=" + LAT + "&longitude=" + LON 
             + "&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,surface_pressure,cloud_cover,visibility,wind_speed_10m,wind_direction_10m"
             + "&timezone=auto&forecast_days=1";
@@ -100,38 +99,30 @@ public class ServicioMeteorologico {
 
     private Clima factoryClima(int code, double t, double v, double vis, int nubes, int prob, double hum, double pres, double lluviaReal) {
         
-        // Si hay lluvia real significativa (>0.1mm), forzamos que sea ClimaLluvioso 
-        // para que tu gráfico lo pinte (porque ClimaNublado no guarda precipitación).
         if (lluviaReal > 0.1 && code < 70) {
             return new ClimaLluvioso(t, v, vis, lluviaReal, nubes, prob, hum, pres, false);
         }
 
-        // 0-3: Despejado
         if (code <= 3) return new ClimaDespejado(t, v, vis, hum, pres, IntensidadSol.ALTA);
         
-        // 45, 48: Niebla
         if (code == 45 || code == 48) return new ClimaNublado(t, v, Math.min(vis, 0.5), nubes, prob, hum, pres);
         
-        // 51-67, 80-82: Llovizna o Lluvia
         if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
-            // Usamos el valor real si existe, sino un default
             double mm = (lluviaReal > 0) ? lluviaReal : ((code > 60) ? 5.0 : 1.0);
             return new ClimaLluvioso(t, v, vis, mm, nubes, prob, hum, pres, false);
         }
         
-        // 71-77, 85-86: Nieve
         if ((code >= 71 && code <= 77) || code == 85 || code == 86) {
             double mm = (lluviaReal > 0) ? lluviaReal : 1.0;
-            return new ClimaNevado(t, v, vis, mm, nubes, prob, hum, pres, mm); // Asumimos nieve = precip
+            return new ClimaNevado(t, v, vis, mm, nubes, prob, hum, pres, mm);
         }
         
-        // 95-99: Tormenta
         if (code >= 95) {
             double mm = (lluviaReal > 0) ? lluviaReal : 15.0;
             return new ClimaLluvioso(t, v, vis, mm, nubes, prob, hum, pres, true);
         }
         
-        // Default
+        // Por defecto
         return new ClimaNublado(t, v, vis, nubes, prob, hum, pres);
     }
     

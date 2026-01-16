@@ -20,16 +20,14 @@ public class GraficoTemperatura extends JPanel{
 		void onPuntoExit(); // Se llama cuando el ratón se quita del punto
 	}
 	
-	// --- Datos del Gráfico ---
-    private LinkedList<Clima> datosDia; // La lista de 24 pronósticos
+    private LinkedList<Clima> datosDia;
     private int horaActual;
     	
     private OnHoverListener hoverListener;
     private List<Point> puntosGraficados;
     private int ultimoIndiceHovered = -1;
-    
-    // --- Márgenes y Escala ---
-    private final int MARGEN_X = 40; // Margen alrededor del gráfico
+
+    private final int MARGEN_X = 40;
     private final int MARGEN_Y = 30; 	
     private final int NUM_HORAS_A_MOSTRAR = 24;
     
@@ -37,8 +35,8 @@ public class GraficoTemperatura extends JPanel{
     private final double MAX_TEMP = 35.0;
     
     private final Color COLOR_LINEA = new Color(0, 85, 165);
-    private final Color COLOR_RELLENO = new Color(0, 85, 165, 30); // Azul muy transparente
-    private final Color COLOR_ACTUAL = new Color(220, 50, 50, 200); // Rojo para la hora actual
+    private final Color COLOR_RELLENO = new Color(0, 85, 165, 30);
+    private final Color COLOR_ACTUAL = new Color(220, 50, 50, 200);
     
     public GraficoTemperatura() {
         setBackground(Color.WHITE);
@@ -73,7 +71,7 @@ public class GraficoTemperatura extends JPanel{
         if (puntosGraficados.isEmpty() || hoverListener == null) return;
         
         int masCercano = -1;
-        double distMin = 20.0; // Radio de detección en píxeles
+        double distMin = 20.0;
         
         for (int i = 0; i < puntosGraficados.size(); i++) {
             double dist = mousePoint.distance(puntosGraficados.get(i));
@@ -85,11 +83,9 @@ public class GraficoTemperatura extends JPanel{
         
         if (masCercano != ultimoIndiceHovered) {
             if (masCercano != -1) {
-                // Estamos sobre un punto específico
                 hoverListener.onPuntoHover(datosDia.get(masCercano), masCercano);
                 setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             } else {
-                // Estamos en el gráfico pero no sobre un punto -> volvemos al estado normal
                 hoverListener.onPuntoExit();
                 setCursor(Cursor.getDefaultCursor());
             }
@@ -107,29 +103,28 @@ public class GraficoTemperatura extends JPanel{
     
     @Override
     protected void paintComponent(Graphics g) {
-    	super.paintComponent(g); // Siempre llamar al super para asegurar que se pinte el fondo
+    	super.paintComponent(g);
     	
     	if (datosDia == null || datosDia.isEmpty()) { return; }
     	
-    	Graphics2D g2d = (Graphics2D) g; // Usamos Graphics2D para más opciones (anti-aliasing)
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); // Suaviza las líneas
-        
-        // --- Definir el área de dibujo real (quitando márgenes) ---
+    	Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
         int w = getWidth();
         int h = getHeight();
         int anchoUtil = w - 2 * MARGEN_X;
         int altoUtil = h - 2 * MARGEN_Y;
         
         g2d.setColor(Color.LIGHT_GRAY);
-        g2d.drawLine(MARGEN_X, h - MARGEN_Y, w - MARGEN_X, h - MARGEN_Y); // Eje X
+        g2d.drawLine(MARGEN_X, h - MARGEN_Y, w - MARGEN_X, h - MARGEN_Y);
 
         g2d.setFont(new Font("Arial", Font.PLAIN, 10));
         for (double t = MIN_TEMP; t <= MAX_TEMP; t += 10) {
             int y = getYParaTemp(t, altoUtil);
-            g2d.setColor(new Color(240, 240, 240)); // Línea muy clara
+            g2d.setColor(new Color(240, 240, 240));
             g2d.drawLine(MARGEN_X, y, w - MARGEN_X, y);
             
-            g2d.setColor(Color.GRAY); // Texto
+            g2d.setColor(Color.GRAY);
             g2d.drawString((int)t + "°", MARGEN_X - 25, y + 4);
         }
         
@@ -140,7 +135,6 @@ public class GraficoTemperatura extends JPanel{
         poly.addPoint(MARGEN_X, h - MARGEN_Y);
         
         for (int i = 0; i < NUM_HORAS_A_MOSTRAR; i++) {
-            // Protección por si la lista es menor (no debería)
             if (i >= datosDia.size()) break;
             
             Clima c = datosDia.get(i);
@@ -149,8 +143,7 @@ public class GraficoTemperatura extends JPanel{
             
             puntosGraficados.add(new Point(x, y));
             poly.addPoint(x, y);
-            
-            // Etiquetas de hora en el eje X (cada 3 horas)
+
             if (i % 3 == 0) {
                 g2d.setColor(Color.GRAY);
                 g2d.drawString(String.format("%02d", i), x - 6, h - MARGEN_Y + 15);
@@ -182,10 +175,9 @@ public class GraficoTemperatura extends JPanel{
             Stroke dashed = new BasicStroke(1.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{5f}, 0f);
             g2d.setStroke(dashed);
             g2d.drawLine(xActual, MARGEN_Y, xActual, h - MARGEN_Y);
-            
-            // Punto destacado en la intersección con la gráfica
+
             Point pActual = puntosGraficados.get(horaActual);
-            g2d.setStroke(new BasicStroke(1f)); // Restaurar stroke sólido
+            g2d.setStroke(new BasicStroke(1f));
             g2d.fillOval(pActual.x - 5, pActual.y - 5, 10, 10);
         }
     }

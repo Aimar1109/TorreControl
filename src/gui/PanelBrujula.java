@@ -29,14 +29,13 @@ public class PanelBrujula extends JPanel {
 	
 	private BufferedImage imagenFondo;
 	private double direccionGrados;
-	private String mensajeError = ""; // Para depurar en pantalla si falla
+	private String mensajeError = "";
 	
-	// COLORES DE LA AGUJA (Mejorados para contraste)
-    private final Color COLOR_NORTE = new Color(255, 40, 40);   // Rojo más brillante
-    private final Color COLOR_SUR = new Color(220, 220, 220);   // Gris casi blanco
-    private final Color COLOR_BORDE_AGUJA = new Color(255, 255, 255, 150); // Borde claro sutil
-    private final Color COLOR_PIVOTE = new Color(40, 40, 40);   // Pivote oscuro
-    private final Color COLOR_PIVOTE_BRILLO = new Color(200, 200, 200); // Brillo metálico
+    private final Color COLOR_NORTE = new Color(255, 40, 40);
+    private final Color COLOR_SUR = new Color(220, 220, 220);
+    private final Color COLOR_BORDE_AGUJA = new Color(255, 255, 255, 150);
+    private final Color COLOR_PIVOTE = new Color(40, 40, 40);
+    private final Color COLOR_PIVOTE_BRILLO = new Color(200, 200, 200);
 	
 	public PanelBrujula() {
 	
@@ -52,18 +51,13 @@ public class PanelBrujula extends JPanel {
         String nombreArchivo = "brujula_fondo.png";
         
         try {
-            // INTENTO 1: Carga desde el Classpath (Recursos compilados)
-            // Esto funciona si 'resources' es una Source Folder
             URL imgUrl = getClass().getResource("/img/" + nombreArchivo);
             
             if (imgUrl == null) {
-                // INTENTO 2: Carga directa desde el sistema de archivos (Proyecto/resources/img/...)
-                // Esto funciona al ejecutar desde Eclipse/IntelliJ si la carpeta está en la raíz
                 File archivo = new File("resources/img/" + nombreArchivo);
                 if (archivo.exists()) {
                     imagenFondo = ImageIO.read(archivo);
                 } else {
-                    // INTENTO 3: Probar ruta sin 'resources' por si acaso
                     File archivo2 = new File("img/" + nombreArchivo);
                     if (archivo2.exists()) {
                         imagenFondo = ImageIO.read(archivo2);
@@ -97,7 +91,7 @@ public class PanelBrujula extends JPanel {
 		
         int w = getWidth();
         int h = getHeight();
-        int lado = Math.min(w, h); // Usamos el lado más pequeño para que sea cuadrado
+        int lado = Math.min(w, h);
         int cx = w / 2;
         int cy = h / 2;
         
@@ -120,8 +114,8 @@ public class PanelBrujula extends JPanel {
         g2d.rotate(Math.toRadians(direccionGrados), cx, cy);
 		
         Path2D flechaNorte = new Path2D.Double();
-        flechaNorte.moveTo(cx, cy - radio + 12); // Punta
-        flechaNorte.lineTo(cx + 7, cy);          // Base más ancha
+        flechaNorte.moveTo(cx, cy - radio + 12);
+        flechaNorte.lineTo(cx + 7, cy);
         flechaNorte.lineTo(cx - 7, cy);
         flechaNorte.closePath();
 		
@@ -134,9 +128,8 @@ public class PanelBrujula extends JPanel {
         g2d.setColor(COLOR_NORTE); g2d.fill(flechaNorte);
         g2d.setColor(COLOR_SUR);   g2d.fill(flechaSur);
         
-        // Dibujar Borde (Para contraste)
         g2d.setColor(COLOR_BORDE_AGUJA);
-        g2d.setStroke(new BasicStroke(1.2f)); // Borde fino
+        g2d.setStroke(new BasicStroke(1.2f));
         g2d.draw(flechaNorte);
         g2d.draw(flechaSur);
 

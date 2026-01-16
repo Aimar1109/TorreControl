@@ -11,6 +11,7 @@ import threads.RelojGlobal;
 import domain.PaletaColor;
 import domain.ServicioMeteorologico;
 import jdbc.GestorBD;
+import domain.AnalisisDatos;
 
 import javax.swing.*;
 import java.awt.*;
@@ -37,6 +38,7 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
     
     private JToggleButton btnTabTemperatura;
     private JToggleButton btnTabPrecipitacion;
+    private JButton btnInforme;
     private ButtonGroup grupoPestanas;
     private JPanel panelContenidoGraficos; // Panel con CardLayout
     private CardLayout cardLayout;
@@ -189,7 +191,7 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         panelIzquierdo.add(Box.createVerticalGlue());
         
         
-        JPanel panelBotones = new JPanel(new GridLayout(1, 2, 0, 0));
+        JPanel panelBotones = new JPanel(new GridLayout(1, 3, 5, 0));
         panelBotones.setOpaque(false);
         
         btnTabTemperatura = new JToggleButton("TEMPERATURA");
@@ -198,19 +200,28 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         estilizarBotonToggle(btnTabTemperatura);
         estilizarBotonToggle(btnTabPrecipitacion);
         
+        btnInforme = new JButton("INFORME");
+        estilizarBotonNormal(btnInforme);
+        
+        btnInforme.addActionListener(e -> {
+            String reporte = AnalisisDatos.generarInformeTexto(historiaDia);
+            JOptionPane.showMessageDialog(this, reporte, "Análisis Estadístico Diario", JOptionPane.INFORMATION_MESSAGE);
+        });
+        
         grupoPestanas = new ButtonGroup();
         grupoPestanas.add(btnTabTemperatura);
         grupoPestanas.add(btnTabPrecipitacion);
         
-        btnTabTemperatura.setSelected(true);	// Por defecto temp seleccionada
+        
+        btnTabTemperatura.setSelected(true);
         
         panelBotones.add(btnTabTemperatura);
         panelBotones.add(btnTabPrecipitacion);
+        panelBotones.add(btnInforme);
         
         cardLayout = new CardLayout();
         panelContenidoGraficos = new JPanel(cardLayout);
         panelContenidoGraficos.setBackground(Color.WHITE);
-        // Borde fino gris para cerrar el contenido
         panelContenidoGraficos.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
         
         graficoTemperatura = new GraficoTemperatura();
@@ -226,7 +237,7 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         // Usamos un panel transparente para apilar botones + gráficos
         JPanel panelDerecho = new JPanel(new BorderLayout());
         panelDerecho.setOpaque(false);
-        panelDerecho.setBorder(new EmptyBorder(0, 10, 0, 0)); // Separación con la izq
+        panelDerecho.setBorder(new EmptyBorder(0, 10, 0, 0));
         
         JPanel panelGraficosWrapper = new JPanel(new BorderLayout());
         panelGraficosWrapper.setBackground(PaletaColor.get(PaletaColor.FONDO));
@@ -237,7 +248,7 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         borderGraficos.setTitleColor(PaletaColor.get(PaletaColor.PRIMARIO));
         
         panelGraficosWrapper.setBorder(BorderFactory.createCompoundBorder(
-                new EmptyBorder(0, 0, 0, 0), // Margen externo
+                new EmptyBorder(0, 0, 0, 0),
                 borderGraficos
         ));
         
@@ -266,7 +277,7 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
             }
             @Override
             public void onPuntoExit() {
-                // Al sacar el ratón, VOLVEMOS a la hora actual
+                // Al sacar el ratón, volvemos a la hora actual
                 actualizarDatosUI(historiaDia.get(horaActualInt), horaActualInt); 
             }
         });
@@ -275,17 +286,15 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         actualizarGraficos();
         RelojGlobal.getInstancia().addObservador(this);
 
-        // --- AÑADE ESTO AL FINAL ---
         this.revalidate();
         this.repaint();
-        
-        // DEBUG: Ver si realmente hay datos en memoria
+
         System.out.println("DEBUG CLIMA: Dato hora 0 -> Temp: " + historiaDia.get(0).getTemperatura());
 	}
 	
 	private void estilizarBotonToggle(JToggleButton boton) {
         boton.setFont(FONT_BOTON);
-        boton.setPreferredSize(new Dimension(150, 35)); // Un poco más anchos para que quepa el texto
+        boton.setPreferredSize(new Dimension(150, 35));
         boton.setFocusPainted(false);
         boton.setBorderPainted(false); 
         boton.setContentAreaFilled(true);
@@ -293,22 +302,20 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
 
         Color bgNormal = PaletaColor.get(PaletaColor.FILA_ALT);
         Color bgHover = new Color(230, 240, 250);
-        Color bgSelected = Color.WHITE; // El seleccionado se funde con el panel blanco de abajo
+        Color bgSelected = Color.WHITE;
         
         Color fgNormal = Color.GRAY;
         Color fgSelected = PaletaColor.get(PaletaColor.PRIMARIO);
 
         boton.setBackground(bgNormal); 
         boton.setForeground(fgNormal);
-        
-        // Borde inferior para simular conexión o separación
+       
         boton.setBorder(BorderFactory.createMatteBorder(1, 1, 0, 1, new Color(220, 220, 220)));
 
         boton.addItemListener(e -> {
             if (boton.isSelected()) {
                 boton.setBackground(bgSelected);
                 boton.setForeground(fgSelected);
-                // Si está seleccionado, parece que está "delante"
                 boton.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createMatteBorder(1, 1, 0, 1, new Color(220, 220, 220)),
                     BorderFactory.createMatteBorder(2, 0, 0, 0, fgSelected) // Línea de color arriba
@@ -339,6 +346,37 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         });
     }
 	
+	private void estilizarBotonNormal(JButton boton) {
+        boton.setFont(FONT_BOTON);
+        boton.setPreferredSize(new Dimension(100, 35)); 
+        boton.setFocusPainted(false);
+        boton.setBorderPainted(false); 
+        boton.setContentAreaFilled(true);
+        boton.setOpaque(true);
+
+        Color bgNormal = PaletaColor.get(PaletaColor.SECUNDARIO);
+        Color bgHover = PaletaColor.get(PaletaColor.PRIMARIO);
+        Color fgTexto = PaletaColor.get(PaletaColor.BLANCO);
+
+        boton.setBackground(bgNormal); 
+        boton.setForeground(fgTexto);
+        
+        boton.setBorder(BorderFactory.createLineBorder(bgHover, 1));
+
+        boton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                boton.setBackground(bgHover);
+                boton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                boton.setBackground(bgNormal);
+                boton.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            }
+        });
+    }
+	
 	private void generarDatosDiaCompleto() {
         historiaDia.clear();
         GestorBD gestor = new GestorBD();
@@ -346,25 +384,21 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         
         System.out.println("Intentando obtener datos meteorológicos reales...");
         
-        // Esta línea daba error si faltaba el import de java.util.List
         List<Clima> datosReales = servicio.obtenerPronosticoReal();
         
         if (datosReales != null && !datosReales.isEmpty()) {
             System.out.println("¡Datos reales obtenidos! Actualizando Base de Datos...");
             fuenteDatos = " (EN VIVO - OPEN METEO)";
             
-            // Borramos (simulado) datos viejos sobrescribiendo
             for (int h = 0; h < datosReales.size() && h < 24; h++) {
                 gestor.insertClima(h, datosReales.get(h));
             }
-            // LinkedList soporta addAll de una List normal
             historiaDia.addAll(datosReales);
             
         } else {
             System.out.println("No se pudo conectar a la API (o error). Buscando en Base de Datos local...");
             
             if (gestor.existeDatosClima()) {
-                // Esto devuelve LinkedList, así que asignamos directo
                 historiaDia = gestor.loadClimaDiario();
                 fuenteDatos = " (HISTÓRICO - BASE DE DATOS)";
             } else {
@@ -410,7 +444,6 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         if (lblVelocidadViento != null) {
             lblVelocidadViento.setText(String.format("%.1f km/h", c.getVelocidadViento()));
             
-            // Si hay peligro por viento (>80), ponemos el texto rojo
             if (c.getVelocidadViento() > 80.0) {
                 lblVelocidadViento.setForeground(Color.RED);
                 lblVelocidadViento.setText(String.format("%.1f ¡PELIGRO!", c.getVelocidadViento()));
@@ -427,7 +460,6 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         if (c.isSenalPeligro()) {
             lblEstadoAeropuerto.setBackground(new Color(220, 53, 69)); // Rojo Alerta
             
-            // Determinamos la causa brevemente
             String causa = "PELIGRO";
             if (c.getVelocidadViento() > 80.0) causa = "VIENTO FUERTE";
             else if (c.getVisibilidadKm() < 1.0) causa = "VISIBILIDAD NULA";
@@ -437,12 +469,10 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
             
             lblEstadoAeropuerto.setText("¡" + causa + "!");
         } else {
-            lblEstadoAeropuerto.setBackground(new Color(34, 139, 34)); // Verde Forest
             lblEstadoAeropuerto.setText("AEROPUERTO OPERATIVO");
         }
 	}
 	private void actualizarGraficos() {
-        // Pasamos la lista COMPLETA y FIJA de 24h + la hora actual para la línea roja
         if (graficoTemperatura != null) graficoTemperatura.setDatos(historiaDia, horaActualInt);
         if (graficoPrecipitacion != null) graficoPrecipitacion.setDatos(historiaDia, horaActualInt);
     }
@@ -453,7 +483,6 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         lblReloj.setText(nuevoTiempo.format(formatter));
         
         int h = nuevoTiempo.getHour();
-        // Solo llamamos a avanzarHora si la hora ha cambiado
         if (h != this.horaActualInt) {
             avanzarHora(h);
         }
@@ -466,14 +495,12 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
         
         this.horaActualInt = nuevaHora;
         
-        // Actualizamos UI con los datos que YA tenemos generados para esta hora
         actualizarDatosUI(historiaDia.get(horaActualInt), horaActualInt);
         actualizarGraficos();
     }
 	
 	private JLabel crearLabelValor() {
         JLabel l = new JLabel("-");
-        l.setFont(FONT_VALOR_TABLA); // Segoe UI Plain 14
         l.setHorizontalAlignment(SwingConstants.CENTER);
         l.setBackground(Color.WHITE);
         l.setOpaque(true);
@@ -482,7 +509,6 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
     
     private void agregarFilaEstilizada(JPanel panel, String titulo, JLabel labelValor) {
         JLabel lblTitulo = new JLabel(" " + titulo);
-        lblTitulo.setFont(FONT_LABEL_TABLA); // Segoe UI Bold 13
         lblTitulo.setBackground(PaletaColor.get(PaletaColor.PRIMARIO)); 
         lblTitulo.setForeground(Color.WHITE); 
         lblTitulo.setOpaque(true);
@@ -498,7 +524,6 @@ public class JPanelClima extends JPanel implements ObservadorTiempo {
     }
     
     
-    // Este método genera un objeto Clima por cada hora
     private Clima generarClimaAleatorio(int hora) {
         int tipoClima = generadorAleatorio.nextInt(4);
         boolean esDeNoche = (hora > 20 || hora < 6);
